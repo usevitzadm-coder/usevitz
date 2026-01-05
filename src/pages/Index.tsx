@@ -1,7 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
-import FeaturedProducts from "@/components/home/FeaturedProducts";
 import ValueProps from "@/components/home/ValueProps";
 import ProductsCarousel from "@/components/home/ProductsCarousel";
 import LooksProntos from "@/components/home/LooksProntos";
@@ -25,7 +24,6 @@ const Index = () => {
         <ValueProps />
         <ProductsCarousel />
         <LooksProntos />
-        <FeaturedProducts />
         <BrandStory />
         <Testimonials />
       </Layout>
