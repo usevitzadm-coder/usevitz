@@ -184,6 +184,134 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          variant_id: string | null
+          variant_info: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          variant_id?: string | null
+          variant_info?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+          variant_id?: string | null
+          variant_info?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          coupon_code: string | null
+          created_at: string
+          customer_document: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          discount: number
+          gift_card_amount: number
+          id: string
+          order_number: string
+          payment_id: string | null
+          payment_method: string | null
+          payment_status: string
+          shipping_address: string
+          shipping_cep: string
+          shipping_city: string
+          shipping_cost: number
+          shipping_method: string | null
+          shipping_neighborhood: string | null
+          shipping_state: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string
+          customer_document?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          discount?: number
+          gift_card_amount?: number
+          id?: string
+          order_number: string
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          shipping_address: string
+          shipping_cep: string
+          shipping_city: string
+          shipping_cost?: number
+          shipping_method?: string | null
+          shipping_neighborhood?: string | null
+          shipping_state: string
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string
+          customer_document?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          discount?: number
+          gift_card_amount?: number
+          id?: string
+          order_number?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          shipping_address?: string
+          shipping_cep?: string
+          shipping_city?: string
+          shipping_cost?: number
+          shipping_method?: string | null
+          shipping_neighborhood?: string | null
+          shipping_state?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
