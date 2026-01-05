@@ -41,11 +41,16 @@ serve(async (req) => {
 
   try {
     const melhorEnvioToken = Deno.env.get("MELHOR_ENVIO_TOKEN");
+    const useSandbox = Deno.env.get("MELHOR_ENVIO_SANDBOX") === "true";
 
     if (!melhorEnvioToken) {
       console.error("MELHOR_ENVIO_TOKEN not configured");
       throw new Error("Serviço de frete não configurado");
     }
+
+    const baseUrl = useSandbox 
+      ? "https://sandbox.melhorenvio.com.br" 
+      : "https://melhorenvio.com.br";
 
     const body: ShippingRequest = await req.json();
     console.log("Shipping calculation request:", JSON.stringify(body));
@@ -75,7 +80,9 @@ serve(async (req) => {
 
     console.log("Sending to Melhor Envio:", JSON.stringify(melhorEnvioBody));
 
-    const response = await fetch("https://melhorenvio.com.br/api/v2/me/shipment/calculate", {
+    console.log("Using API:", useSandbox ? "SANDBOX" : "PRODUCTION");
+
+    const response = await fetch(`${baseUrl}/api/v2/me/shipment/calculate`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
