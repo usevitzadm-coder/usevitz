@@ -1,0 +1,7 @@
+export { default as AdminLogin } from './AdminLogin';
+export { default as AdminDashboard } from './AdminDashboard';
+export { default as AdminProducts } from './AdminProducts';
+export { default as ProductForm } from './ProductForm';
+export { default as AdminCategories } from './AdminCategories';
+export { default as AdminTags } from './AdminTags';
+export { default as AdminStock } from './AdminStock';
