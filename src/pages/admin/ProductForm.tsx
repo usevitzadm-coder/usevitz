@@ -54,15 +54,12 @@ interface ProductImage {
 }
 
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
-const DEFAULT_COLORS = [
-  { name: 'Preto', hex: '#000000' },
-  { name: 'Branco', hex: '#FFFFFF' },
-  { name: 'Bege', hex: '#F5F5DC' },
-  { name: 'Verde', hex: '#228B22' },
-  { name: 'Azul', hex: '#4169E1' },
-  { name: 'Rosa', hex: '#FF69B4' },
-  { name: 'Cinza', hex: '#808080' },
-];
+
+interface ColorOption {
+  id: string;
+  name: string;
+  hex_code: string;
+}
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -74,6 +71,7 @@ export default function ProductForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [colorOptions, setColorOptions] = useState<ColorOption[]>([]);
 
   // Form state
   const [name, setName] = useState('');
@@ -94,6 +92,7 @@ export default function ProductForm() {
   useEffect(() => {
     fetchCategories();
     fetchTags();
+    fetchColors();
     if (isEditing) {
       fetchProduct();
     }
@@ -130,6 +129,15 @@ export default function ProductForm() {
       .eq('is_active', true)
       .order('name');
     setTags(data || []);
+  }
+
+  async function fetchColors() {
+    const { data } = await supabase
+      .from('colors')
+      .select('id, name, hex_code')
+      .eq('is_active', true)
+      .order('display_order');
+    setColorOptions(data || []);
   }
 
   async function fetchProduct() {
@@ -355,13 +363,14 @@ export default function ProductForm() {
   }
 
   function addVariant() {
+    const defaultColor = colorOptions.length > 0 ? colorOptions[0] : null;
     setVariants([
       ...variants,
       {
         size: 'M',
-        color: 'Preto',
-        color_hex: '#000000',
-        sku: `${slug}-M-PRETO`.toUpperCase(),
+        color: defaultColor?.name || 'Preto',
+        color_hex: defaultColor?.hex_code || '#000000',
+        sku: `${slug}-M-${(defaultColor?.name || 'PRETO').toUpperCase()}`.toUpperCase(),
         price: null,
         stock: 0,
         is_active: true,
@@ -635,20 +644,34 @@ export default function ProductForm() {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label>Nome da cor</Label>
-                            <div className="relative">
-                              <Input
-                                value={variant.color}
-                                onChange={(e) => updateVariant(index, 'color', e.target.value)}
-                                placeholder="Ex: Azul Marinho"
-                                list={`colors-${index}`}
-                              />
-                              <datalist id={`colors-${index}`}>
-                                {DEFAULT_COLORS.map((c) => (
-                                  <option key={c.name} value={c.name} />
+                            <Label>Cor</Label>
+                            <Select
+                              value={variant.color}
+                              onValueChange={(v) => {
+                                const colorObj = colorOptions.find(c => c.name === v);
+                                updateVariant(index, 'color', v);
+                                if (colorObj) {
+                                  updateVariant(index, 'color_hex', colorObj.hex_code);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma cor" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {colorOptions.map((color) => (
+                                  <SelectItem key={color.id} value={color.name}>
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        className="w-4 h-4 rounded-full border"
+                                        style={{ backgroundColor: color.hex_code }}
+                                      />
+                                      {color.name}
+                                    </div>
+                                  </SelectItem>
                                 ))}
-                              </datalist>
-                            </div>
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="space-y-2">
                             <Label>Cor (Hex)</Label>

@@ -36,6 +36,7 @@ import {
   AdminSettings,
   AdminCoupons,
   AdminOrders,
+  AdminColors,
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
@@ -124,6 +125,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminStock />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/cores"
+                  element={
+                    <AdminLayout>
+                      <AdminColors />
                     </AdminLayout>
                   }
                 />
