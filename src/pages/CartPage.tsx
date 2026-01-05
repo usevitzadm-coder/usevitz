@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Minus, Plus, X, ArrowRight, Truck, Loader2, Package } from "lucide-react";
+import { Minus, Plus, X, ArrowRight, Truck, Loader2, Package, Tag } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,20 @@ interface ShippingOption {
   };
 }
 
+interface AppliedCoupon {
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+}
+
 const SOUTHEAST_STATES = ["SP", "RJ", "MG", "ES"];
 const FREE_SHIPPING_MIN = 239.90;
 
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const { toast } = useToast();
 
   // Shipping states
@@ -48,14 +56,116 @@ const CartPage = () => {
     return digits.replace(/(\d{5})(\d{0,3})/, "$1-$2");
   };
 
-  const handleApplyCoupon = () => {
-    if (couponCode.trim()) {
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.toUpperCase().trim())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!coupon) {
+        toast({
+          title: "Cupom inválido",
+          description: "Este cupom não existe.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if coupon is active
+      if (!coupon.is_active) {
+        toast({
+          title: "Cupom inativo",
+          description: "Este cupom não está mais ativo.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check start date
+      if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) {
+        toast({
+          title: "Cupom ainda não está válido",
+          description: "Este cupom ainda não começou a valer.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check expiration
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        toast({
+          title: "Cupom expirado",
+          description: "Este cupom já expirou.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check max uses
+      if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+        toast({
+          title: "Cupom esgotado",
+          description: "Este cupom já atingiu o limite de usos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check minimum order value
+      const subtotal = getCartTotal();
+      if (coupon.min_order_value && subtotal < coupon.min_order_value) {
+        toast({
+          title: "Valor mínimo não atingido",
+          description: `Pedido mínimo de ${formatPrice(coupon.min_order_value)} para usar este cupom.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Apply coupon
+      setAppliedCoupon({
+        code: coupon.code,
+        discount_type: coupon.discount_type as 'percentage' | 'fixed',
+        discount_value: coupon.discount_value,
+      });
+      setCouponCode("");
       toast({
-        title: "Cupom inválido",
-        description: "Este cupom não existe ou expirou.",
+        title: "Cupom aplicado!",
+        description: `Desconto de ${coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatPrice(coupon.discount_value)} aplicado.`,
+      });
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      toast({
+        title: "Erro ao aplicar cupom",
+        description: "Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setIsApplyingCoupon(false);
     }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    toast({
+      title: "Cupom removido",
+    });
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    const subtotal = getCartTotal();
+    if (appliedCoupon.discount_type === 'percentage') {
+      return (subtotal * appliedCoupon.discount_value) / 100;
+    }
+    return Math.min(appliedCoupon.discount_value, subtotal);
   };
 
   const handleCepChange = (value: string) => {
@@ -178,8 +288,9 @@ const CartPage = () => {
   };
 
   const subtotal = getCartTotal();
+  const discount = calculateDiscount();
   const shippingCost = selectedShipping?.price || 0;
-  const total = subtotal + shippingCost;
+  const total = subtotal - discount + shippingCost;
 
   // Check if user qualifies for free shipping promotion
   const isSoutheast = SOUTHEAST_STATES.includes(destinationState);
@@ -374,18 +485,45 @@ const CartPage = () => {
                     <label className="vitz-label block mb-2">
                       Cupom de Desconto
                     </label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Código"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button variant="outline" onClick={handleApplyCoupon}>
-                        Aplicar
-                      </Button>
-                    </div>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded">
+                        <div className="flex items-center gap-2">
+                          <Tag size={16} className="text-primary" />
+                          <div>
+                            <p className="font-mono font-medium text-sm">{appliedCoupon.code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {appliedCoupon.discount_type === 'percentage' 
+                                ? `${appliedCoupon.discount_value}% de desconto`
+                                : `${formatPrice(appliedCoupon.discount_value)} de desconto`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={removeCoupon}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Código"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          className="flex-1 uppercase"
+                        />
+                        <Button 
+                          variant="outline" 
+                          onClick={handleApplyCoupon}
+                          disabled={isApplyingCoupon}
+                        >
+                          {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aplicar'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-3 border-t border-border pt-4">
@@ -393,6 +531,12 @@ const CartPage = () => {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatPrice(subtotal)}</span>
                     </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Desconto ({appliedCoupon?.code})</span>
+                        <span>-{formatPrice(discount)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Frete</span>
                       <span>
