@@ -7,33 +7,8 @@ import { Input } from "@/components/ui/input";
 import visaLogo from "@/assets/payment/visa.svg";
 import eloLogo from "@/assets/payment/elo.png";
 import pixLogo from "@/assets/payment/pix.png";
-
-// Mastercard SVG Icon
-const MastercardIcon = () => (
-  <svg viewBox="0 0 48 32" className="h-full w-auto">
-    <rect width="48" height="32" rx="4" fill="#F5F5F5"/>
-    <circle cx="18" cy="16" r="7" fill="#EB001B"/>
-    <circle cx="30" cy="16" r="7" fill="#F79E1B"/>
-    <path d="M24 10.8c1.5 1.2 2.5 3 2.5 5.2s-1 4-2.5 5.2c-1.5-1.2-2.5-3-2.5-5.2s1-4 2.5-5.2z" fill="#FF5F00"/>
-  </svg>
-);
-
-// Boleto SVG Icon
-const BoletoIcon = () => (
-  <svg viewBox="0 0 48 32" className="h-full w-auto">
-    <rect width="48" height="32" rx="4" fill="#F5F5F5"/>
-    <rect x="6" y="8" width="2" height="16" fill="#333"/>
-    <rect x="10" y="8" width="1" height="16" fill="#333"/>
-    <rect x="13" y="8" width="3" height="16" fill="#333"/>
-    <rect x="18" y="8" width="1" height="16" fill="#333"/>
-    <rect x="21" y="8" width="2" height="16" fill="#333"/>
-    <rect x="25" y="8" width="1" height="16" fill="#333"/>
-    <rect x="28" y="8" width="3" height="16" fill="#333"/>
-    <rect x="33" y="8" width="1" height="16" fill="#333"/>
-    <rect x="36" y="8" width="2" height="16" fill="#333"/>
-    <rect x="40" y="8" width="2" height="16" fill="#333"/>
-  </svg>
-);
+import mastercardLogo from "@/assets/payment/mastercard.png";
+import boletoLogo from "@/assets/payment/boleto.png";
 
 const Footer = () => {
   const institutionalLinks = [
@@ -145,8 +120,8 @@ const Footer = () => {
                 <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" />
               </div>
               {/* Mastercard */}
-              <div className="bg-white rounded overflow-hidden flex items-center justify-center h-10" title="Mastercard">
-                <MastercardIcon />
+              <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Mastercard">
+                <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" />
               </div>
               {/* Visa */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Visa">
@@ -157,8 +132,8 @@ const Footer = () => {
                 <img src={pixLogo} alt="Pix" className="h-6 w-auto object-contain" />
               </div>
               {/* Boleto */}
-              <div className="bg-white rounded overflow-hidden flex items-center justify-center h-10" title="Boleto">
-                <BoletoIcon />
+              <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
+                <img src={boletoLogo} alt="Boleto" className="h-5 w-auto object-contain" />
               </div>
             </div>
           </div>
