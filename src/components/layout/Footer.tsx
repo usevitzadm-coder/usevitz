@@ -129,11 +129,11 @@ const Footer = () => {
               </div>
               {/* Pix */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Pix">
-                <img src={pixLogo} alt="Pix" className="h-6 w-auto object-contain" />
+                <img src={pixLogo} alt="Pix" className="h-8 w-auto object-contain" />
               </div>
               {/* Boleto */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
-                <img src={boletoLogo} alt="Boleto" className="h-5 w-auto object-contain" />
+                <img src={boletoLogo} alt="Boleto" className="h-7 w-auto object-contain" />
               </div>
             </div>
           </div>
