@@ -12,10 +12,9 @@ const Header = () => {
   const cartCount = getCartCount();
 
   const navLinks = [
-    { name: "Feminino", href: "/colecao/feminino" },
-    { name: "Masculino", href: "/colecao/masculino" },
+    { name: "Produtos", href: "/produtos" },
+    { name: "GiftCard", href: "/giftcard" },
     { name: "Novidades", href: "/novidades" },
-    { name: "Sale", href: "/sale" },
   ];
 
   return (
