@@ -37,7 +37,7 @@ const Header = () => {
               <img 
                 src={logoVitz} 
                 alt="Vitz" 
-                className="h-8 md:h-10"
+                className="h-10 md:h-12"
               />
             </Link>
 
