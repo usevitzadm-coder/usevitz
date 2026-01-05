@@ -559,13 +559,18 @@ const CartPage = () => {
                     </div>
                   </div>
 
+                  {/* Gift Card info */}
+                  <p className="text-xs text-muted-foreground text-center mb-4">
+                    💳 Possui um Gift Card? Use-o no checkout!
+                  </p>
+
                   <Button
                     variant="hero"
                     size="lg"
-                    className="w-full mt-6"
+                    className="w-full"
                     asChild
                   >
-                    <Link to="/checkout">
+                    <Link to={appliedCoupon ? `/checkout?coupon=${appliedCoupon.code}` : "/checkout"}>
                       Finalizar Compra
                       <ArrowRight size={18} />
                     </Link>
