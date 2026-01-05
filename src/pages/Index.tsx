@@ -1,13 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from "react-helmet-async";
+import Layout from "@/components/layout/Layout";
+import HeroSection from "@/components/home/HeroSection";
+import CollectionsSection from "@/components/home/CollectionsSection";
+import FeaturedProducts from "@/components/home/FeaturedProducts";
+import ValueProps from "@/components/home/ValueProps";
+import Testimonials from "@/components/home/Testimonials";
+import BrandStory from "@/components/home/BrandStory";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      <Helmet>
+        <title>Vitz | Roupas Fitness Premium - Conforto, Performance e Estilo</title>
+        <meta
+          name="description"
+          content="Vitz - Roupas fitness premium desenvolvidas para quem vive em movimento. Leggings, tops e conjuntos com tecnologia de ponta, conforto e estilo."
+        />
+        <meta name="keywords" content="roupas fitness, leggings, tops esportivos, moda fitness, roupas de treino, Vitz" />
+        <link rel="canonical" href="https://www.usevitz.com" />
+      </Helmet>
+      <Layout>
+        <HeroSection />
+        <ValueProps />
+        <CollectionsSection />
+        <FeaturedProducts />
+        <BrandStory />
+        <Testimonials />
+      </Layout>
+    </>
   );
 };
 
