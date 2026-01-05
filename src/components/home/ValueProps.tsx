@@ -1,20 +1,20 @@
-import { Truck, RefreshCw, Shield, Sparkles } from "lucide-react";
+import { Truck, CreditCard, Shield, Sparkles } from "lucide-react";
 
 const benefits = [
   {
     icon: Truck,
-    title: "Frete Grátis",
-    description: "Em compras acima de R$ 299",
+    title: "Frete Grátis p/ Sudeste",
+    description: "Em compras acima de R$239,90",
   },
   {
-    icon: RefreshCw,
-    title: "Troca Fácil",
-    description: "Primeira troca grátis",
+    icon: CreditCard,
+    title: "Parcele em até 3x s/ juros",
+    description: "No cartão de crédito",
   },
   {
     icon: Shield,
     title: "Compra Segura",
-    description: "Seus dados protegidos",
+    description: "Seus dados 100% protegidos",
   },
   {
     icon: Sparkles,
