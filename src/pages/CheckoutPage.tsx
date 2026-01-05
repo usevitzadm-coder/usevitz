@@ -23,6 +23,9 @@ interface ShippingOption {
   };
 }
 
+const SOUTHEAST_STATES = ["SP", "RJ", "MG", "ES"];
+const FREE_SHIPPING_MIN = 239.90;
+
 const CheckoutPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -136,7 +139,7 @@ const CheckoutPage = () => {
         .from("store_settings")
         .select("value")
         .eq("key", "origin_cep")
-        .single();
+        .maybeSingle();
 
       const originCep = settingsData?.value || "05524000";
 
@@ -159,10 +162,34 @@ const CheckoutPage = () => {
 
       if (error) throw error;
 
+      let options: ShippingOption[] = [];
+
       if (data?.options && data.options.length > 0) {
-        setShippingOptions(data.options);
-        // Auto-select cheapest option
-        const cheapest = data.options.reduce((prev: ShippingOption, curr: ShippingOption) =>
+        options = data.options;
+      }
+
+      // Check for free shipping eligibility (Southeast + minimum order)
+      const isSoutheast = SOUTHEAST_STATES.includes(shipping.state);
+      const qualifiesForFreeShipping = isSoutheast && totalPrice >= FREE_SHIPPING_MIN;
+
+      if (qualifiesForFreeShipping) {
+        const freeShippingOption: ShippingOption = {
+          id: 0,
+          name: "Frete Grátis Sudeste",
+          price: 0,
+          delivery_time: options.length > 0 ? Math.max(...options.map(o => o.delivery_time)) : 7,
+          company: {
+            name: "Vitz",
+            picture: "",
+          },
+        };
+        options = [freeShippingOption, ...options];
+      }
+
+      if (options.length > 0) {
+        setShippingOptions(options);
+        // Auto-select cheapest option (free shipping if available)
+        const cheapest = options.reduce((prev: ShippingOption, curr: ShippingOption) =>
           prev.price < curr.price ? prev : curr
         );
         setSelectedShipping(cheapest);
