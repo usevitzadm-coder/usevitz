@@ -13,7 +13,10 @@ import CollectionPage from "./pages/CollectionPage";
 import CartPage from "./pages/CartPage";
 import SearchPage from "./pages/SearchPage";
 import ProductsPage from "./pages/ProductsPage";
+import GiftCardPage from "./pages/GiftCardPage";
+import CheckGiftCardPage from "./pages/CheckGiftCardPage";
 import NotFound from "./pages/NotFound";
+import AdminGiftCards from "./pages/admin/AdminGiftCards";
 import {
   AdminLogin,
   AdminDashboard,
@@ -43,6 +46,8 @@ const App = () => (
                 <Route path="/carrinho" element={<CartPage />} />
                 <Route path="/busca" element={<SearchPage />} />
                 <Route path="/produtos" element={<ProductsPage />} />
+                <Route path="/gift-card" element={<GiftCardPage />} />
+                <Route path="/gift-card/consultar" element={<CheckGiftCardPage />} />
                 <Route path="/novidades" element={<CollectionPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
 
@@ -101,6 +106,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminStock />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/gift-cards"
+                  element={
+                    <AdminLayout>
+                      <AdminGiftCards />
                     </AdminLayout>
                   }
                 />
