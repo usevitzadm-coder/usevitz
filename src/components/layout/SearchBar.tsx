@@ -47,7 +47,7 @@ export function SearchBar({ isExpanded, onExpandChange, variant = "desktop" }: S
           images:product_images(url, is_primary)
         `)
         .eq("is_active", true)
-        .ilike("name", `%${searchTerm}%`)
+        .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`)
         .limit(6);
 
       if (error) throw error;
@@ -71,6 +71,13 @@ export function SearchBar({ isExpanded, onExpandChange, variant = "desktop" }: S
       setIsLoading(false);
     }
   }, []);
+
+  const handleSearchSubmit = () => {
+    if (query.trim()) {
+      handleClose();
+      navigate(`/busca?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   // Debounce search
   useEffect(() => {
@@ -153,7 +160,7 @@ export function SearchBar({ isExpanded, onExpandChange, variant = "desktop" }: S
 
     return (
       <div ref={containerRef} className="flex items-center gap-2 flex-1 max-w-md">
-        <div className="relative flex-1">
+        <form onSubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }} className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
@@ -216,7 +223,7 @@ export function SearchBar({ isExpanded, onExpandChange, variant = "desktop" }: S
               )}
             </div>
           )}
-        </div>
+        </form>
         <Button
           variant="ghost"
           size="icon"
@@ -274,7 +281,7 @@ export function MobileSearchPanel({ isOpen, onClose }: { isOpen: boolean; onClos
           images:product_images(url, is_primary)
         `)
         .eq("is_active", true)
-        .ilike("name", `%${searchTerm}%`)
+        .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`)
         .limit(6);
 
       if (error) throw error;
@@ -298,6 +305,13 @@ export function MobileSearchPanel({ isOpen, onClose }: { isOpen: boolean; onClos
       setIsLoading(false);
     }
   }, []);
+
+  const handleSearchSubmit = () => {
+    if (query.trim()) {
+      handleClose();
+      navigate(`/busca?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -339,7 +353,10 @@ export function MobileSearchPanel({ isOpen, onClose }: { isOpen: boolean; onClos
   return (
     <div className="md:hidden bg-background border-b border-border">
       <div className="vitz-container py-3">
-        <div className="relative">
+        <form 
+          onSubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }} 
+          className="relative"
+        >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
@@ -350,6 +367,7 @@ export function MobileSearchPanel({ isOpen, onClose }: { isOpen: boolean; onClos
             className="pl-9 pr-9 bg-background border-border"
           />
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="absolute right-0 top-1/2 -translate-y-1/2 h-full aspect-square"
@@ -358,7 +376,7 @@ export function MobileSearchPanel({ isOpen, onClose }: { isOpen: boolean; onClos
           >
             <X size={16} />
           </Button>
-        </div>
+        </form>
 
         {/* Results */}
         {(isLoading || results.length > 0 || (query.trim() && !isLoading)) && (
