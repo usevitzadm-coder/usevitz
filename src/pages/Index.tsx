@@ -4,6 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import CollectionsSection from "@/components/home/CollectionsSection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import ValueProps from "@/components/home/ValueProps";
+import ProductsCarousel from "@/components/home/ProductsCarousel";
 import Testimonials from "@/components/home/Testimonials";
 import BrandStory from "@/components/home/BrandStory";
 
@@ -22,6 +23,7 @@ const Index = () => {
       <Layout>
         <HeroSection />
         <ValueProps />
+        <ProductsCarousel />
         <CollectionsSection />
         <FeaturedProducts />
         <BrandStory />
