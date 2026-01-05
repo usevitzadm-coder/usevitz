@@ -166,7 +166,7 @@ const ProductsCarousel = () => {
             </div>
             
             <Button variant="minimal" asChild>
-              <Link to="/busca">Ver todos</Link>
+              <Link to="/produtos">Ver todos</Link>
             </Button>
           </div>
         </div>
