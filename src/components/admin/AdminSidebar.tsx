@@ -8,7 +8,8 @@ import {
   Ticket, 
   Settings,
   ChevronLeft,
-  Gift
+  Gift,
+  Palette
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -31,6 +32,7 @@ const mainNavItems = [
   { title: 'Produtos', url: '/admin/produtos', icon: Package },
   { title: 'Categorias', url: '/admin/categorias', icon: FolderTree },
   { title: 'Tags', url: '/admin/tags', icon: Tags },
+  { title: 'Cores', url: '/admin/cores', icon: Palette },
   { title: 'Estoque', url: '/admin/estoque', icon: Boxes },
   { title: 'Gift Cards', url: '/admin/gift-cards', icon: Gift },
 ];
