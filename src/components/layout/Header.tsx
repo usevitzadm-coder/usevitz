@@ -32,7 +32,7 @@ const Header = () => {
           </button>
 
           {/* Logo + Desktop Navigation */}
-          <div className="flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="flex items-center flex-shrink-0">
               <img 
                 src={logoVitz} 
@@ -41,8 +41,8 @@ const Header = () => {
               />
             </Link>
 
-            {/* Desktop Navigation - Always visible */}
-            <nav className="hidden md:flex items-center gap-6">
+            {/* Desktop Navigation */}
+            <nav className="flex items-center gap-6">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
@@ -53,6 +53,17 @@ const Header = () => {
                 </Link>
               ))}
             </nav>
+          </div>
+
+          {/* Mobile Centered Logo */}
+          <div className="md:hidden absolute left-1/2 -translate-x-1/2">
+            <Link to="/" className="flex items-center">
+              <img 
+                src={logoVitz} 
+                alt="Vitz" 
+                className="h-[7.5rem]"
+              />
+            </Link>
           </div>
 
           {/* Desktop Search Bar - Centered when open */}
