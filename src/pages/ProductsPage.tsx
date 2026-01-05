@@ -6,12 +6,18 @@ import ProductCard from "@/components/product/ProductCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Helmet } from "react-helmet-async";
+import ProductFilters, { ProductFiltersState } from "@/components/products/ProductFilters";
 
 type SortOption = "newest" | "price-asc" | "price-desc" | "name";
 
 const ProductsPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [filters, setFilters] = useState<ProductFiltersState>({
+    priceRange: [0, 1000],
+    colors: [],
+    categories: [],
+    sizes: [],
+  });
 
   // Fetch categories
   const { data: categories } = useQuery({
@@ -28,10 +34,37 @@ const ProductsPage = () => {
     },
   });
 
-  // Fetch products with images
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["all-products", selectedCategory, sortBy],
+  // Fetch max price for slider
+  const { data: maxPrice } = useQuery({
+    queryKey: ["max-price"],
     queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("price")
+        .eq("is_active", true)
+        .order("price", { ascending: false })
+        .limit(1);
+      
+      if (error) throw error;
+      return data?.[0]?.price || 1000;
+    },
+  });
+
+  // Update price range when maxPrice is loaded
+  useEffect(() => {
+    if (maxPrice && filters.priceRange[1] === 1000) {
+      setFilters((prev) => ({
+        ...prev,
+        priceRange: [0, Math.ceil(maxPrice / 100) * 100],
+      }));
+    }
+  }, [maxPrice]);
+
+  // Fetch products with images and variants for filtering
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["all-products", filters, sortBy],
+    queryFn: async () => {
+      // First, get products with their variants
       let query = supabase
         .from("products")
         .select(`
@@ -44,15 +77,19 @@ const ProductsPage = () => {
           short_description,
           category_id,
           created_at,
-          product_images!inner(url, is_primary)
+          product_images!inner(url, is_primary),
+          product_variants(color, size, is_active)
         `)
         .eq("is_active", true)
         .eq("product_images.is_primary", true);
 
-      // Filter by category
-      if (selectedCategory !== "all") {
-        query = query.eq("category_id", selectedCategory);
+      // Filter by categories
+      if (filters.categories.length > 0) {
+        query = query.in("category_id", filters.categories);
       }
+
+      // Filter by price range
+      query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
 
       // Sort
       switch (sortBy) {
@@ -74,12 +111,31 @@ const ProductsPage = () => {
       
       if (error) throw error;
       
-      return data?.map(product => ({
+      // Filter by color and size (client-side since we need to check variants)
+      let filteredData = data;
+
+      if (filters.colors.length > 0 || filters.sizes.length > 0) {
+        filteredData = data?.filter((product) => {
+          const activeVariants = product.product_variants?.filter((v) => v.is_active) || [];
+          
+          const colorMatch = filters.colors.length === 0 || 
+            activeVariants.some((v) => filters.colors.includes(v.color));
+          
+          const sizeMatch = filters.sizes.length === 0 || 
+            activeVariants.some((v) => filters.sizes.includes(v.size));
+          
+          return colorMatch && sizeMatch;
+        });
+      }
+      
+      return filteredData?.map((product) => ({
         ...product,
-        image_url: product.product_images[0]?.url || "/placeholder.svg"
+        image_url: product.product_images[0]?.url || "/placeholder.svg",
       }));
     },
   });
+
+  const effectiveMaxPrice = maxPrice ? Math.ceil(maxPrice / 100) * 100 : 1000;
 
   return (
     <Layout>
@@ -101,19 +157,12 @@ const ProductsPage = () => {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {categories?.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ProductFilters
+            categories={categories || []}
+            filters={filters}
+            onFiltersChange={setFilters}
+            maxPrice={effectiveMaxPrice}
+          />
 
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
             <SelectTrigger className="w-full sm:w-[200px]">
