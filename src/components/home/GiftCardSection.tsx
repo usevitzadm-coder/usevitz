@@ -38,7 +38,7 @@ const GiftCardSection = () => {
             <ul className="space-y-3 mb-8">
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                Valores de R$ 100 a R$ 500
+                Valores de R$ 50 a R$ 300
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary" />
