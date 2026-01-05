@@ -56,18 +56,19 @@ const CheckGiftCardPage = () => {
       const normalizedCode = code.replace(/[-\s]/g, "").toUpperCase();
       const formattedCode = normalizedCode.match(/.{1,4}/g)?.join("-") || normalizedCode;
 
+      // Use secure RPC function to lookup gift card
       const { data, error: fetchError } = await supabase
-        .from("gift_cards")
-        .select("code, current_balance, initial_value, expires_at, is_active")
-        .eq("code", formattedCode)
-        .single();
+        .rpc("get_gift_card_by_code", { _code: formattedCode });
 
-      if (fetchError || !data) {
+      if (fetchError || !data || data.length === 0) {
         setError("Gift card não encontrado. Verifique o código e tente novamente.");
         return;
       }
 
-      setGiftCard(data);
+      // RPC returns an array, get first result
+      const giftCardData = data[0];
+
+      setGiftCard(giftCardData);
     } catch (err) {
       console.error("Error fetching gift card:", err);
       setError("Erro ao buscar gift card. Tente novamente.");
