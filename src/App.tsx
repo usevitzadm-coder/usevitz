@@ -19,6 +19,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 import CheckoutErrorPage from "./pages/CheckoutErrorPage";
 import CheckoutPendingPage from "./pages/CheckoutPendingPage";
+import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import AdminGiftCards from "./pages/admin/AdminGiftCards";
 import {
@@ -58,7 +59,7 @@ const App = () => (
                 <Route path="/checkout/pendente" element={<CheckoutPendingPage />} />
                 <Route path="/novidades" element={<CollectionPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
-
+                <Route path="/sobre" element={<AboutPage />} />
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
