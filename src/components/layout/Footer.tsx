@@ -3,6 +3,68 @@ import { Instagram, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+// Payment Icons Components
+const VisaIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#1A1F71"/>
+    <path d="M19.5 21h-2.7l1.7-10.5h2.7L19.5 21zm-4.8 0h-2.8l-2.4-8.4-.3 1.6-1 4.8c-.1.7-.5 1-.9 1h-4.2l-.1-.3c.8-.2 1.7-.5 2.2-.8.3-.2.4-.4.5-.7l2.1-7.7h2.9l4 10.5zm20.3-6.8c0-.6.5-1.2 1.6-1.4.5-.1 1.9-.2 3.5.6l.6-2.9c-.8-.3-1.9-.6-3.3-.6-3.5 0-6 1.9-6 4.5 0 2 1.8 3.1 3.1 3.7 1.4.6 1.9 1.1 1.8 1.7 0 .9-1.1 1.3-2.1 1.3-1.8 0-2.8-.5-3.6-.8l-.6 3c.8.4 2.3.7 3.9.7 3.7 0 6.2-1.8 6.2-4.7 0-3.6-5.1-3.8-5.1-5.1zm14 6.8l-3.4-10.5h-2.4c-.5 0-1 .3-1.2.8l-4.2 9.7h2.9l.6-1.6h3.6l.3 1.6h2.6v0h.2zm-3.5-3.9l1.5-4.1.9 4.1h-2.4z" fill="white"/>
+  </svg>
+);
+
+const MastercardIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#F5F5F5"/>
+    <circle cx="19" cy="16" r="8" fill="#EB001B"/>
+    <circle cx="29" cy="16" r="8" fill="#F79E1B"/>
+    <path d="M24 10.3c1.8 1.4 3 3.5 3 5.7s-1.2 4.3-3 5.7c-1.8-1.4-3-3.5-3-5.7s1.2-4.3 3-5.7z" fill="#FF5F00"/>
+  </svg>
+);
+
+const EloIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#000"/>
+    <text x="24" y="19" textAnchor="middle" fill="#FFCB05" fontSize="12" fontWeight="bold" fontFamily="Arial">elo</text>
+  </svg>
+);
+
+const HipercardIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#B3131B"/>
+    <text x="24" y="19" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold" fontFamily="Arial">HIPERCARD</text>
+  </svg>
+);
+
+const AmexIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#006FCF"/>
+    <text x="24" y="19" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">AMEX</text>
+  </svg>
+);
+
+const PixIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#F5F5F5"/>
+    <path d="M29.7 11.3l-4.3 4.3c-.8.8-2 .8-2.8 0l-4.3-4.3c-.4-.4-1-.4-1.4 0l-2.8 2.8c-.4.4-.4 1 0 1.4l4.3 4.3c.8.8.8 2 0 2.8l-4.3 4.3c-.4.4-.4 1 0 1.4l2.8 2.8c.4.4 1 .4 1.4 0l4.3-4.3c.8-.8 2-.8 2.8 0l4.3 4.3c.4.4 1 .4 1.4 0l2.8-2.8c.4-.4.4-1 0-1.4l-4.3-4.3c-.8-.8-.8-2 0-2.8l4.3-4.3c.4-.4.4-1 0-1.4l-2.8-2.8c-.4-.4-1-.4-1.4 0z" fill="#32BCAD" transform="translate(0, -4) scale(0.7)"/>
+    <text x="30" y="20" textAnchor="start" fill="#32BCAD" fontSize="10" fontWeight="bold" fontFamily="Arial">Pix</text>
+  </svg>
+);
+
+const BoletoIcon = () => (
+  <svg viewBox="0 0 48 32" className="h-6 w-auto">
+    <rect width="48" height="32" rx="4" fill="#F5F5F5"/>
+    <rect x="6" y="8" width="2" height="16" fill="#333"/>
+    <rect x="10" y="8" width="1" height="16" fill="#333"/>
+    <rect x="13" y="8" width="3" height="16" fill="#333"/>
+    <rect x="18" y="8" width="1" height="16" fill="#333"/>
+    <rect x="21" y="8" width="2" height="16" fill="#333"/>
+    <rect x="25" y="8" width="1" height="16" fill="#333"/>
+    <rect x="28" y="8" width="3" height="16" fill="#333"/>
+    <rect x="33" y="8" width="1" height="16" fill="#333"/>
+    <rect x="36" y="8" width="2" height="16" fill="#333"/>
+    <rect x="40" y="8" width="2" height="16" fill="#333"/>
+  </svg>
+);
+
 const Footer = () => {
   const institutionalLinks = [
     { name: "Quem Somos", href: "/sobre" },
@@ -11,13 +73,14 @@ const Footer = () => {
     { name: "Política de Privacidade", href: "/privacidade" },
   ];
 
-  const paymentMethods = [
-    { name: "Elo", color: "#00A4E0" },
-    { name: "Mastercard", color: "#EB001B" },
-    { name: "Visa", color: "#1A1F71" },
-    { name: "Hipercard", color: "#B3131B" },
-    { name: "Amex", color: "#006FCF" },
-    { name: "Pix", color: "#32BCAD" },
+  const paymentIcons = [
+    { name: "Elo", icon: EloIcon },
+    { name: "Mastercard", icon: MastercardIcon },
+    { name: "Visa", icon: VisaIcon },
+    { name: "Hipercard", icon: HipercardIcon },
+    { name: "Amex", icon: AmexIcon },
+    { name: "Pix", icon: PixIcon },
+    { name: "Boleto", icon: BoletoIcon },
   ];
 
   return (
@@ -116,26 +179,16 @@ const Footer = () => {
           {/* Formas de Pagamento */}
           <div>
             <h4 className="font-medium mb-4">Formas de Pagamento</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {/* Payment method badges */}
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-gray-800">Elo</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-red-600">●●</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-blue-800">VISA</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-red-700">Hiper</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-blue-600">AMEX</span>
-              </div>
-              <div className="bg-white rounded px-2 py-1.5 flex items-center justify-center">
-                <span className="text-xs font-bold text-teal-600">Pix</span>
-              </div>
+            <div className="grid grid-cols-4 gap-2">
+              {paymentIcons.map(({ name, icon: Icon }) => (
+                <div 
+                  key={name}
+                  className="bg-white rounded overflow-hidden flex items-center justify-center p-1"
+                  title={name}
+                >
+                  <Icon />
+                </div>
+              ))}
             </div>
           </div>
         </div>
