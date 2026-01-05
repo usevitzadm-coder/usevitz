@@ -77,8 +77,6 @@ const Footer = () => {
     { name: "Elo", icon: EloIcon },
     { name: "Mastercard", icon: MastercardIcon },
     { name: "Visa", icon: VisaIcon },
-    { name: "Hipercard", icon: HipercardIcon },
-    { name: "Amex", icon: AmexIcon },
     { name: "Pix", icon: PixIcon },
     { name: "Boleto", icon: BoletoIcon },
   ];
