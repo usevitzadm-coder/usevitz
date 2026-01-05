@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package, Tag, X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,18 +23,30 @@ interface ShippingOption {
   };
 }
 
+interface AppliedCoupon {
+  code: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+}
+
 const SOUTHEAST_STATES = ["SP", "RJ", "MG", "ES"];
 const FREE_SHIPPING_MIN = 239.90;
 
 const CheckoutPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { items, getCartTotal, clearCart } = useCart();
   const totalPrice = getCartTotal();
   const [isLoading, setIsLoading] = useState(false);
   const [giftCardCode, setGiftCardCode] = useState("");
   const [giftCardDiscount, setGiftCardDiscount] = useState(0);
   const [giftCardApplied, setGiftCardApplied] = useState(false);
+
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // Shipping states
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
@@ -57,6 +69,15 @@ const CheckoutPage = () => {
     city: "",
     state: "",
   });
+
+  // Load coupon from URL params (passed from cart)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const couponFromCart = params.get('coupon');
+    if (couponFromCart) {
+      applyCouponByCode(couponFromCart);
+    }
+  }, [location.search]);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString("pt-BR", {
@@ -249,6 +270,143 @@ const CheckoutPage = () => {
     }
   };
 
+  const applyCouponByCode = async (code: string) => {
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', code.toUpperCase().trim())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!coupon) return;
+
+      // Check if coupon is active
+      if (!coupon.is_active) return;
+
+      // Check start date
+      if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) return;
+
+      // Check expiration
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return;
+
+      // Check max uses
+      if (coupon.max_uses && coupon.used_count >= coupon.max_uses) return;
+
+      // Check minimum order value
+      if (coupon.min_order_value && totalPrice < coupon.min_order_value) return;
+
+      // Apply coupon
+      setAppliedCoupon({
+        code: coupon.code,
+        discount_type: coupon.discount_type as 'percentage' | 'fixed',
+        discount_value: coupon.discount_value,
+      });
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    try {
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.toUpperCase().trim())
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!coupon) {
+        toast({
+          title: "Cupom inválido",
+          description: "Este cupom não existe.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!coupon.is_active) {
+        toast({
+          title: "Cupom inativo",
+          description: "Este cupom não está mais ativo.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) {
+        toast({
+          title: "Cupom ainda não válido",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        toast({
+          title: "Cupom expirado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+        toast({
+          title: "Cupom esgotado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (coupon.min_order_value && totalPrice < coupon.min_order_value) {
+        toast({
+          title: "Valor mínimo não atingido",
+          description: `Pedido mínimo de ${formatPrice(coupon.min_order_value)}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAppliedCoupon({
+        code: coupon.code,
+        discount_type: coupon.discount_type as 'percentage' | 'fixed',
+        discount_value: coupon.discount_value,
+      });
+      setCouponCode("");
+      toast({
+        title: "Cupom aplicado!",
+        description: `Desconto de ${coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatPrice(coupon.discount_value)} aplicado.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao aplicar cupom",
+        variant: "destructive",
+      });
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+
+  const calculateCouponDiscount = () => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.discount_type === 'percentage') {
+      return (totalPrice * appliedCoupon.discount_value) / 100;
+    }
+    return Math.min(appliedCoupon.discount_value, totalPrice);
+  };
+
   const validateForm = () => {
     if (!customer.name || !customer.email || !customer.cpf || !customer.phone) {
       toast({ title: "Preencha todos os dados pessoais", variant: "destructive" });
@@ -339,7 +497,8 @@ const CheckoutPage = () => {
   };
 
   const shippingCost = selectedShipping?.price || 0;
-  const finalTotal = Math.max(0, totalPrice - giftCardDiscount + shippingCost);
+  const couponDiscount = calculateCouponDiscount();
+  const finalTotal = Math.max(0, totalPrice - giftCardDiscount - couponDiscount + shippingCost);
 
   if (items.length === 0) {
     return (
@@ -550,6 +709,56 @@ const CheckoutPage = () => {
                   </Card>
                 )}
 
+                {/* Coupon */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Tag className="w-5 h-5" />
+                      Cupom de Desconto
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded">
+                        <div className="flex items-center gap-2">
+                          <Tag size={16} className="text-primary" />
+                          <div>
+                            <p className="font-mono font-medium text-sm">{appliedCoupon.code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {appliedCoupon.discount_type === 'percentage' 
+                                ? `${appliedCoupon.discount_value}% de desconto`
+                                : `${formatPrice(appliedCoupon.discount_value)} de desconto`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={removeCoupon}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-3">
+                        <Input
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          placeholder="CODIGO"
+                          className="flex-1 uppercase font-mono"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={handleApplyCoupon}
+                          disabled={isApplyingCoupon || !couponCode.trim()}
+                        >
+                          {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Gift Card */}
                 <Card>
                   <CardHeader>
@@ -618,6 +827,12 @@ const CheckoutPage = () => {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>{formatPrice(totalPrice)}</span>
                       </div>
+                      {appliedCoupon && couponDiscount > 0 && (
+                        <div className="flex justify-between text-primary">
+                          <span>Cupom ({appliedCoupon.code})</span>
+                          <span>-{formatPrice(couponDiscount)}</span>
+                        </div>
+                      )}
                       {giftCardApplied && (
                         <div className="flex justify-between text-green-600">
                           <span>Gift Card</span>
