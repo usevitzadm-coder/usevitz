@@ -47,6 +47,98 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_card_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          gift_card_id: string
+          id: string
+          notes: string | null
+          order_id: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          gift_card_id: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          gift_card_id?: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_card_transactions_gift_card_id_fkey"
+            columns: ["gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gift_cards: {
+        Row: {
+          code: string
+          created_at: string
+          current_balance: number
+          expires_at: string
+          id: string
+          initial_value: number
+          is_active: boolean
+          purchaser_email: string
+          purchaser_name: string | null
+          recipient_email: string | null
+          recipient_message: string | null
+          recipient_name: string | null
+          redeemed_at: string | null
+          send_to_recipient: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_balance: number
+          expires_at: string
+          id?: string
+          initial_value: number
+          is_active?: boolean
+          purchaser_email: string
+          purchaser_name?: string | null
+          recipient_email?: string | null
+          recipient_message?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          send_to_recipient?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_balance?: number
+          expires_at?: string
+          id?: string
+          initial_value?: number
+          is_active?: boolean
+          purchaser_email?: string
+          purchaser_name?: string | null
+          recipient_email?: string | null
+          recipient_message?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          send_to_recipient?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
