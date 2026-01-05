@@ -57,7 +57,7 @@ const Footer = () => {
               <img 
                 src={logoVitz} 
                 alt="Vitz" 
-                className="h-8 brightness-0 invert"
+                className="h-[7.5rem] brightness-0 invert"
               />
             </Link>
           </div>
