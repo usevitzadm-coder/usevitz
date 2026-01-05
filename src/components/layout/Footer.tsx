@@ -129,7 +129,7 @@ const Footer = () => {
               </div>
               {/* Pix */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Pix">
-                <img src={pixLogo} alt="Pix" className="h-10 w-auto object-contain" />
+                <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" />
               </div>
               {/* Boleto */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
