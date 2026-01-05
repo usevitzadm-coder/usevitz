@@ -22,14 +22,21 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="vitz-container">
         <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 -ml-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile Left Icons - Menu + Search */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              className="p-2 -ml-2"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Menu"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            <SearchBar 
+              isExpanded={isSearchOpen} 
+              onExpandChange={setIsSearchOpen}
+              variant="mobile"
+            />
+          </div>
 
           {/* Logo + Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -89,15 +96,6 @@ const Header = () => {
                 />
               </div>
             )}
-            
-            {/* Mobile Search Toggle */}
-            <div className="md:hidden">
-              <SearchBar 
-                isExpanded={isSearchOpen} 
-                onExpandChange={setIsSearchOpen}
-                variant="mobile"
-              />
-            </div>
             
             <Link to="/conta">
               <Button variant="ghost" size="icon">
