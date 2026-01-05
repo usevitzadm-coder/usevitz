@@ -102,9 +102,17 @@ serve(async (req) => {
     const shippingData = await response.json();
     console.log("Melhor Envio response:", JSON.stringify(shippingData));
 
-    // Filter only successful shipping options
+    // Allowed carriers: Correios, Jadlog, Loggi
+    const allowedCarriers = ["correios", "jadlog", "loggi"];
+
+    // Filter only successful shipping options from allowed carriers
     const validOptions = shippingData
-      .filter((option: any) => !option.error && option.price)
+      .filter((option: any) => {
+        if (option.error || !option.price) return false;
+        
+        const companyName = (option.company?.name || "").toLowerCase();
+        return allowedCarriers.some(carrier => companyName.includes(carrier));
+      })
       .map((option: any) => ({
         id: option.id,
         name: option.name,
@@ -116,7 +124,7 @@ serve(async (req) => {
         },
       }));
 
-    console.log("Valid shipping options:", validOptions.length);
+    console.log("Valid shipping options (filtered):", validOptions.length);
 
     return new Response(
       JSON.stringify({ options: validOptions }),
