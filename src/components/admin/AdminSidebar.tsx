@@ -37,7 +37,7 @@ const mainNavItems = [
 
 const otherNavItems = [
   { title: 'Pedidos', url: '/admin/pedidos', icon: ShoppingCart, disabled: true },
-  { title: 'Cupons', url: '/admin/cupons', icon: Ticket, disabled: true },
+  { title: 'Cupons', url: '/admin/cupons', icon: Ticket },
   { title: 'Configurações', url: '/admin/configuracoes', icon: Settings },
 ];
 
