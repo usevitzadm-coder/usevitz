@@ -49,10 +49,10 @@ const Footer = () => {
       </div>
 
       {/* Main Footer Content */}
-      <div className="vitz-container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
+      <div className="vitz-container py-6 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           {/* Logo */}
-          <div className="flex items-start">
+          <div className="flex items-start justify-center md:justify-start">
             <Link to="/" className="inline-block">
               <img 
                 src={logoVitz} 
