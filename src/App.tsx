@@ -21,6 +21,7 @@ import CheckoutErrorPage from "./pages/CheckoutErrorPage";
 import CheckoutPendingPage from "./pages/CheckoutPendingPage";
 import AboutPage from "./pages/AboutPage";
 import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
+import ReturnsPage from "./pages/ReturnsPage";
 import NotFound from "./pages/NotFound";
 import AdminGiftCards from "./pages/admin/AdminGiftCards";
 import {
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/sale" element={<CollectionPage />} />
                 <Route path="/sobre" element={<AboutPage />} />
                 <Route path="/entrega" element={<DeliveryPolicyPage />} />
+                <Route path="/trocas" element={<ReturnsPage />} />
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
