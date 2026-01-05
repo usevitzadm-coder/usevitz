@@ -15,6 +15,10 @@ import SearchPage from "./pages/SearchPage";
 import ProductsPage from "./pages/ProductsPage";
 import GiftCardPage from "./pages/GiftCardPage";
 import CheckGiftCardPage from "./pages/CheckGiftCardPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
+import CheckoutErrorPage from "./pages/CheckoutErrorPage";
+import CheckoutPendingPage from "./pages/CheckoutPendingPage";
 import NotFound from "./pages/NotFound";
 import AdminGiftCards from "./pages/admin/AdminGiftCards";
 import {
@@ -48,6 +52,10 @@ const App = () => (
                 <Route path="/produtos" element={<ProductsPage />} />
                 <Route path="/gift-card" element={<GiftCardPage />} />
                 <Route path="/gift-card/consultar" element={<CheckGiftCardPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
+                <Route path="/checkout/erro" element={<CheckoutErrorPage />} />
+                <Route path="/checkout/pendente" element={<CheckoutPendingPage />} />
                 <Route path="/novidades" element={<CollectionPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
 
