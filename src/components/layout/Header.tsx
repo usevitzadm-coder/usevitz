@@ -4,6 +4,7 @@ import { ShoppingBag, Menu, X, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SearchBar, MobileSearchPanel } from "./SearchBar";
+import logoVitz from "@/assets/logo-vitz.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,7 +14,7 @@ const Header = () => {
 
   const navLinks = [
     { name: "Produtos", href: "/produtos" },
-    { name: "GiftCard", href: "/giftcard" },
+    { name: "Cartão Presente", href: "/giftcard" },
     { name: "Novidades", href: "/novidades" },
   ];
 
@@ -33,9 +34,11 @@ const Header = () => {
           {/* Logo + Desktop Navigation */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center flex-shrink-0">
-              <span className="font-heading text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-                VITZ
-              </span>
+              <img 
+                src={logoVitz} 
+                alt="Vitz" 
+                className="h-6 md:h-8"
+              />
             </Link>
 
             {/* Desktop Navigation - Always visible */}
