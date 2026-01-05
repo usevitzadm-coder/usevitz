@@ -77,11 +77,10 @@ const ProductsPage = () => {
           short_description,
           category_id,
           created_at,
-          product_images!inner(url, is_primary),
+          product_images(url, is_primary),
           product_variants(color, size, is_active)
         `)
-        .eq("is_active", true)
-        .eq("product_images.is_primary", true);
+        .eq("is_active", true);
 
       // Filter by categories
       if (filters.categories.length > 0) {
@@ -128,10 +127,15 @@ const ProductsPage = () => {
         });
       }
       
-      return filteredData?.map((product) => ({
-        ...product,
-        image_url: product.product_images[0]?.url || "/placeholder.svg",
-      }));
+      // Get primary image or first available image
+      return filteredData?.map((product) => {
+        const primaryImage = product.product_images?.find((img) => img.is_primary);
+        const firstImage = product.product_images?.[0];
+        return {
+          ...product,
+          image_url: primaryImage?.url || firstImage?.url || "/placeholder.svg",
+        };
+      });
     },
   });
 
