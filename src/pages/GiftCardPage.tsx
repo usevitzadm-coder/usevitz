@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Gift, Mail, User, MessageSquare, ChevronRight } from "lucide-react";
+import giftCardImage from "@/assets/giftcard-vitz.png";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,12 +130,16 @@ const GiftCardPage = () => {
         />
       </Helmet>
       <Layout>
-        <div className="min-h-screen bg-background py-12 md:py-20">
-          <div className="container mx-auto px-4 max-w-2xl">
-            {/* Header */}
+          <div className="min-h-screen bg-background py-12 md:py-20">
+          <div className="container mx-auto px-4 max-w-3xl">
+            {/* Header with Image */}
             <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <Gift className="w-8 h-8 text-primary" />
+              <div className="flex justify-center mb-6">
+                <img
+                  src={giftCardImage}
+                  alt="Gift Card Vitz"
+                  className="w-48 md:w-64 h-auto object-contain"
+                />
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
                 Gift Card Vitz
@@ -181,7 +186,7 @@ const GiftCardPage = () => {
                         key={value}
                         onClick={() => setSelectedValue(value)}
                         className={cn(
-                          "p-4 rounded-lg border-2 text-center transition-all",
+                          "p-4 rounded-lg border-2 transition-all flex items-center justify-center",
                           selectedValue === value
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
