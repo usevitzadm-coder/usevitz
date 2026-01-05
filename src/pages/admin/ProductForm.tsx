@@ -747,12 +747,12 @@ export default function ProductForm() {
                 </div>
                 <div className="space-y-2">
                   <Label>Badge</Label>
-                  <Select value={badge} onValueChange={setBadge}>
+                  <Select value={badge || 'none'} onValueChange={(v) => setBadge(v === 'none' ? '' : v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Nenhum" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       <SelectItem value="novo">Novo</SelectItem>
                       <SelectItem value="mais-vendido">Mais Vendido</SelectItem>
                       <SelectItem value="promo">Promoção</SelectItem>
