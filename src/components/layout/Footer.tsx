@@ -9,6 +9,7 @@ import eloLogo from "@/assets/payment/elo.png";
 import pixLogo from "@/assets/payment/pix.png";
 import mastercardLogo from "@/assets/payment/mastercard.png";
 import boletoLogo from "@/assets/payment/boleto.png";
+import logoVitz from "@/assets/logo-vitz.png";
 
 const Footer = () => {
   const institutionalLinks = [
@@ -53,9 +54,11 @@ const Footer = () => {
           {/* Logo */}
           <div className="flex items-start">
             <Link to="/" className="inline-block">
-              <span className="font-heading text-3xl font-semibold lowercase tracking-wide">
-                vitz
-              </span>
+              <img 
+                src={logoVitz} 
+                alt="Vitz" 
+                className="h-8 brightness-0 invert"
+              />
             </Link>
           </div>
 
