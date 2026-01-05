@@ -5,3 +5,4 @@ export { default as ProductForm } from './ProductForm';
 export { default as AdminCategories } from './AdminCategories';
 export { default as AdminTags } from './AdminTags';
 export { default as AdminStock } from './AdminStock';
+export { default as AdminSettings } from './AdminSettings';

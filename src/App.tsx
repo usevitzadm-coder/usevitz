@@ -33,6 +33,7 @@ import {
   AdminCategories,
   AdminTags,
   AdminStock,
+  AdminSettings,
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
@@ -129,6 +130,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminGiftCards />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/configuracoes"
+                  element={
+                    <AdminLayout>
+                      <AdminSettings />
                     </AdminLayout>
                   }
                 />

@@ -131,6 +131,15 @@ const CheckoutPage = () => {
     setSelectedShipping(null);
 
     try {
+      // Fetch origin CEP from store settings
+      const { data: settingsData } = await supabase
+        .from("store_settings")
+        .select("value")
+        .eq("key", "origin_cep")
+        .single();
+
+      const originCep = settingsData?.value || "05524000";
+
       const products = items.map((item) => ({
         id: item.product.id,
         width: 15,
@@ -142,7 +151,7 @@ const CheckoutPage = () => {
 
       const { data, error } = await supabase.functions.invoke("calculate-shipping", {
         body: {
-          from: { postal_code: "01310100" }, // CEP de origem da loja (Paulista/SP como exemplo)
+          from: { postal_code: originCep },
           to: { postal_code: cep },
           products,
         },
