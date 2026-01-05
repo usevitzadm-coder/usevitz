@@ -637,6 +637,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_gift_card: {
+        Args: {
+          _code: string
+          _expires_at: string
+          _initial_value: number
+          _purchaser_email: string
+          _purchaser_name: string
+          _recipient_email: string
+          _recipient_message: string
+          _recipient_name: string
+          _send_to_recipient: boolean
+        }
+        Returns: string
+      }
+      get_gift_card_by_code: {
+        Args: { _code: string }
+        Returns: {
+          code: string
+          current_balance: number
+          expires_at: string
+          initial_value: number
+          is_active: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -15,15 +15,7 @@ import { cn } from "@/lib/utils";
 
 const GIFT_CARD_VALUES = [50, 100, 150, 200, 300];
 
-const generateGiftCardCode = (): string => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 16; i++) {
-    if (i > 0 && i % 4 === 0) code += "-";
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
+// Gift card code is now generated server-side for security
 
 const GiftCardPage = () => {
   const { toast } = useToast();
@@ -72,47 +64,35 @@ const GiftCardPage = () => {
     setIsLoading(true);
 
     try {
-      const code = generateGiftCardCode();
-      const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-
-      const { data: giftCard, error } = await supabase
-        .from("gift_cards")
-        .insert({
-          code,
-          initial_value: selectedValue,
-          current_balance: selectedValue,
-          purchaser_email: formData.purchaserEmail,
-          purchaser_name: formData.purchaserName,
-          recipient_email: sendTo === "recipient" ? formData.recipientEmail : null,
-          recipient_name: sendTo === "recipient" ? formData.recipientName : null,
-          recipient_message: formData.message || null,
-          send_to_recipient: sendTo === "recipient",
-          expires_at: expiresAt.toISOString(),
-        })
-        .select()
-        .single();
+      // Call secure edge function to create gift card
+      const { data, error } = await supabase.functions.invoke('purchase-gift-card', {
+        body: {
+          value: selectedValue,
+          purchaserName: formData.purchaserName.trim(),
+          purchaserEmail: formData.purchaserEmail.trim(),
+          recipientName: sendTo === "recipient" ? formData.recipientName.trim() : null,
+          recipientEmail: sendTo === "recipient" ? formData.recipientEmail.trim() : null,
+          message: formData.message || null,
+          sendToRecipient: sendTo === "recipient",
+        },
+      });
 
       if (error) throw error;
 
-      // Create transaction record
-      await supabase.from("gift_card_transactions").insert({
-        gift_card_id: giftCard.id,
-        amount: selectedValue,
-        type: "purchase",
-        notes: `Gift card purchased by ${formData.purchaserName}`,
-      });
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
       setStep(3);
       toast({
         title: "Gift Card criado com sucesso!",
-        description: `Código: ${code}`,
+        description: `Código: ${data.code}`,
       });
     } catch (error: any) {
       console.error("Error creating gift card:", error);
       toast({
         title: "Erro ao criar gift card",
-        description: error.message,
+        description: error.message || "Erro ao processar gift card",
         variant: "destructive",
       });
     } finally {
