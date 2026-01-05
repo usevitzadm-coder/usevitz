@@ -31,7 +31,7 @@ const ValueProps = () => {
           {benefits.map((benefit, index) => (
             <div
               key={index}
-              className="text-center space-y-3"
+              className="text-center space-y-2"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-secondary">
                 <benefit.icon size={24} className="text-secondary-foreground" />
