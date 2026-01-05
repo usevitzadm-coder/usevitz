@@ -36,7 +36,7 @@ const mainNavItems = [
 ];
 
 const otherNavItems = [
-  { title: 'Pedidos', url: '/admin/pedidos', icon: ShoppingCart, disabled: true },
+  { title: 'Pedidos', url: '/admin/pedidos', icon: ShoppingCart },
   { title: 'Cupons', url: '/admin/cupons', icon: Ticket },
   { title: 'Configurações', url: '/admin/configuracoes', icon: Settings },
 ];
@@ -102,25 +102,12 @@ export function AdminSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    disabled={item.disabled}
                     tooltip={collapsed ? item.title : undefined}
                   >
-                    {item.disabled ? (
-                      <span className="opacity-50 cursor-not-allowed flex items-center gap-2">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                        {!collapsed && (
-                          <span className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">
-                            Em breve
-                          </span>
-                        )}
-                      </span>
-                    ) : (
-                      <NavLink to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    )}
+                    <NavLink to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

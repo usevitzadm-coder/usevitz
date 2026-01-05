@@ -35,6 +35,7 @@ import {
   AdminStock,
   AdminSettings,
   AdminCoupons,
+  AdminOrders,
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
@@ -139,6 +140,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminCoupons />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/pedidos"
+                  element={
+                    <AdminLayout>
+                      <AdminOrders />
                     </AdminLayout>
                   }
                 />
