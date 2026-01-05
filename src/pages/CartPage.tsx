@@ -204,13 +204,15 @@ const CartPage = () => {
         return;
       }
 
-      const state = addressData.uf;
+      const state = addressData.uf?.toUpperCase();
       setDestinationState(state);
 
       // Check for free shipping eligibility
       const subtotal = getCartTotal();
       const isSoutheast = SOUTHEAST_STATES.includes(state);
       const qualifiesForFreeShipping = isSoutheast && subtotal >= FREE_SHIPPING_MIN;
+      
+      console.log('Free shipping check:', { state, subtotal, isSoutheast, qualifiesForFreeShipping, minRequired: FREE_SHIPPING_MIN });
 
       // Fetch origin CEP from store settings
       const { data: settingsData } = await supabase
