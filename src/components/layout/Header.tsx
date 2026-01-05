@@ -31,39 +31,54 @@ const Header = () => {
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0">
-            <span className="font-heading text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-              VITZ
-            </span>
-          </Link>
+          {/* Logo + Desktop Navigation */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center flex-shrink-0">
+              <span className="font-heading text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+                VITZ
+              </span>
+            </Link>
 
-          {/* Desktop Navigation - Hidden when search is open */}
-          {!isSearchOpen && (
-            <nav className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className="vitz-label text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </nav>
-          )}
+            {/* Desktop Navigation - Hidden when search is open */}
+            {!isSearchOpen && (
+              <nav className="hidden md:flex items-center gap-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    className="vitz-label text-muted-foreground hover:text-foreground transition-colors uppercase text-xs tracking-widest"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </nav>
+            )}
 
-          {/* Desktop Search Bar - Shown when search is open */}
-          <div className="hidden md:flex items-center flex-1 justify-center px-8">
-            <SearchBar 
-              isExpanded={isSearchOpen} 
-              onExpandChange={setIsSearchOpen}
-              variant="desktop"
-            />
+            {/* Desktop Search Bar - Shown when search is open */}
+            {isSearchOpen && (
+              <div className="hidden md:flex items-center flex-1">
+                <SearchBar 
+                  isExpanded={isSearchOpen} 
+                  onExpandChange={setIsSearchOpen}
+                  variant="desktop"
+                />
+              </div>
+            )}
           </div>
 
           {/* Right Icons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Desktop Search Toggle - only show when search is closed */}
+            {!isSearchOpen && (
+              <div className="hidden md:block">
+                <SearchBar 
+                  isExpanded={false} 
+                  onExpandChange={setIsSearchOpen}
+                  variant="desktop"
+                />
+              </div>
+            )}
+            
             {/* Mobile Search Toggle */}
             <div className="md:hidden">
               <SearchBar 
