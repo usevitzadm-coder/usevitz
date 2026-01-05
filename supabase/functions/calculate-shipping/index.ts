@@ -102,20 +102,27 @@ serve(async (req) => {
     const shippingData = await response.json();
     console.log("Melhor Envio response:", JSON.stringify(shippingData));
 
-    // Allowed carriers: Correios, Jadlog, Loggi
-    const allowedCarriers = ["correios", "jadlog", "loggi"];
+    // Allowed service IDs:
+    // 1 = Correios PAC
+    // 2 = Correios SEDEX
+    // 3 = Jadlog .Package
+    // 32 = Loggi Coleta (renamed to Standard)
+    const allowedServiceIds = [1, 2, 3, 32];
 
-    // Filter only successful shipping options from allowed carriers
+    // Custom name mapping
+    const nameOverrides: Record<number, string> = {
+      32: "Standard", // Loggi Coleta -> Standard
+    };
+
+    // Filter only allowed services
     const validOptions = shippingData
       .filter((option: any) => {
         if (option.error || !option.price) return false;
-        
-        const companyName = (option.company?.name || "").toLowerCase();
-        return allowedCarriers.some(carrier => companyName.includes(carrier));
+        return allowedServiceIds.includes(option.id);
       })
       .map((option: any) => ({
         id: option.id,
-        name: option.name,
+        name: nameOverrides[option.id] || option.name,
         price: parseFloat(option.price),
         delivery_time: option.delivery_time,
         company: {
