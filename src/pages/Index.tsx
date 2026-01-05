@@ -4,6 +4,7 @@ import HeroSection from "@/components/home/HeroSection";
 import ValueProps from "@/components/home/ValueProps";
 import ProductsCarousel from "@/components/home/ProductsCarousel";
 import LooksProntos from "@/components/home/LooksProntos";
+import GiftCardSection from "@/components/home/GiftCardSection";
 import Testimonials from "@/components/home/Testimonials";
 import BrandStory from "@/components/home/BrandStory";
 
@@ -24,6 +25,7 @@ const Index = () => {
         <ValueProps />
         <ProductsCarousel />
         <LooksProntos />
+        <GiftCardSection />
         <BrandStory />
         <Testimonials />
       </Layout>
