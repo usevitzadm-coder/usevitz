@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import giftCardImage from "@/assets/giftcard-vitz.avif";
+import giftCardImage from "@/assets/giftcard-vitz.png";
 
 const GiftCardSection = () => {
   return (
