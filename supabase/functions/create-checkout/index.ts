@@ -15,6 +15,13 @@ interface CartItem {
   image?: string;
 }
 
+interface ShippingOption {
+  id: number;
+  name: string;
+  price: number;
+  delivery_time: number;
+}
+
 interface CheckoutRequest {
   items: CartItem[];
   customer: {
@@ -32,6 +39,7 @@ interface CheckoutRequest {
     city: string;
     state: string;
   };
+  shippingOption?: ShippingOption;
   giftCardCode?: string;
   giftCardDiscount?: number;
 }
@@ -47,11 +55,14 @@ serve(async (req: Request) => {
       throw new Error("MERCADO_PAGO_ACCESS_TOKEN not configured");
     }
 
-    const { items, customer, shipping, giftCardCode, giftCardDiscount = 0 }: CheckoutRequest = await req.json();
+    const { items, customer, shipping, shippingOption, giftCardCode, giftCardDiscount = 0 }: CheckoutRequest = await req.json();
 
     // Calculate total
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    const total = Math.max(0, subtotal - giftCardDiscount);
+    const shippingCost = shippingOption?.price || 0;
+    const total = Math.max(0, subtotal - giftCardDiscount + shippingCost);
+
+    console.log("Checkout calculation:", { subtotal, shippingCost, giftCardDiscount, total });
 
     // Prepare items for Mercado Pago
     const mpItems = items.map((item) => ({
@@ -69,6 +80,17 @@ serve(async (req: Request) => {
         title: `Desconto Gift Card (${giftCardCode})`,
         quantity: 1,
         unit_price: -giftCardDiscount,
+        currency_id: "BRL",
+      });
+    }
+
+    // Add shipping as item if applicable
+    if (shippingOption && shippingOption.price > 0) {
+      mpItems.push({
+        id: "shipping",
+        title: `Frete - ${shippingOption.name}`,
+        quantity: 1,
+        unit_price: shippingOption.price,
         currency_id: "BRL",
       });
     }

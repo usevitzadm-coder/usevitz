@@ -1,0 +1,131 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface ShippingRequest {
+  from: {
+    postal_code: string;
+  };
+  to: {
+    postal_code: string;
+  };
+  products: Array<{
+    id: string;
+    width: number;
+    height: number;
+    length: number;
+    weight: number;
+    quantity: number;
+  }>;
+}
+
+interface ShippingOption {
+  id: number;
+  name: string;
+  price: string;
+  delivery_time: number;
+  company: {
+    name: string;
+    picture: string;
+  };
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const melhorEnvioToken = Deno.env.get("MELHOR_ENVIO_TOKEN");
+
+    if (!melhorEnvioToken) {
+      console.error("MELHOR_ENVIO_TOKEN not configured");
+      throw new Error("Serviço de frete não configurado");
+    }
+
+    const body: ShippingRequest = await req.json();
+    console.log("Shipping calculation request:", JSON.stringify(body));
+
+    // Validate required fields
+    if (!body.from?.postal_code || !body.to?.postal_code || !body.products?.length) {
+      throw new Error("Dados incompletos para cálculo de frete");
+    }
+
+    // Prepare request for Melhor Envio API
+    const melhorEnvioBody = {
+      from: {
+        postal_code: body.from.postal_code.replace(/\D/g, ""),
+      },
+      to: {
+        postal_code: body.to.postal_code.replace(/\D/g, ""),
+      },
+      products: body.products.map((p) => ({
+        id: p.id,
+        width: p.width || 15,
+        height: p.height || 5,
+        length: p.length || 20,
+        weight: p.weight || 0.3,
+        quantity: p.quantity || 1,
+      })),
+    };
+
+    console.log("Sending to Melhor Envio:", JSON.stringify(melhorEnvioBody));
+
+    const response = await fetch("https://melhorenvio.com.br/api/v2/me/shipment/calculate", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${melhorEnvioToken}`,
+        "User-Agent": "VitzStore (contato@usevitz.com)",
+      },
+      body: JSON.stringify(melhorEnvioBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Melhor Envio API error:", response.status, errorText);
+      throw new Error(`Erro ao calcular frete: ${response.status}`);
+    }
+
+    const shippingData = await response.json();
+    console.log("Melhor Envio response:", JSON.stringify(shippingData));
+
+    // Filter only successful shipping options
+    const validOptions = shippingData
+      .filter((option: any) => !option.error && option.price)
+      .map((option: any) => ({
+        id: option.id,
+        name: option.name,
+        price: parseFloat(option.price),
+        delivery_time: option.delivery_time,
+        company: {
+          name: option.company?.name || option.name,
+          picture: option.company?.picture || "",
+        },
+      }));
+
+    console.log("Valid shipping options:", validOptions.length);
+
+    return new Response(
+      JSON.stringify({ options: validOptions }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error("Error in calculate-shipping function:", error);
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+});

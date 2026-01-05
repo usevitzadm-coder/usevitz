@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, Truck, CreditCard, Gift, Loader2 } from "lucide-react";
+import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 
+interface ShippingOption {
+  id: number;
+  name: string;
+  price: number;
+  delivery_time: number;
+  company: {
+    name: string;
+    picture: string;
+  };
+}
+
 const CheckoutPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -21,6 +32,11 @@ const CheckoutPage = () => {
   const [giftCardCode, setGiftCardCode] = useState("");
   const [giftCardDiscount, setGiftCardDiscount] = useState(0);
   const [giftCardApplied, setGiftCardApplied] = useState(false);
+
+  // Shipping states
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -99,9 +115,64 @@ const CheckoutPage = () => {
           city: data.localidade || "",
           state: data.uf || "",
         }));
+        // Calculate shipping after getting address
+        calculateShipping(cep);
       }
     } catch (error) {
       console.error("Error fetching address:", error);
+    }
+  };
+
+  const calculateShipping = async (cep: string) => {
+    if (!cep || cep.length < 8 || items.length === 0) return;
+
+    setIsCalculatingShipping(true);
+    setShippingOptions([]);
+    setSelectedShipping(null);
+
+    try {
+      const products = items.map((item) => ({
+        id: item.product.id,
+        width: 15,
+        height: 5,
+        length: 20,
+        weight: 0.3,
+        quantity: item.quantity,
+      }));
+
+      const { data, error } = await supabase.functions.invoke("calculate-shipping", {
+        body: {
+          from: { postal_code: "01310100" }, // CEP de origem da loja (Paulista/SP como exemplo)
+          to: { postal_code: cep },
+          products,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.options && data.options.length > 0) {
+        setShippingOptions(data.options);
+        // Auto-select cheapest option
+        const cheapest = data.options.reduce((prev: ShippingOption, curr: ShippingOption) =>
+          prev.price < curr.price ? prev : curr
+        );
+        setSelectedShipping(cheapest);
+      } else {
+        toast({
+          title: "Nenhuma opção de frete disponível",
+          description: "Verifique o CEP informado",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error calculating shipping:", error);
+      toast({
+        title: "Erro ao calcular frete",
+        description: error.message || "Tente novamente",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCalculatingShipping(false);
     }
   };
 
@@ -155,6 +226,10 @@ const CheckoutPage = () => {
       toast({ title: "CPF inválido", variant: "destructive" });
       return false;
     }
+    if (!selectedShipping) {
+      toast({ title: "Selecione uma opção de frete", variant: "destructive" });
+      return false;
+    }
     return true;
   };
 
@@ -196,6 +271,12 @@ const CheckoutPage = () => {
             city: shipping.city,
             state: shipping.state,
           },
+          shippingOption: selectedShipping ? {
+            id: selectedShipping.id,
+            name: selectedShipping.name,
+            price: selectedShipping.price,
+            delivery_time: selectedShipping.delivery_time,
+          } : undefined,
           giftCardCode: giftCardApplied ? giftCardCode : undefined,
           giftCardDiscount: giftCardApplied ? giftCardDiscount : 0,
         },
@@ -221,7 +302,8 @@ const CheckoutPage = () => {
     }
   };
 
-  const finalTotal = Math.max(0, totalPrice - giftCardDiscount);
+  const shippingCost = selectedShipping?.price || 0;
+  const finalTotal = Math.max(0, totalPrice - giftCardDiscount + shippingCost);
 
   if (items.length === 0) {
     return (
@@ -377,6 +459,61 @@ const CheckoutPage = () => {
                   </CardContent>
                 </Card>
 
+                {/* Shipping Options */}
+                {shipping.zipCode.replace(/\D/g, "").length === 8 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Package className="w-5 h-5" />
+                        Opções de frete
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {isCalculatingShipping ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          <span className="text-muted-foreground">Calculando frete...</span>
+                        </div>
+                      ) : shippingOptions.length > 0 ? (
+                        <div className="space-y-3">
+                          {shippingOptions.map((option) => (
+                            <div
+                              key={option.id}
+                              onClick={() => setSelectedShipping(option)}
+                              className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                                selectedShipping?.id === option.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                {option.company.picture && (
+                                  <img
+                                    src={option.company.picture}
+                                    alt={option.company.name}
+                                    className="w-10 h-10 object-contain"
+                                  />
+                                )}
+                                <div>
+                                  <p className="font-medium text-sm">{option.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {option.delivery_time} {option.delivery_time === 1 ? "dia útil" : "dias úteis"}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="font-semibold">{formatPrice(option.price)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Informe o CEP para ver as opções de frete
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Gift Card */}
                 <Card>
                   <CardHeader>
@@ -453,7 +590,11 @@ const CheckoutPage = () => {
                       )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Frete</span>
-                        <span className="text-green-600">Grátis</span>
+                        {selectedShipping ? (
+                          <span>{formatPrice(selectedShipping.price)}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Calcule o frete</span>
+                        )}
                       </div>
                     </div>
 
