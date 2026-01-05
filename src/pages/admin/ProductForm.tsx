@@ -54,7 +54,7 @@ interface ProductImage {
 }
 
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
-const COLORS = [
+const DEFAULT_COLORS = [
   { name: 'Preto', hex: '#000000' },
   { name: 'Branco', hex: '#FFFFFF' },
   { name: 'Bege', hex: '#F5F5DC' },
@@ -372,16 +372,8 @@ export default function ProductForm() {
   function updateVariant(index: number, field: keyof Variant, value: any) {
     const updated = [...variants];
     updated[index] = { ...updated[index], [field]: value };
-    
-    // Auto-update color_hex when color changes
-    if (field === 'color') {
-      const colorObj = COLORS.find(c => c.name === value);
-      if (colorObj) {
-        updated[index].color_hex = colorObj.hex;
-      }
-    }
 
-    // Auto-generate SKU
+    // Auto-generate SKU when size or color changes
     if (field === 'size' || field === 'color') {
       const colorSlug = updated[index].color.toUpperCase().replace(/\s+/g, '-');
       updated[index].sku = `${slug}-${updated[index].size}-${colorSlug}`.toUpperCase();
@@ -625,7 +617,7 @@ export default function ProductForm() {
                     {variants.map((variant, index) => (
                       <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
                         <GripVertical className="h-5 w-5 text-muted-foreground mt-2 cursor-move" />
-                        <div className="flex-1 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="flex-1 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
                           <div className="space-y-2">
                             <Label>Tamanho</Label>
                             <Select
@@ -643,28 +635,39 @@ export default function ProductForm() {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label>Cor</Label>
-                            <Select
-                              value={variant.color}
-                              onValueChange={(v) => updateVariant(index, 'color', v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {COLORS.map((color) => (
-                                  <SelectItem key={color.name} value={color.name}>
-                                    <div className="flex items-center gap-2">
-                                      <div 
-                                        className="w-4 h-4 rounded-full border"
-                                        style={{ backgroundColor: color.hex }}
-                                      />
-                                      {color.name}
-                                    </div>
-                                  </SelectItem>
+                            <Label>Nome da cor</Label>
+                            <div className="relative">
+                              <Input
+                                value={variant.color}
+                                onChange={(e) => updateVariant(index, 'color', e.target.value)}
+                                placeholder="Ex: Azul Marinho"
+                                list={`colors-${index}`}
+                              />
+                              <datalist id={`colors-${index}`}>
+                                {DEFAULT_COLORS.map((c) => (
+                                  <option key={c.name} value={c.name} />
                                 ))}
-                              </SelectContent>
-                            </Select>
+                              </datalist>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Cor (Hex)</Label>
+                            <div className="flex gap-2">
+                              <input
+                                type="color"
+                                value={variant.color_hex || '#000000'}
+                                onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
+                                className="w-10 h-10 rounded border cursor-pointer"
+                                title="Escolher cor"
+                              />
+                              <Input
+                                value={variant.color_hex || ''}
+                                onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
+                                placeholder="#000000"
+                                className="flex-1 font-mono text-sm"
+                                maxLength={7}
+                              />
+                            </div>
                           </div>
                           <div className="space-y-2">
                             <Label>SKU</Label>
@@ -682,15 +685,17 @@ export default function ProductForm() {
                               onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value) || 0)}
                             />
                           </div>
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeVariant(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeVariant(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
                       </div>
                     ))}
                   </div>
