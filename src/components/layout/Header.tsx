@@ -39,32 +39,30 @@ const Header = () => {
               </span>
             </Link>
 
-            {/* Desktop Navigation - Hidden when search is open */}
-            {!isSearchOpen && (
-              <nav className="hidden md:flex items-center gap-6">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.href}
-                    className="vitz-label text-muted-foreground hover:text-foreground transition-colors uppercase text-xs tracking-widest"
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </nav>
-            )}
-
-            {/* Desktop Search Bar - Shown when search is open */}
-            {isSearchOpen && (
-              <div className="hidden md:flex items-center flex-1">
-                <SearchBar 
-                  isExpanded={isSearchOpen} 
-                  onExpandChange={setIsSearchOpen}
-                  variant="desktop"
-                />
-              </div>
-            )}
+            {/* Desktop Navigation - Always visible */}
+            <nav className="hidden md:flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="vitz-label text-muted-foreground hover:text-foreground transition-colors uppercase text-xs tracking-widest"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
           </div>
+
+          {/* Desktop Search Bar - Centered when open */}
+          {isSearchOpen && (
+            <div className="hidden md:flex items-center flex-1 justify-center max-w-md mx-4">
+              <SearchBar 
+                isExpanded={isSearchOpen} 
+                onExpandChange={setIsSearchOpen}
+                variant="desktop"
+              />
+            </div>
+          )}
 
           {/* Right Icons */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
