@@ -6,3 +6,4 @@ export { default as AdminCategories } from './AdminCategories';
 export { default as AdminTags } from './AdminTags';
 export { default as AdminStock } from './AdminStock';
 export { default as AdminSettings } from './AdminSettings';
+export { default as AdminCoupons } from './AdminCoupons';

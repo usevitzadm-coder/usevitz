@@ -34,6 +34,7 @@ import {
   AdminTags,
   AdminStock,
   AdminSettings,
+  AdminCoupons,
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
@@ -130,6 +131,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminGiftCards />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/cupons"
+                  element={
+                    <AdminLayout>
+                      <AdminCoupons />
                     </AdminLayout>
                   }
                 />
