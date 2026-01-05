@@ -9,7 +9,7 @@ const GiftCardSection = () => {
       <div className="vitz-container">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Image */}
-          <div className="relative order-2 md:order-1">
+          <div className="relative">
             <div className="relative overflow-hidden rounded-sm">
               <img
                 src={giftCardImage}
@@ -20,7 +20,7 @@ const GiftCardSection = () => {
           </div>
 
           {/* Content */}
-          <div className="order-1 md:order-2 flex flex-col items-start">
+          <div className="flex flex-col items-start">
             <span className="vitz-label text-primary mb-4 flex items-center gap-2">
               <Gift className="w-4 h-4" />
               Gift Card
