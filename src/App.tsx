@@ -12,6 +12,7 @@ import ProductPage from "./pages/ProductPage";
 import CollectionPage from "./pages/CollectionPage";
 import CartPage from "./pages/CartPage";
 import SearchPage from "./pages/SearchPage";
+import ProductsPage from "./pages/ProductsPage";
 import NotFound from "./pages/NotFound";
 import {
   AdminLogin,
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/colecao/:slug" element={<CollectionPage />} />
                 <Route path="/carrinho" element={<CartPage />} />
                 <Route path="/busca" element={<SearchPage />} />
+                <Route path="/produtos" element={<ProductsPage />} />
                 <Route path="/novidades" element={<CollectionPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
 
