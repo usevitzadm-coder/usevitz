@@ -127,9 +127,21 @@ const CheckoutPage = () => {
     setShipping((prev) => ({ ...prev, [field]: value }));
   };
 
+  const isValidCEP = (cep: string): boolean => {
+    const clean = cep.replace(/\D/g, '');
+    return /^\d{8}$/.test(clean);
+  };
+
   const fetchAddress = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (!isValidCEP(cleanCep)) {
+      return;
+    }
+    
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      if (!response.ok) return;
       const data = await response.json();
       if (!data.erro) {
         setShipping((prev) => ({
@@ -140,7 +152,7 @@ const CheckoutPage = () => {
           state: data.uf || "",
         }));
         // Calculate shipping after getting address
-        calculateShipping(cep);
+        calculateShipping(cleanCep);
       }
     } catch (error) {
       console.error("Error fetching address:", error);
