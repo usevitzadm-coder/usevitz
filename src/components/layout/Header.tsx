@@ -10,6 +10,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { getCartCount, setIsCartOpen } = useCart();
+  
   const cartCount = getCartCount();
 
   const navLinks = [
