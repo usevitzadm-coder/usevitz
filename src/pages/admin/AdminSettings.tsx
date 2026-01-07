@@ -236,9 +236,25 @@ const AdminSettings = () => {
     return digits.replace(/(\d{5})(\d{0,3})/, "$1-$2");
   };
 
+  const isValidCEP = (cep: string): boolean => {
+    const clean = cep.replace(/\D/g, '');
+    return /^\d{8}$/.test(clean);
+  };
+
   const fetchAddress = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (!isValidCEP(cleanCep)) {
+      setOriginAddress("");
+      return;
+    }
+    
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep.replace(/\D/g, "")}/json/`);
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      if (!response.ok) {
+        setOriginAddress("");
+        return;
+      }
       const data = await response.json();
       if (!data.erro) {
         setOriginAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);

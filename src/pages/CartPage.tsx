@@ -182,8 +182,24 @@ const CartPage = () => {
     }
   };
 
+  const isValidCEP = (cep: string): boolean => {
+    const clean = cep.replace(/\D/g, '');
+    return /^\d{8}$/.test(clean);
+  };
+
   const calculateShipping = async (cep: string) => {
-    if (!cep || cep.length < 8 || items.length === 0) return;
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (!isValidCEP(cleanCep) || items.length === 0) {
+      if (cleanCep.length === 8) {
+        toast({
+          title: "CEP inválido",
+          description: "Verifique o CEP informado",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     setIsCalculatingShipping(true);
     setShippingOptions([]);
@@ -191,7 +207,10 @@ const CartPage = () => {
 
     try {
       // Fetch address to get state
-      const addressResponse = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const addressResponse = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      if (!addressResponse.ok) {
+        throw new Error('API error');
+      }
       const addressData = await addressResponse.json();
       
       if (addressData.erro) {

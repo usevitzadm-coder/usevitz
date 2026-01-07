@@ -21,16 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Note: Client-side isAdmin is for UX only (showing/hiding UI elements).
+  // Actual authorization is enforced server-side via RLS policies.
+  // Users cannot bypass security even if they manipulate client state.
   const checkAdminRole = async (): Promise<boolean> => {
     if (!user) return false;
     
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('is_current_user_admin');
       
       if (error) {
         console.error('Error checking admin role:', error);
