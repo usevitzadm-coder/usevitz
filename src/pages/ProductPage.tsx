@@ -416,7 +416,8 @@ const ProductPage = () => {
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-3 hover:bg-muted transition-colors"
+                      disabled={!selectedVariant || quantity >= selectedVariant.stock}
+                      className="p-3 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus size={16} />
                     </button>
