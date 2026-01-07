@@ -43,6 +43,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items]);
 
   const addToCart = useCallback((product: Product, variant: ProductVariant, quantity = 1) => {
+    const maxStock = variant.stock;
+    
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (item) => item.product.id === product.id && item.variant.id === variant.id
@@ -50,11 +52,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (existingIndex > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity += quantity;
+        const currentQty = updated[existingIndex].quantity;
+        const newQty = Math.min(currentQty + quantity, maxStock);
+        updated[existingIndex].quantity = newQty;
         return updated;
       }
 
-      return [...prev, { product, variant, quantity }];
+      const cappedQuantity = Math.min(quantity, maxStock);
+      return [...prev, { product, variant, quantity: cappedQuantity }];
     });
     setIsCartOpen(true);
   }, []);
@@ -74,11 +79,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId && item.variant.id === variantId
-          ? { ...item, quantity }
-          : item
-      )
+      prev.map((item) => {
+        if (item.product.id === productId && item.variant.id === variantId) {
+          const maxStock = item.variant.stock;
+          const cappedQuantity = Math.min(quantity, maxStock);
+          return { ...item, quantity: cappedQuantity };
+        }
+        return item;
+      })
     );
   }, [removeFromCart]);
 

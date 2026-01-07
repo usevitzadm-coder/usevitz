@@ -390,7 +390,8 @@ const CartPage = () => {
                                 item.quantity + 1
                               )
                             }
-                            className="p-2 hover:bg-muted transition-colors"
+                            disabled={item.quantity >= item.variant.stock}
+                            className="p-2 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Plus size={14} />
                           </button>
