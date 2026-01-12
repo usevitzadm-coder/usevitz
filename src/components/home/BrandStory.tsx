@@ -14,20 +14,6 @@ const BrandStory = () => {
             conforto e estilo. Cada peça é pensada para que você se sinta confiante, 
             livre e poderosa.
           </p>
-          <div className="flex justify-center gap-8 pt-6">
-            <div className="text-center">
-              <span className="font-heading text-4xl text-primary">10k+</span>
-              <p className="text-sm text-muted-foreground mt-1">Clientes satisfeitas</p>
-            </div>
-            <div className="text-center">
-              <span className="font-heading text-4xl text-primary">4.9</span>
-              <p className="text-sm text-muted-foreground mt-1">Avaliação média</p>
-            </div>
-            <div className="text-center">
-              <span className="font-heading text-4xl text-primary">100%</span>
-              <p className="text-sm text-muted-foreground mt-1">Premium quality</p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
