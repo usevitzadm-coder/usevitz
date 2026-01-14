@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronLeft,
   Gift,
-  Palette
+  Palette,
+  PackageOpen
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils';
 const mainNavItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard, end: true },
   { title: 'Produtos', url: '/admin/produtos', icon: Package },
+  { title: 'Conjuntos', url: '/admin/conjuntos', icon: PackageOpen },
   { title: 'Categorias', url: '/admin/categorias', icon: FolderTree },
   { title: 'Tags', url: '/admin/tags', icon: Tags },
   { title: 'Cores', url: '/admin/cores', icon: Palette },

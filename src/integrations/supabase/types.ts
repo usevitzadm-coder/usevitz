@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      bundle_variant_links: {
+        Row: {
+          bundle_variant_id: string
+          component_variant_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          bundle_variant_id: string
+          component_variant_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          bundle_variant_id?: string
+          component_variant_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_variant_links_bundle_variant_id_fkey"
+            columns: ["bundle_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_variant_links_component_variant_id_fkey"
+            columns: ["component_variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -341,6 +377,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_bundles: {
+        Row: {
+          bundle_product_id: string
+          component_product_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          bundle_product_id: string
+          component_product_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          bundle_product_id?: string
+          component_product_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_bundles_bundle_product_id_fkey"
+            columns: ["bundle_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_bundles_component_product_id_fkey"
+            columns: ["component_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
@@ -699,6 +771,18 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_admin: { Args: never; Returns: boolean }
+      sync_bundle_stock_on_component_sale: {
+        Args: { p_component_variant_id: string; p_quantity: number }
+        Returns: undefined
+      }
+      sync_component_stock_on_bundle_sale: {
+        Args: { p_bundle_variant_id: string; p_quantity: number }
+        Returns: undefined
+      }
+      sync_linked_stock: {
+        Args: { p_quantity: number; p_variant_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "editor" | "user"
