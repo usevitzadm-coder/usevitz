@@ -12,12 +12,12 @@ const HeroSection = () => {
           alt="Vitz lifestyle - Modelos praticando yoga com roupas fitness premium"
           className="w-full h-full object-cover object-[center_55%] md:object-[center_50%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/20" />
       </div>
 
       {/* Content */}
       <div className="vitz-container relative z-10">
-        <div className="max-w-xl space-y-6 animate-slide-up">
+        <div className="max-w-xl space-y-6 animate-slide-up [text-shadow:_0_2px_12px_rgb(0_0_0_/_20%)]">
           <span className="vitz-label text-primary">Nova Coleção 2025</span>
           <h1 className="vitz-heading-xl text-foreground">
             Movimento é <br />
