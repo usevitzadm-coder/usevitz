@@ -10,7 +10,7 @@ const HeroSection = () => {
         <img
           src={heroImage}
           alt="Vitz lifestyle - Modelos praticando yoga com roupas fitness premium"
-          className="w-full h-full object-cover object-[center_25%] md:object-[center_30%]"
+          className="w-full h-full object-cover object-[center_55%] md:object-[center_50%]"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/30 to-transparent" />
       </div>
