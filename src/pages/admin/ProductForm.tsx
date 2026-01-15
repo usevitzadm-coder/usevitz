@@ -656,7 +656,13 @@ export default function ProductForm() {
                               }}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione uma cor" />
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-4 h-4 rounded-full border"
+                                    style={{ backgroundColor: variant.color_hex || '#000000' }}
+                                  />
+                                  <span>{variant.color}</span>
+                                </div>
                               </SelectTrigger>
                               <SelectContent>
                                 {colorOptions.map((color) => (
