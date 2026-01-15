@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-lifestyle.jpg";
+import heroImage from "@/assets/hero-yoga.jpg";
 
 const HeroSection = () => {
   return (
@@ -9,10 +9,10 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <img
           src={heroImage}
-          alt="Vitz lifestyle - Mulher atlética usando roupas fitness premium"
-          className="w-full h-full object-cover object-center"
+          alt="Vitz lifestyle - Modelos praticando yoga com roupas fitness premium"
+          className="w-full h-full object-cover object-[center_25%] md:object-[center_30%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/30 to-transparent" />
       </div>
 
       {/* Content */}
