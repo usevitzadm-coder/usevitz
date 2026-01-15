@@ -378,12 +378,19 @@ export default function ProductForm() {
     ]);
   }
 
-  function updateVariant(index: number, field: keyof Variant, value: any) {
+  function updateVariant(index: number, field: keyof Variant | Partial<Variant>, value?: any) {
     const updated = [...variants];
-    updated[index] = { ...updated[index], [field]: value };
+    
+    // If field is an object, merge multiple fields at once
+    if (typeof field === 'object') {
+      updated[index] = { ...updated[index], ...field };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
 
     // Auto-generate SKU when size or color changes
-    if (field === 'size' || field === 'color') {
+    if ((typeof field === 'object' && ('size' in field || 'color' in field)) || 
+        (typeof field === 'string' && (field === 'size' || field === 'color'))) {
       const colorSlug = updated[index].color.toUpperCase().replace(/\s+/g, '-');
       updated[index].sku = `${slug}-${updated[index].size}-${colorSlug}`.toUpperCase();
     }
@@ -649,9 +656,10 @@ export default function ProductForm() {
                               value={variant.color}
                               onValueChange={(v) => {
                                 const colorObj = colorOptions.find(c => c.name === v);
-                                updateVariant(index, 'color', v);
                                 if (colorObj) {
-                                  updateVariant(index, 'color_hex', colorObj.hex_code);
+                                  updateVariant(index, { color: v, color_hex: colorObj.hex_code });
+                                } else {
+                                  updateVariant(index, 'color', v);
                                 }
                               }}
                             >
