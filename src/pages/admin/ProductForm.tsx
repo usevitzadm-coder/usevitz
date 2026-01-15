@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, GripVertical, Upload } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, GripVertical, Upload, Package, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -53,6 +54,20 @@ interface ProductImage {
   file?: File;
 }
 
+interface ComponentProduct {
+  id: string;
+  name: string;
+  variants: ComponentVariant[];
+}
+
+interface ComponentVariant {
+  id: string;
+  size: string;
+  color: string;
+  color_hex: string;
+  stock: number;
+}
+
 const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
 
 interface ColorOption {
@@ -89,12 +104,19 @@ export default function ProductForm() {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [images, setImages] = useState<ProductImage[]>([]);
 
+  // Bundle (Conjunto) state
+  const [isBundle, setIsBundle] = useState(false);
+  const [availableProducts, setAvailableProducts] = useState<ComponentProduct[]>([]);
+  const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
+
   useEffect(() => {
     fetchCategories();
     fetchTags();
     fetchColors();
+    fetchAvailableProducts();
     if (isEditing) {
       fetchProduct();
+      fetchBundleData();
     }
   }, [id]);
 
@@ -138,6 +160,44 @@ export default function ProductForm() {
       .eq('is_active', true)
       .order('display_order');
     setColorOptions(data || []);
+  }
+
+  async function fetchAvailableProducts() {
+    // Fetch all active products with their variants (excluding the current product if editing)
+    const query = supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        variants:product_variants(id, size, color, color_hex, stock)
+      `)
+      .eq('is_active', true)
+      .order('name');
+
+    const { data } = await query;
+    
+    // Filter out the current product if editing
+    const filtered = (data || []).filter(p => p.id !== id);
+    setAvailableProducts(filtered as ComponentProduct[]);
+  }
+
+  async function fetchBundleData() {
+    if (!id) return;
+    
+    try {
+      // Check if this product is a bundle
+      const { data: bundleData } = await supabase
+        .from('product_bundles')
+        .select('component_product_id')
+        .eq('bundle_product_id', id);
+
+      if (bundleData && bundleData.length > 0) {
+        setIsBundle(true);
+        setSelectedComponentIds(bundleData.map(b => b.component_product_id));
+      }
+    } catch (error) {
+      console.error('Error fetching bundle data:', error);
+    }
   }
 
   async function fetchProduct() {
@@ -282,6 +342,21 @@ export default function ProductForm() {
 
         // Upsert variants
         for (const variant of variants) {
+          // Calculate stock for bundle variants
+          let stockToSave = variant.stock;
+          if (isBundle && selectedComponentIds.length > 0) {
+            const selectedProducts = availableProducts.filter(p => 
+              selectedComponentIds.includes(p.id)
+            );
+            const matchingStocks = selectedProducts.map(p => {
+              const matchingVar = p.variants?.find(
+                v => v.size === variant.size && v.color === variant.color
+              );
+              return matchingVar?.stock ?? 0;
+            });
+            stockToSave = matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
+          }
+
           const variantData = {
             product_id: productId,
             size: variant.size,
@@ -289,7 +364,7 @@ export default function ProductForm() {
             color_hex: variant.color_hex,
             sku: variant.sku,
             price: variant.price,
-            stock: variant.stock,
+            stock: stockToSave,
             is_active: variant.is_active,
           };
 
@@ -338,6 +413,82 @@ export default function ProductForm() {
               .from('product_images')
               .update({ is_primary: img.is_primary, display_order: i })
               .eq('id', img.id);
+          }
+        }
+      }
+
+      // Handle bundle/conjunto data
+      if (productId) {
+        // First delete existing bundle relationships
+        await supabase
+          .from('product_bundles')
+          .delete()
+          .eq('bundle_product_id', productId);
+
+        // Delete existing variant links
+        const { data: existingVariants } = await supabase
+          .from('product_variants')
+          .select('id')
+          .eq('product_id', productId);
+
+        if (existingVariants && existingVariants.length > 0) {
+          await supabase
+            .from('bundle_variant_links')
+            .delete()
+            .in('bundle_variant_id', existingVariants.map(v => v.id));
+        }
+
+        // If this is a bundle, create new relationships
+        if (isBundle && selectedComponentIds.length > 0) {
+          // Create product_bundles entries
+          await supabase.from('product_bundles').insert(
+            selectedComponentIds.map(componentId => ({
+              bundle_product_id: productId,
+              component_product_id: componentId,
+            }))
+          );
+
+          // Get fresh variant IDs after any upserts
+          const { data: bundleVariants } = await supabase
+            .from('product_variants')
+            .select('id, size, color')
+            .eq('product_id', productId);
+
+          // Get component variants
+          const componentVariantsMap: Record<string, { id: string; size: string; color: string }[]> = {};
+          for (const compId of selectedComponentIds) {
+            const { data: compVars } = await supabase
+              .from('product_variants')
+              .select('id, size, color')
+              .eq('product_id', compId);
+            if (compVars) {
+              componentVariantsMap[compId] = compVars;
+            }
+          }
+
+          // Create bundle_variant_links - match by size and color
+          if (bundleVariants) {
+            const linksToInsert: { bundle_variant_id: string; component_variant_id: string }[] = [];
+            
+            for (const bundleVar of bundleVariants) {
+              for (const compId of selectedComponentIds) {
+                const compVars = componentVariantsMap[compId] || [];
+                // Find matching component variant by size and color
+                const matchingCompVar = compVars.find(
+                  cv => cv.size === bundleVar.size && cv.color === bundleVar.color
+                );
+                if (matchingCompVar) {
+                  linksToInsert.push({
+                    bundle_variant_id: bundleVar.id,
+                    component_variant_id: matchingCompVar.id,
+                  });
+                }
+              }
+            }
+
+            if (linksToInsert.length > 0) {
+              await supabase.from('bundle_variant_links').insert(linksToInsert);
+            }
           }
         }
       }
@@ -617,124 +768,234 @@ export default function ProductForm() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Variações</CardTitle>
-                <Button type="button" size="sm" onClick={addVariant}>
+                <div>
+                  <CardTitle>Variações</CardTitle>
+                  <CardDescription>Tamanhos, cores e estoque de cada variação</CardDescription>
+                </div>
+                <Button type="button" size="sm" onClick={addVariant} disabled={isBundle}>
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Toggle Conjunto */}
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <Label htmlFor="isBundle" className="font-medium">Este produto é um Conjunto</Label>
+                      <p className="text-sm text-muted-foreground">
+                        O estoque será calculado automaticamente baseado nos componentes
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="isBundle"
+                    checked={isBundle}
+                    onCheckedChange={(checked) => {
+                      setIsBundle(checked);
+                      if (!checked) {
+                        setSelectedComponentIds([]);
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Seleção de componentes quando é conjunto */}
+                {isBundle && (
+                  <div className="p-4 border rounded-lg space-y-4 bg-accent/10">
+                    <div className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4 text-primary" />
+                      <Label className="font-medium">Componentes do Conjunto</Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Selecione os produtos que compõem este conjunto. O estoque de cada variação será 
+                      o mínimo entre os estoques das variações correspondentes (mesmo tamanho e cor).
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {availableProducts.map((product) => (
+                        <div
+                          key={product.id}
+                          className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedComponentIds.includes(product.id) 
+                              ? 'border-primary bg-primary/5' 
+                              : 'hover:border-muted-foreground/50'
+                          }`}
+                          onClick={() => {
+                            setSelectedComponentIds(prev => 
+                              prev.includes(product.id)
+                                ? prev.filter(id => id !== product.id)
+                                : [...prev, product.id]
+                            );
+                          }}
+                        >
+                          <Checkbox 
+                            checked={selectedComponentIds.includes(product.id)}
+                            onCheckedChange={() => {}}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.variants?.length || 0} variações
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedComponentIds.length > 0 && (
+                      <div className="pt-2">
+                        <Badge variant="secondary">
+                          {selectedComponentIds.length} componente{selectedComponentIds.length > 1 ? 's' : ''} selecionado{selectedComponentIds.length > 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Lista de variações */}
                 {variants.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     Nenhuma variação cadastrada. Adicione tamanhos e cores.
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {variants.map((variant, index) => (
-                      <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
-                        <GripVertical className="h-5 w-5 text-muted-foreground mt-2 cursor-move" />
-                        <div className="flex-1 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-                          <div className="space-y-2">
-                            <Label>Tamanho</Label>
-                            <Select
-                              value={variant.size}
-                              onValueChange={(v) => updateVariant(index, 'size', v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SIZES.map((size) => (
-                                  <SelectItem key={size} value={size}>{size}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Cor</Label>
-                            <Select
-                              value={variant.color}
-                              onValueChange={(v) => {
-                                const colorObj = colorOptions.find(c => c.name === v);
-                                if (colorObj) {
-                                  updateVariant(index, { color: v, color_hex: colorObj.hex_code });
-                                } else {
-                                  updateVariant(index, 'color', v);
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <div className="flex items-center gap-2">
-                                  <div 
-                                    className="w-4 h-4 rounded-full border"
-                                    style={{ backgroundColor: variant.color_hex || '#000000' }}
-                                  />
-                                  <span>{variant.color}</span>
-                                </div>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {colorOptions.map((color) => (
-                                  <SelectItem key={color.id} value={color.name}>
-                                    <div className="flex items-center gap-2">
-                                      <div 
-                                        className="w-4 h-4 rounded-full border"
-                                        style={{ backgroundColor: color.hex_code }}
-                                      />
-                                      {color.name}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Cor (Hex)</Label>
-                            <div className="flex gap-2">
-                              <input
-                                type="color"
-                                value={variant.color_hex || '#000000'}
-                                onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
-                                className="w-10 h-10 rounded border cursor-pointer"
-                                title="Escolher cor"
-                              />
+                    {variants.map((variant, index) => {
+                      // Calcular estoque automático se for conjunto
+                      const calculatedStock = isBundle && selectedComponentIds.length > 0
+                        ? (() => {
+                            const selectedProducts = availableProducts.filter(p => 
+                              selectedComponentIds.includes(p.id)
+                            );
+                            const matchingStocks = selectedProducts.map(p => {
+                              const matchingVar = p.variants?.find(
+                                v => v.size === variant.size && v.color === variant.color
+                              );
+                              return matchingVar?.stock ?? 0;
+                            });
+                            return matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
+                          })()
+                        : null;
+
+                      return (
+                        <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
+                          <GripVertical className="h-5 w-5 text-muted-foreground mt-2 cursor-move" />
+                          <div className="flex-1 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+                            <div className="space-y-2">
+                              <Label>Tamanho</Label>
+                              <Select
+                                value={variant.size}
+                                onValueChange={(v) => updateVariant(index, 'size', v)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SIZES.map((size) => (
+                                    <SelectItem key={size} value={size}>{size}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Cor</Label>
+                              <Select
+                                value={variant.color}
+                                onValueChange={(v) => {
+                                  const colorObj = colorOptions.find(c => c.name === v);
+                                  if (colorObj) {
+                                    updateVariant(index, { color: v, color_hex: colorObj.hex_code });
+                                  } else {
+                                    updateVariant(index, 'color', v);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger>
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-4 h-4 rounded-full border"
+                                      style={{ backgroundColor: variant.color_hex || '#000000' }}
+                                    />
+                                    <span>{variant.color}</span>
+                                  </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {colorOptions.map((color) => (
+                                    <SelectItem key={color.id} value={color.name}>
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="w-4 h-4 rounded-full border"
+                                          style={{ backgroundColor: color.hex_code }}
+                                        />
+                                        {color.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Cor (Hex)</Label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="color"
+                                  value={variant.color_hex || '#000000'}
+                                  onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
+                                  className="w-10 h-10 rounded border cursor-pointer"
+                                  title="Escolher cor"
+                                />
+                                <Input
+                                  value={variant.color_hex || ''}
+                                  onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
+                                  placeholder="#000000"
+                                  className="flex-1 font-mono text-sm"
+                                  maxLength={7}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>SKU</Label>
                               <Input
-                                value={variant.color_hex || ''}
-                                onChange={(e) => updateVariant(index, 'color_hex', e.target.value)}
-                                placeholder="#000000"
-                                className="flex-1 font-mono text-sm"
-                                maxLength={7}
+                                value={variant.sku}
+                                onChange={(e) => updateVariant(index, 'sku', e.target.value)}
                               />
                             </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>SKU</Label>
-                            <Input
-                              value={variant.sku}
-                              onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Estoque</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={variant.stock}
-                              onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="flex items-end">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeVariant(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <div className="space-y-2">
+                              <Label>Estoque</Label>
+                              {isBundle && selectedComponentIds.length > 0 ? (
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    value={calculatedStock ?? 0}
+                                    disabled
+                                    className="bg-muted"
+                                  />
+                                  <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                    Auto
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={variant.stock}
+                                  onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value) || 0)}
+                                />
+                              )}
+                            </div>
+                            <div className="flex items-end">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeVariant(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
