@@ -14,8 +14,8 @@ const HeroSection = () => {
         <div className="max-w-xl space-y-6 animate-slide-up [text-shadow:_0_2px_12px_rgb(0_0_0_/_20%)]">
           <span className="vitz-label text-primary bg-secondary-foreground">Nova Coleção 2026</span>
           <h1 className="vitz-heading-xl text-foreground">
-            Movimento é <br />
-            <span className="text-primary bg-transparent">Vida</span>
+            Movimento é Vida.   <br />
+            <span className="text-primary bg-secondary-foreground">Movimento é Vitz.</span>
           </h1>
           <p className="vitz-body text-muted-foreground max-w-md">
             Roupas fitness premium desenvolvidas para quem vive em movimento. 
