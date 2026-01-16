@@ -109,43 +109,33 @@ export default function ProductForm() {
   const [availableProducts, setAvailableProducts] = useState<ComponentProduct[]>([]);
   const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
 
-  // Memoize bundle stock calculation
-  const bundleStockMap = useMemo(() => {
-    if (!isBundle || selectedComponentIds.length === 0) return {};
+  // Function to calculate bundle stock for a variant
+  const calculateBundleStock = useCallback((variantSize: string, variantColor: string): number | null => {
+    if (!isBundle || selectedComponentIds.length === 0) return null;
     
-    const stockMap: Record<string, number> = {};
     const selectedProducts = availableProducts.filter(p => 
       selectedComponentIds.includes(p.id)
     );
     
-    for (const variant of variants) {
-      const key = `${variant.size}-${variant.color}`;
+    if (selectedProducts.length === 0) return 0;
+    
+    const matchingStocks: number[] = [];
+    
+    for (const product of selectedProducts) {
+      const matchingVar = product.variants?.find(
+        v => v.size?.toLowerCase() === variantSize?.toLowerCase() && 
+             v.color?.toLowerCase() === variantColor?.toLowerCase()
+      );
       
-      if (selectedProducts.length === 0) {
-        stockMap[key] = 0;
-        continue;
+      if (matchingVar) {
+        matchingStocks.push(matchingVar.stock);
+      } else {
+        matchingStocks.push(0);
       }
-      
-      const matchingStocks: number[] = [];
-      
-      for (const product of selectedProducts) {
-        const matchingVar = product.variants?.find(
-          v => v.size?.toLowerCase() === variant.size?.toLowerCase() && 
-               v.color?.toLowerCase() === variant.color?.toLowerCase()
-        );
-        
-        if (matchingVar) {
-          matchingStocks.push(matchingVar.stock);
-        } else {
-          matchingStocks.push(0);
-        }
-      }
-      
-      stockMap[key] = matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
     }
     
-    return stockMap;
-  }, [isBundle, selectedComponentIds, availableProducts, variants]);
+    return matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
+  }, [isBundle, selectedComponentIds, availableProducts]);
 
   // Handler for bundle toggle
   const handleBundleToggle = useCallback((checked: boolean) => {
@@ -911,11 +901,8 @@ export default function ProductForm() {
                 ) : (
                   <div className="space-y-4">
                     {variants.map((variant, index) => {
-                      // Use memoized stock calculation
-                      const stockKey = `${variant.size}-${variant.color}`;
-                      const calculatedStock = isBundle && selectedComponentIds.length > 0 
-                        ? (bundleStockMap[stockKey] ?? 0) 
-                        : null;
+                      // Calculate stock using the callback function
+                      const calculatedStock = calculateBundleStock(variant.size, variant.color);
 
                       return (
                         <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
