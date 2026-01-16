@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, GripVertical, Upload, Package, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -108,6 +108,52 @@ export default function ProductForm() {
   const [isBundle, setIsBundle] = useState(false);
   const [availableProducts, setAvailableProducts] = useState<ComponentProduct[]>([]);
   const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
+
+  // Memoize bundle stock calculation
+  const bundleStockMap = useMemo(() => {
+    if (!isBundle || selectedComponentIds.length === 0) return {};
+    
+    const stockMap: Record<string, number> = {};
+    const selectedProducts = availableProducts.filter(p => 
+      selectedComponentIds.includes(p.id)
+    );
+    
+    for (const variant of variants) {
+      const key = `${variant.size}-${variant.color}`;
+      
+      if (selectedProducts.length === 0) {
+        stockMap[key] = 0;
+        continue;
+      }
+      
+      const matchingStocks: number[] = [];
+      
+      for (const product of selectedProducts) {
+        const matchingVar = product.variants?.find(
+          v => v.size?.toLowerCase() === variant.size?.toLowerCase() && 
+               v.color?.toLowerCase() === variant.color?.toLowerCase()
+        );
+        
+        if (matchingVar) {
+          matchingStocks.push(matchingVar.stock);
+        } else {
+          matchingStocks.push(0);
+        }
+      }
+      
+      stockMap[key] = matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
+    }
+    
+    return stockMap;
+  }, [isBundle, selectedComponentIds, availableProducts, variants]);
+
+  // Handler for bundle toggle
+  const handleBundleToggle = useCallback((checked: boolean) => {
+    setIsBundle(checked);
+    if (!checked) {
+      setSelectedComponentIds([]);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCategories();
@@ -802,12 +848,7 @@ export default function ProductForm() {
                   <Switch
                     id="isBundle"
                     checked={isBundle}
-                    onCheckedChange={(checked) => {
-                      setIsBundle(checked);
-                      if (!checked) {
-                        setSelectedComponentIds([]);
-                      }
-                    }}
+                    onCheckedChange={handleBundleToggle}
                   />
                 </div>
 
@@ -870,37 +911,11 @@ export default function ProductForm() {
                 ) : (
                   <div className="space-y-4">
                     {variants.map((variant, index) => {
-                      // Calcular estoque automático se for conjunto
-                      const calculateBundleStock = () => {
-                        if (!isBundle || selectedComponentIds.length === 0) return null;
-                        
-                        const selectedProducts = availableProducts.filter(p => 
-                          selectedComponentIds.includes(p.id)
-                        );
-                        
-                        if (selectedProducts.length === 0) return 0;
-                        
-                        const matchingStocks: number[] = [];
-                        
-                        for (const product of selectedProducts) {
-                          // Find matching variant by size and color (case-insensitive comparison)
-                          const matchingVar = product.variants?.find(
-                            v => v.size?.toLowerCase() === variant.size?.toLowerCase() && 
-                                 v.color?.toLowerCase() === variant.color?.toLowerCase()
-                          );
-                          
-                          if (matchingVar) {
-                            matchingStocks.push(matchingVar.stock);
-                          } else {
-                            // If no matching variant found in a component, stock is 0
-                            matchingStocks.push(0);
-                          }
-                        }
-                        
-                        return matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
-                      };
-                      
-                      const calculatedStock = calculateBundleStock();
+                      // Use memoized stock calculation
+                      const stockKey = `${variant.size}-${variant.color}`;
+                      const calculatedStock = isBundle && selectedComponentIds.length > 0 
+                        ? (bundleStockMap[stockKey] ?? 0) 
+                        : null;
 
                       return (
                         <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
