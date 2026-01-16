@@ -348,12 +348,21 @@ export default function ProductForm() {
             const selectedProducts = availableProducts.filter(p => 
               selectedComponentIds.includes(p.id)
             );
-            const matchingStocks = selectedProducts.map(p => {
-              const matchingVar = p.variants?.find(
-                v => v.size === variant.size && v.color === variant.color
+            const matchingStocks: number[] = [];
+            
+            for (const product of selectedProducts) {
+              const matchingVar = product.variants?.find(
+                v => v.size?.toLowerCase() === variant.size?.toLowerCase() && 
+                     v.color?.toLowerCase() === variant.color?.toLowerCase()
               );
-              return matchingVar?.stock ?? 0;
-            });
+              
+              if (matchingVar) {
+                matchingStocks.push(matchingVar.stock);
+              } else {
+                matchingStocks.push(0);
+              }
+            }
+            
             stockToSave = matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
           }
 
@@ -473,9 +482,10 @@ export default function ProductForm() {
             for (const bundleVar of bundleVariants) {
               for (const compId of selectedComponentIds) {
                 const compVars = componentVariantsMap[compId] || [];
-                // Find matching component variant by size and color
+                // Find matching component variant by size and color (case-insensitive)
                 const matchingCompVar = compVars.find(
-                  cv => cv.size === bundleVar.size && cv.color === bundleVar.color
+                  cv => cv.size?.toLowerCase() === bundleVar.size?.toLowerCase() && 
+                        cv.color?.toLowerCase() === bundleVar.color?.toLowerCase()
                 );
                 if (matchingCompVar) {
                   linksToInsert.push({
@@ -861,20 +871,36 @@ export default function ProductForm() {
                   <div className="space-y-4">
                     {variants.map((variant, index) => {
                       // Calcular estoque automático se for conjunto
-                      const calculatedStock = isBundle && selectedComponentIds.length > 0
-                        ? (() => {
-                            const selectedProducts = availableProducts.filter(p => 
-                              selectedComponentIds.includes(p.id)
-                            );
-                            const matchingStocks = selectedProducts.map(p => {
-                              const matchingVar = p.variants?.find(
-                                v => v.size === variant.size && v.color === variant.color
-                              );
-                              return matchingVar?.stock ?? 0;
-                            });
-                            return matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
-                          })()
-                        : null;
+                      const calculateBundleStock = () => {
+                        if (!isBundle || selectedComponentIds.length === 0) return null;
+                        
+                        const selectedProducts = availableProducts.filter(p => 
+                          selectedComponentIds.includes(p.id)
+                        );
+                        
+                        if (selectedProducts.length === 0) return 0;
+                        
+                        const matchingStocks: number[] = [];
+                        
+                        for (const product of selectedProducts) {
+                          // Find matching variant by size and color (case-insensitive comparison)
+                          const matchingVar = product.variants?.find(
+                            v => v.size?.toLowerCase() === variant.size?.toLowerCase() && 
+                                 v.color?.toLowerCase() === variant.color?.toLowerCase()
+                          );
+                          
+                          if (matchingVar) {
+                            matchingStocks.push(matchingVar.stock);
+                          } else {
+                            // If no matching variant found in a component, stock is 0
+                            matchingStocks.push(0);
+                          }
+                        }
+                        
+                        return matchingStocks.length > 0 ? Math.min(...matchingStocks) : 0;
+                      };
+                      
+                      const calculatedStock = calculateBundleStock();
 
                       return (
                         <div key={index} className="flex gap-4 items-start p-4 border rounded-lg">
@@ -962,16 +988,26 @@ export default function ProductForm() {
                             <div className="space-y-2">
                               <Label>Estoque</Label>
                               {isBundle && selectedComponentIds.length > 0 ? (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    type="number"
-                                    value={calculatedStock ?? 0}
-                                    disabled
-                                    className="bg-muted"
-                                  />
-                                  <Badge variant="outline" className="text-xs whitespace-nowrap">
-                                    Auto
-                                  </Badge>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      value={calculatedStock ?? 0}
+                                      disabled
+                                      className="bg-muted"
+                                    />
+                                    <Badge 
+                                      variant={calculatedStock === 0 ? "destructive" : "outline"} 
+                                      className="text-xs whitespace-nowrap"
+                                    >
+                                      {calculatedStock === 0 ? "Sem estoque" : "Auto"}
+                                    </Badge>
+                                  </div>
+                                  {calculatedStock === 0 && (
+                                    <p className="text-xs text-destructive">
+                                      Verifique se os componentes têm variações {variant.size}/{variant.color}
+                                    </p>
+                                  )}
                                 </div>
                               ) : (
                                 <Input
