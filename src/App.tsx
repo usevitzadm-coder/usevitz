@@ -26,8 +26,6 @@ import ReturnsPage from "./pages/ReturnsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotFound from "./pages/NotFound";
 import AdminGiftCards from "./pages/admin/AdminGiftCards";
-import AdminBundles from "./pages/admin/AdminBundles";
-import BundleForm from "./pages/admin/BundleForm";
 import {
   AdminLogin,
   AdminDashboard,
@@ -145,30 +143,6 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminGiftCards />
-                    </AdminLayout>
-                  }
-                />
-                <Route
-                  path="/admin/conjuntos"
-                  element={
-                    <AdminLayout>
-                      <AdminBundles />
-                    </AdminLayout>
-                  }
-                />
-                <Route
-                  path="/admin/conjuntos/novo"
-                  element={
-                    <AdminLayout>
-                      <BundleForm />
-                    </AdminLayout>
-                  }
-                />
-                <Route
-                  path="/admin/conjuntos/:bundleProductId"
-                  element={
-                    <AdminLayout>
-                      <BundleForm />
                     </AdminLayout>
                   }
                 />
