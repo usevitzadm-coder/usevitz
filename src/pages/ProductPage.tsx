@@ -403,7 +403,7 @@ const ProductPage = () => {
               {/* Quantity */}
               <div>
                 <h3 className="vitz-label mb-3">Quantidade</h3>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center">
                   <div className="flex items-center border border-border rounded">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -422,11 +422,6 @@ const ProductPage = () => {
                       <Plus size={16} />
                     </button>
                   </div>
-                  {selectedVariant && (
-                    <span className="text-sm text-muted-foreground">
-                      {selectedVariant.stock} em estoque
-                    </span>
-                  )}
                 </div>
               </div>
 
