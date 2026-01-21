@@ -69,7 +69,7 @@ const Header = () => {
               <img 
                 src={logoVitz} 
                 alt="Vitz" 
-                className="h-16"
+                className="h-[7.5rem]"
               />
             </Link>
           </div>
