@@ -254,7 +254,7 @@ const ProductPage = () => {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
             {/* Gallery */}
             <div className="space-y-4">
-              <div className="aspect-[3/4] max-h-[70vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
+              <div className="aspect-[3/4] max-h-[55vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
                 {sortedImages.length > 0 ? (
                   <img
                     src={sortedImages[selectedImage]?.url}
