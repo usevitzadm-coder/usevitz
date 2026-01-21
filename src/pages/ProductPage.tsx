@@ -268,12 +268,12 @@ const ProductPage = () => {
                 )}
               </div>
               {sortedImages.length > 1 && (
-                <div className="flex gap-3">
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
                   {sortedImages.map((image, index) => (
                     <button
                       key={image.id}
                       onClick={() => setSelectedImage(index)}
-                      className={`w-20 h-24 rounded-sm overflow-hidden border-2 transition-colors ${
+                      className={`flex-shrink-0 w-14 h-16 lg:w-20 lg:h-24 rounded-sm overflow-hidden border-2 transition-colors ${
                         selectedImage === index
                           ? "border-primary"
                           : "border-transparent"
