@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package, Tag, X } from "lucide-react";
+import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package, Tag, X, QrCode, FileText, Copy, Check } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
+import pixLogo from "@/assets/payment/pix.png";
+import boletoLogo from "@/assets/payment/boleto.png";
+import visaLogo from "@/assets/payment/visa.svg";
+import mastercardLogo from "@/assets/payment/mastercard.png";
+import eloLogo from "@/assets/payment/elo.png";
 
 interface ShippingOption {
   id: number;
@@ -27,6 +34,20 @@ interface AppliedCoupon {
   code: string;
   discount_type: 'percentage' | 'fixed';
   discount_value: number;
+}
+
+interface PaymentResult {
+  orderId: string;
+  status: string;
+  paymentMethod: string;
+  pixQrCode?: string;
+  pixQrCodeUrl?: string;
+  pixExpiresAt?: string;
+  boletoUrl?: string;
+  boletoBarcode?: string;
+  boletoPdf?: string;
+  approved?: boolean;
+  internalOrderId?: string;
 }
 
 const SOUTHEAST_STATES = ["SP", "RJ", "MG", "ES"];
@@ -52,6 +73,19 @@ const CheckoutPage = () => {
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+
+  // Payment states
+  const [paymentMethod, setPaymentMethod] = useState<"credit_card" | "pix" | "boleto">("credit_card");
+  const [cardData, setCardData] = useState({
+    number: "",
+    holder_name: "",
+    exp_month: "",
+    exp_year: "",
+    cvv: "",
+    installments: "1",
+  });
+  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -107,6 +141,11 @@ const CheckoutPage = () => {
     return digits.replace(/(\d{5})(\d{0,3})/, "$1-$2");
   };
 
+  const formatCardNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  };
+
   const handleCustomerChange = (field: string, value: string) => {
     if (field === "cpf") {
       value = formatCPF(value);
@@ -125,6 +164,19 @@ const CheckoutPage = () => {
       }
     }
     setShipping((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCardChange = (field: string, value: string) => {
+    if (field === "number") {
+      value = formatCardNumber(value);
+    } else if (field === "cvv") {
+      value = value.replace(/\D/g, "").slice(0, 4);
+    } else if (field === "exp_month") {
+      value = value.replace(/\D/g, "").slice(0, 2);
+    } else if (field === "exp_year") {
+      value = value.replace(/\D/g, "").slice(0, 4);
+    }
+    setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
   const isValidCEP = (cep: string): boolean => {
@@ -436,6 +488,24 @@ const CheckoutPage = () => {
       toast({ title: "Selecione uma opção de frete", variant: "destructive" });
       return false;
     }
+    if (paymentMethod === "credit_card") {
+      if (!cardData.number || cardData.number.replace(/\D/g, "").length < 13) {
+        toast({ title: "Número do cartão inválido", variant: "destructive" });
+        return false;
+      }
+      if (!cardData.holder_name) {
+        toast({ title: "Nome do titular obrigatório", variant: "destructive" });
+        return false;
+      }
+      if (!cardData.exp_month || !cardData.exp_year) {
+        toast({ title: "Data de validade obrigatória", variant: "destructive" });
+        return false;
+      }
+      if (!cardData.cvv || cardData.cvv.length < 3) {
+        toast({ title: "CVV inválido", variant: "destructive" });
+        return false;
+      }
+    }
     return true;
   };
 
@@ -456,45 +526,73 @@ const CheckoutPage = () => {
         quantity: item.quantity,
         size: item.variant.size,
         color: item.variant.color,
-        image: item.product.images?.[0],
+        variant_id: item.variant.id,
       }));
 
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: {
-          items: checkoutItems,
-          customer: {
-            name: customer.name,
-            email: customer.email,
-            cpf: customer.cpf.replace(/\D/g, ""),
-            phone: customer.phone.replace(/\D/g, ""),
-          },
-          shipping: {
-            zipCode: shipping.zipCode,
-            street: shipping.street,
-            number: shipping.number,
-            complement: shipping.complement,
-            neighborhood: shipping.neighborhood,
-            city: shipping.city,
-            state: shipping.state,
-          },
-          shippingOption: selectedShipping ? {
-            id: selectedShipping.id,
-            name: selectedShipping.name,
-            price: selectedShipping.price,
-            delivery_time: selectedShipping.delivery_time,
-          } : undefined,
-          giftCardCode: giftCardApplied ? giftCardCode : undefined,
-          giftCardDiscount: giftCardApplied ? giftCardDiscount : 0,
+      const couponDiscount = calculateCouponDiscount();
+
+      const requestBody: any = {
+        items: checkoutItems,
+        customer: {
+          name: customer.name,
+          email: customer.email,
+          cpf: customer.cpf.replace(/\D/g, ""),
+          phone: customer.phone.replace(/\D/g, ""),
         },
+        shipping: {
+          zipCode: shipping.zipCode,
+          street: shipping.street,
+          number: shipping.number,
+          complement: shipping.complement,
+          neighborhood: shipping.neighborhood,
+          city: shipping.city,
+          state: shipping.state,
+        },
+        shippingOption: selectedShipping ? {
+          id: selectedShipping.id,
+          name: selectedShipping.name,
+          price: selectedShipping.price,
+          delivery_time: selectedShipping.delivery_time,
+        } : undefined,
+        paymentMethod,
+        giftCardCode: giftCardApplied ? giftCardCode : undefined,
+        giftCardDiscount: giftCardApplied ? giftCardDiscount : 0,
+        couponCode: appliedCoupon?.code,
+        couponDiscount,
+      };
+
+      if (paymentMethod === "credit_card") {
+        requestBody.cardData = {
+          number: cardData.number.replace(/\D/g, ""),
+          holder_name: cardData.holder_name,
+          exp_month: parseInt(cardData.exp_month),
+          exp_year: parseInt(cardData.exp_year),
+          cvv: cardData.cvv,
+          installments: parseInt(cardData.installments),
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-pagarme-checkout", {
+        body: requestBody,
       });
 
       if (error) throw error;
 
-      // Redirect to Mercado Pago checkout
-      if (data.initPoint) {
-        window.location.href = data.initPoint;
-      } else {
-        throw new Error("No checkout URL received");
+      setPaymentResult(data);
+
+      if (paymentMethod === "credit_card" && data.approved) {
+        clearCart();
+        toast({ title: "Pagamento aprovado!" });
+        navigate(`/checkout/sucesso?order=${data.internalOrderId}`);
+      } else if (paymentMethod === "credit_card" && !data.approved) {
+        toast({ 
+          title: "Pagamento não aprovado", 
+          description: "Verifique os dados do cartão e tente novamente.",
+          variant: "destructive" 
+        });
+      } else if (paymentMethod === "pix" || paymentMethod === "boleto") {
+        clearCart();
+        toast({ title: "Pedido criado! Complete o pagamento." });
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
@@ -508,9 +606,162 @@ const CheckoutPage = () => {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({ title: "Copiado!" });
+  };
+
   const shippingCost = selectedShipping?.price || 0;
   const couponDiscount = calculateCouponDiscount();
   const finalTotal = Math.max(0, totalPrice - giftCardDiscount - couponDiscount + shippingCost);
+
+  // Calculate installments
+  const getInstallmentOptions = () => {
+    const options = [];
+    for (let i = 1; i <= 12; i++) {
+      const installmentValue = finalTotal / i;
+      if (installmentValue >= 5) { // Minimum installment value
+        options.push({
+          value: i.toString(),
+          label: i === 1 
+            ? `1x de ${formatPrice(finalTotal)} (à vista)` 
+            : `${i}x de ${formatPrice(installmentValue)} sem juros`,
+        });
+      }
+    }
+    return options;
+  };
+
+  // Show payment result for Pix/Boleto
+  if (paymentResult && (paymentResult.paymentMethod === "pix" || paymentResult.paymentMethod === "boleto")) {
+    return (
+      <>
+        <Helmet>
+          <title>Pagamento | Vitz</title>
+        </Helmet>
+        <Layout>
+          <div className="min-h-screen bg-background py-8 md:py-12">
+            <div className="container mx-auto px-4 max-w-lg">
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl">
+                    {paymentResult.paymentMethod === "pix" ? "Pague com Pix" : "Pague com Boleto"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {paymentResult.paymentMethod === "pix" && paymentResult.pixQrCode && (
+                    <>
+                      <div className="flex justify-center">
+                        {paymentResult.pixQrCodeUrl ? (
+                          <img 
+                            src={paymentResult.pixQrCodeUrl} 
+                            alt="QR Code Pix" 
+                            className="w-48 h-48"
+                          />
+                        ) : (
+                          <div className="w-48 h-48 bg-muted flex items-center justify-center rounded">
+                            <QrCode className="w-24 h-24 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Código Pix (Copia e Cola)</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            value={paymentResult.pixQrCode} 
+                            readOnly 
+                            className="font-mono text-xs"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => copyToClipboard(paymentResult.pixQrCode!)}
+                          >
+                            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        O código expira em 1 hora
+                      </p>
+                    </>
+                  )}
+
+                  {paymentResult.paymentMethod === "boleto" && (
+                    <>
+                      <div className="flex justify-center">
+                        <FileText className="w-24 h-24 text-muted-foreground" />
+                      </div>
+                      {paymentResult.boletoBarcode && (
+                        <div className="space-y-2">
+                          <Label>Código de Barras</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              value={paymentResult.boletoBarcode} 
+                              readOnly 
+                              className="font-mono text-xs"
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={() => copyToClipboard(paymentResult.boletoBarcode!)}
+                            >
+                              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        {paymentResult.boletoUrl && (
+                          <Button 
+                            className="flex-1" 
+                            onClick={() => window.open(paymentResult.boletoUrl, "_blank")}
+                          >
+                            Ver Boleto
+                          </Button>
+                        )}
+                        {paymentResult.boletoPdf && (
+                          <Button 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => window.open(paymentResult.boletoPdf, "_blank")}
+                          >
+                            Baixar PDF
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        O boleto vence em 3 dias úteis
+                      </p>
+                    </>
+                  )}
+
+                  <Separator />
+
+                  <div className="text-center space-y-2">
+                    <p className="font-medium">Total: {formatPrice(finalTotal)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Após a confirmação do pagamento, você receberá um e-mail com os detalhes do pedido.
+                    </p>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate("/")}
+                  >
+                    Voltar para a loja
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </Layout>
+      </>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -721,6 +972,149 @@ const CheckoutPage = () => {
                   </Card>
                 )}
 
+                {/* Payment Method */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <CreditCard className="w-5 h-5" />
+                      Forma de Pagamento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(value) => setPaymentMethod(value as "credit_card" | "pix" | "boleto")}
+                      className="grid grid-cols-3 gap-3"
+                    >
+                      <div>
+                        <RadioGroupItem value="credit_card" id="credit_card" className="sr-only peer" />
+                        <Label
+                          htmlFor="credit_card"
+                          className="flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 hover:border-primary/50"
+                        >
+                          <div className="flex gap-1">
+                            <img src={visaLogo} alt="Visa" className="h-4" />
+                            <img src={mastercardLogo} alt="Mastercard" className="h-4" />
+                            <img src={eloLogo} alt="Elo" className="h-4" />
+                          </div>
+                          <span className="text-sm font-medium">Cartão</span>
+                        </Label>
+                      </div>
+                      <div>
+                        <RadioGroupItem value="pix" id="pix" className="sr-only peer" />
+                        <Label
+                          htmlFor="pix"
+                          className="flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 hover:border-primary/50"
+                        >
+                          <img src={pixLogo} alt="Pix" className="h-6" />
+                          <span className="text-sm font-medium">Pix</span>
+                        </Label>
+                      </div>
+                      <div>
+                        <RadioGroupItem value="boleto" id="boleto" className="sr-only peer" />
+                        <Label
+                          htmlFor="boleto"
+                          className="flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 hover:border-primary/50"
+                        >
+                          <img src={boletoLogo} alt="Boleto" className="h-6" />
+                          <span className="text-sm font-medium">Boleto</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+
+                    {/* Credit Card Form */}
+                    {paymentMethod === "credit_card" && (
+                      <div className="space-y-4 pt-4 border-t">
+                        <div>
+                          <Label htmlFor="card_number">Número do Cartão</Label>
+                          <Input
+                            id="card_number"
+                            value={cardData.number}
+                            onChange={(e) => handleCardChange("number", e.target.value)}
+                            placeholder="0000 0000 0000 0000"
+                            maxLength={19}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="holder_name">Nome no Cartão</Label>
+                          <Input
+                            id="holder_name"
+                            value={cardData.holder_name}
+                            onChange={(e) => handleCardChange("holder_name", e.target.value.toUpperCase())}
+                            placeholder="NOME COMO NO CARTÃO"
+                            className="uppercase"
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="exp_month">Mês</Label>
+                            <Input
+                              id="exp_month"
+                              value={cardData.exp_month}
+                              onChange={(e) => handleCardChange("exp_month", e.target.value)}
+                              placeholder="MM"
+                              maxLength={2}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="exp_year">Ano</Label>
+                            <Input
+                              id="exp_year"
+                              value={cardData.exp_year}
+                              onChange={(e) => handleCardChange("exp_year", e.target.value)}
+                              placeholder="AAAA"
+                              maxLength={4}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="cvv">CVV</Label>
+                            <Input
+                              id="cvv"
+                              value={cardData.cvv}
+                              onChange={(e) => handleCardChange("cvv", e.target.value)}
+                              placeholder="123"
+                              maxLength={4}
+                              type="password"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="installments">Parcelas</Label>
+                          <Select
+                            value={cardData.installments}
+                            onValueChange={(value) => setCardData((prev) => ({ ...prev, installments: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione as parcelas" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getInstallmentOptions().map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === "pix" && (
+                      <div className="pt-4 border-t text-center text-sm text-muted-foreground">
+                        <p>Após finalizar, você receberá um QR Code para pagamento.</p>
+                        <p>O pagamento deve ser feito em até 1 hora.</p>
+                      </div>
+                    )}
+
+                    {paymentMethod === "boleto" && (
+                      <div className="pt-4 border-t text-center text-sm text-muted-foreground">
+                        <p>Após finalizar, você receberá o boleto para pagamento.</p>
+                        <p>O boleto vence em 3 dias úteis.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Coupon */}
                 <Card>
                   <CardHeader>
@@ -880,12 +1274,14 @@ const CheckoutPage = () => {
                           Processando...
                         </>
                       ) : (
-                        "Finalizar compra"
+                        paymentMethod === "credit_card" ? "Pagar com Cartão" :
+                        paymentMethod === "pix" ? "Gerar Pix" :
+                        "Gerar Boleto"
                       )}
                     </Button>
 
                     <p className="text-xs text-center text-muted-foreground">
-                      Você será redirecionado para o Mercado Pago
+                      Pagamento processado via Pagar.me
                     </p>
                   </CardContent>
                 </Card>
