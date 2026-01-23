@@ -1,6 +1,6 @@
 project_id = "bpkeajklymvupdxhqtgm"
 
-[functions.create-checkout]
+[functions.create-pagarme-checkout]
 verify_jwt = false
 
 [functions.calculate-shipping]
