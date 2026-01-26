@@ -783,10 +783,10 @@ export default function ProductForm() {
                       </p>
                     </div>
                   </div>
-                  <Checkbox
+                  <Switch
                     checked={isBundle}
                     onCheckedChange={(checked) => {
-                      setIsBundle(checked === true);
+                      setIsBundle(checked);
                       if (!checked) {
                         setSelectedComponentIds([]);
                       }
@@ -806,28 +806,34 @@ export default function ProductForm() {
                       o mínimo entre os estoques das variações correspondentes (mesmo tamanho e cor).
                     </p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {availableProducts.map((product) => (
-                        <div
-                          key={product.id}
-                          className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedComponentIds.includes(product.id) 
-                              ? 'border-primary bg-primary/5' 
-                              : 'hover:border-muted-foreground/50'
-                          }`}
-                          onClick={() => toggleComponentProduct(product.id)}
-                        >
-                          <Checkbox 
-                            checked={selectedComponentIds.includes(product.id)}
-                            onCheckedChange={() => toggleComponentProduct(product.id)}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {product.variants?.length || 0} variações
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      {availableProducts.map((product) => {
+                        const isSelected = selectedComponentIds.includes(product.id);
+                        return (
+                          <label
+                            key={product.id}
+                            htmlFor={`component-${product.id}`}
+                            className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                              isSelected 
+                                ? 'border-primary bg-primary/5' 
+                                : 'hover:border-muted-foreground/50'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              id={`component-${product.id}`}
+                              checked={isSelected}
+                              onChange={() => toggleComponentProduct(product.id)}
+                              className="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {product.variants?.length || 0} variações
+                              </p>
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
                     {selectedComponentIds.length > 0 && (
                       <div className="pt-2">
