@@ -40,6 +40,8 @@ interface CardData {
   exp_year: number;
   cvv: string;
   installments: number;
+  totalWithInterest?: number;
+  hasInterest?: boolean;
 }
 
 interface CheckoutRequest {
@@ -94,10 +96,14 @@ serve(async (req: Request) => {
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const shippingCost = shippingOption?.price || 0;
     const totalDiscounts = giftCardDiscount + couponDiscount;
-    const total = Math.max(0, subtotal - totalDiscounts + shippingCost);
+    
+    // For credit card with interest, use the totalWithInterest from cardData
+    const hasInterest = paymentMethod === "credit_card" && cardData?.hasInterest;
+    const baseTotal = Math.max(0, subtotal - totalDiscounts + shippingCost);
+    const total = hasInterest && cardData?.totalWithInterest ? cardData.totalWithInterest : baseTotal;
     const totalInCents = Math.round(total * 100);
 
-    console.log("Order totals:", { subtotal, shippingCost, totalDiscounts, total, totalInCents });
+    console.log("Order totals:", { subtotal, shippingCost, totalDiscounts, baseTotal, total, totalInCents, hasInterest });
 
     // Prepare items for Pagar.me
     const orderItems = items.map((item) => ({
