@@ -562,13 +562,19 @@ const CheckoutPage = () => {
       };
 
       if (paymentMethod === "credit_card") {
+        const installmentCount = parseInt(cardData.installments);
+        const installmentOptions = getInstallmentOptions();
+        const selectedInstallment = installmentOptions.find(opt => opt.value === cardData.installments);
+        
         requestBody.cardData = {
           number: cardData.number.replace(/\D/g, ""),
           holder_name: cardData.holder_name,
           exp_month: parseInt(cardData.exp_month),
           exp_year: parseInt(cardData.exp_year),
           cvv: cardData.cvv,
-          installments: parseInt(cardData.installments),
+          installments: installmentCount,
+          totalWithInterest: selectedInstallment?.totalWithInterest || finalTotal,
+          hasInterest: selectedInstallment?.hasInterest || false,
         };
       }
 
@@ -617,17 +623,54 @@ const CheckoutPage = () => {
   const couponDiscount = calculateCouponDiscount();
   const finalTotal = Math.max(0, totalPrice - giftCardDiscount - couponDiscount + shippingCost);
 
-  // Calculate installments
+  // Calculate installments with interest
+  // Only purchases above R$180 can have up to 3x interest-free
+  const INTEREST_FREE_MIN_VALUE = 180;
+  const INTEREST_FREE_MAX_INSTALLMENTS = 3;
+  const INTEREST_RATE = 0.0299; // 2.99% per month
+
+  const calculateInstallmentWithInterest = (total: number, installments: number) => {
+    // Compound interest formula: PMT = PV * (r * (1 + r)^n) / ((1 + r)^n - 1)
+    const r = INTEREST_RATE;
+    const n = installments;
+    const coefficient = (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    return total * coefficient;
+  };
+
   const getInstallmentOptions = () => {
     const options = [];
+    const qualifiesForInterestFree = finalTotal >= INTEREST_FREE_MIN_VALUE;
+
     for (let i = 1; i <= 12; i++) {
-      const installmentValue = finalTotal / i;
+      const isInterestFree = qualifiesForInterestFree && i <= INTEREST_FREE_MAX_INSTALLMENTS;
+      
+      let installmentValue: number;
+      let totalWithInterest: number;
+
+      if (i === 1 || isInterestFree) {
+        installmentValue = finalTotal / i;
+        totalWithInterest = finalTotal;
+      } else {
+        installmentValue = calculateInstallmentWithInterest(finalTotal, i);
+        totalWithInterest = installmentValue * i;
+      }
+
       if (installmentValue >= 5) { // Minimum installment value
+        let label: string;
+        if (i === 1) {
+          label = `1x de ${formatPrice(finalTotal)} (à vista)`;
+        } else if (isInterestFree) {
+          label = `${i}x de ${formatPrice(installmentValue)} sem juros`;
+        } else {
+          label = `${i}x de ${formatPrice(installmentValue)} (total: ${formatPrice(totalWithInterest)})`;
+        }
+
         options.push({
           value: i.toString(),
-          label: i === 1 
-            ? `1x de ${formatPrice(finalTotal)} (à vista)` 
-            : `${i}x de ${formatPrice(installmentValue)} sem juros`,
+          label,
+          installmentValue,
+          totalWithInterest,
+          hasInterest: !isInterestFree && i > 1,
         });
       }
     }
