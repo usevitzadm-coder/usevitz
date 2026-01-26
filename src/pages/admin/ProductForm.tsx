@@ -251,6 +251,89 @@ export default function ProductForm() {
     return stocks.length > 0 ? Math.min(...stocks) : 0;
   }
 
+  // Generate bundle variants automatically from component products
+  function generateBundleVariants(): Variant[] {
+    if (selectedComponentIds.length === 0 || availableProducts.length === 0) return [];
+
+    const selectedProducts = availableProducts.filter(p => 
+      selectedComponentIds.includes(p.id)
+    );
+
+    if (selectedProducts.length === 0) return [];
+
+    // Get all unique size/color combinations that exist in ALL selected products
+    const allVariants = selectedProducts.flatMap(p => p.variants || []);
+    
+    // Group variants by size-color key
+    const variantCounts: Record<string, { size: string; color: string; stocks: number[] }> = {};
+    
+    for (const product of selectedProducts) {
+      for (const variant of (product.variants || [])) {
+        const key = `${variant.size?.toLowerCase()}-${variant.color?.toLowerCase()}`;
+        if (!variantCounts[key]) {
+          variantCounts[key] = {
+            size: variant.size,
+            color: variant.color,
+            stocks: []
+          };
+        }
+        variantCounts[key].stocks.push(variant.stock);
+      }
+    }
+
+    // Only include variants that exist in ALL selected products
+    const bundleVariants: Variant[] = [];
+    const colorMap = new Map(colorOptions.map(c => [c.name.toLowerCase(), c.hex_code]));
+
+    for (const [key, data] of Object.entries(variantCounts)) {
+      // Check if this variant exists in all selected products
+      if (data.stocks.length === selectedProducts.length) {
+        const minStock = Math.min(...data.stocks);
+        bundleVariants.push({
+          size: data.size,
+          color: data.color,
+          color_hex: colorMap.get(data.color.toLowerCase()) || '#000000',
+          sku: `${slug}-${data.size}-${data.color.toUpperCase().replace(/\s+/g, '-')}`.toUpperCase(),
+          price: null,
+          stock: minStock,
+          is_active: true,
+        });
+      }
+    }
+
+    // Sort by size order
+    const sizeOrder = SIZES.reduce((acc, size, idx) => ({ ...acc, [size]: idx }), {} as Record<string, number>);
+    bundleVariants.sort((a, b) => {
+      const sizeCompare = (sizeOrder[a.size] ?? 999) - (sizeOrder[b.size] ?? 999);
+      if (sizeCompare !== 0) return sizeCompare;
+      return a.color.localeCompare(b.color);
+    });
+
+    return bundleVariants;
+  }
+
+  // Auto-generate variants when bundle configuration changes
+  useEffect(() => {
+    if (isBundle && selectedComponentIds.length > 0 && availableProducts.length > 0) {
+      const newVariants = generateBundleVariants();
+      if (newVariants.length > 0) {
+        // Only update if variants differ (to avoid unnecessary re-renders)
+        const currentKeys = variants.map(v => `${v.size}-${v.color}`).sort().join(',');
+        const newKeys = newVariants.map(v => `${v.size}-${v.color}`).sort().join(',');
+        
+        if (currentKeys !== newKeys || variants.length === 0) {
+          setVariants(newVariants);
+        } else {
+          // Update stock values for existing variants
+          setVariants(variants.map(v => ({
+            ...v,
+            stock: calculateBundleStock(v.size, v.color)
+          })));
+        }
+      }
+    }
+  }, [isBundle, selectedComponentIds, availableProducts]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
