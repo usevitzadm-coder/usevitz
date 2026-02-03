@@ -414,11 +414,10 @@ const ProductPage = () => {
               </div>
 
               {/* Add to Cart */}
-              <div className="flex gap-4 pt-4">
+              <div className="pt-4">
                 <Button
                   variant="hero"
-                  size="lg"
-                  className="flex-1 text-sm lg:text-base py-3 lg:py-4"
+                  className="w-full h-12 text-sm tracking-wider"
                   onClick={handleAddToCart}
                   disabled={isOutOfStock || activeVariants.length === 0}
                 >
