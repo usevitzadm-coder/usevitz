@@ -47,9 +47,9 @@ export default function ProductGallery({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 max-w-full overflow-hidden">
       <div
-        className="flex gap-3"
+        className="flex gap-3 max-w-full"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -77,8 +77,8 @@ export default function ProductGallery({
         )}
 
         {/* Main Image with Arrows */}
-        <div className="relative w-full overflow-hidden">
-          <div className="aspect-[3/4] w-full rounded-sm bg-muted">
+        <div className="relative w-full min-w-0 overflow-hidden">
+          <div className="aspect-[3/4] w-full rounded-sm bg-muted overflow-hidden">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}

@@ -269,8 +269,8 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="vitz-container pb-12 lg:pb-20 px-3 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16">
+        <section className="vitz-container pb-12 lg:pb-20 px-3 sm:px-6 lg:px-8 max-w-full overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 max-w-full">
             {/* Gallery */}
             <ProductGallery
               images={sortedImages}
@@ -279,7 +279,7 @@ const ProductPage = () => {
             />
 
             {/* Info */}
-            <div className="space-y-5 lg:space-y-6 min-w-0">
+            <div className="space-y-5 lg:space-y-6 min-w-0 max-w-full overflow-hidden">
               {product.badge && (
                 <span className="inline-block bg-primary text-primary-foreground text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
                   {product.badge === "novo"
