@@ -56,12 +56,12 @@ export default function ProductGallery({
       >
         {/* Thumbnails - Vertical Column on Left (Desktop) */}
         {images.length > 1 && (
-          <div className="hidden lg:flex flex-col gap-2 w-20 shrink-0 max-h-[500px] overflow-y-auto">
+          <div className="hidden lg:flex flex-col gap-2 w-16 shrink-0 max-h-[600px] overflow-y-auto">
             {images.map((image, index) => (
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
-                className={`w-full aspect-[3/4] rounded-sm overflow-hidden border-2 transition-colors ${
+                className={`w-full h-12 rounded-sm overflow-hidden border-2 transition-colors bg-muted/50 ${
                   selectedIndex === index
                     ? "border-primary"
                     : "border-transparent hover:border-muted-foreground"
@@ -70,7 +70,7 @@ export default function ProductGallery({
                 <img
                   src={image.url}
                   alt={`${productName} - Imagem ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </button>
             ))}
