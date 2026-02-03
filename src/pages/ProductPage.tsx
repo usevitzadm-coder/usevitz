@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/product/ProductCard";
+import ProductGallery from "@/components/product/ProductGallery";
 import { useToast } from "@/hooks/use-toast";
 
 const ProductPage = () => {
@@ -19,7 +20,6 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
@@ -253,42 +253,11 @@ const ProductPage = () => {
         <section className="vitz-container pb-20 overflow-x-hidden">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 overflow-hidden">
             {/* Gallery */}
-            <div className="space-y-4">
-              <div className="aspect-[3/4] max-h-[55vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
-                {sortedImages.length > 0 ? (
-                  <img
-                    src={sortedImages[selectedImage]?.url}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    Sem imagem
-                  </div>
-                )}
-              </div>
-              {sortedImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
-                  {sortedImages.map((image, index) => (
-                    <button
-                      key={image.id}
-                      onClick={() => setSelectedImage(index)}
-                      className={`flex-shrink-0 w-14 h-16 lg:w-20 lg:h-24 rounded-sm overflow-hidden border-2 transition-colors ${
-                        selectedImage === index
-                          ? "border-primary"
-                          : "border-transparent"
-                      }`}
-                    >
-                      <img
-                        src={image.url}
-                        alt={`${product.name} - Imagem ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProductGallery
+              images={sortedImages}
+              productName={product.name}
+              autoPlayInterval={3000}
+            />
 
             {/* Info */}
             <div className="space-y-6 min-w-0">
