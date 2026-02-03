@@ -269,8 +269,8 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="vitz-container pb-20 overflow-x-hidden">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 overflow-hidden">
+        <section className="vitz-container pb-12 lg:pb-20 px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-16">
             {/* Gallery */}
             <ProductGallery
               images={sortedImages}
@@ -279,7 +279,7 @@ const ProductPage = () => {
             />
 
             {/* Info */}
-            <div className="space-y-6 min-w-0">
+            <div className="space-y-5 lg:space-y-6 min-w-0">
               {product.badge && (
                 <span className="inline-block bg-primary text-primary-foreground text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
                   {product.badge === "novo"
@@ -431,13 +431,13 @@ const ProductPage = () => {
               </div>
 
               {/* Benefits */}
-              <div className="flex gap-6 pt-4 border-t border-border">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-border">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Truck size={18} />
+                  <Truck size={18} className="shrink-0" />
                   <span>Frete grátis acima de R$ 299</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw size={18} />
+                  <RefreshCw size={18} className="shrink-0" />
                   <span>Troca grátis</span>
                 </div>
               </div>
