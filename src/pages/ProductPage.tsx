@@ -55,6 +55,20 @@ const ProductPage = () => {
     enabled: !!slug,
   });
 
+  // Fetch colors from admin
+  const { data: adminColors } = useQuery({
+    queryKey: ["colors"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("colors")
+        .select("name, hex_code")
+        .eq("is_active", true);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch related products
   const { data: relatedProducts } = useQuery({
     queryKey: ["related-products", product?.category_id],
@@ -135,8 +149,13 @@ const ProductPage = () => {
 
   const sizes = [...new Set(activeVariants.map((v) => v.size))];
   const colors = [...new Set(activeVariants.map((v) => v.color))];
+  
+  // Use admin colors for accurate hex values
+  const adminColorMap = Object.fromEntries(
+    (adminColors || []).map((c) => [c.name.toLowerCase(), c.hex_code])
+  );
   const colorHexMap = Object.fromEntries(
-    activeVariants.map((v) => [v.color, v.color_hex || "#cccccc"])
+    colors.map((color) => [color, adminColorMap[color.toLowerCase()] || "#cccccc"])
   );
 
   const selectedVariant = activeVariants.find(
