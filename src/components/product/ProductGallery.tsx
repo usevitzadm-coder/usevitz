@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductImage {
@@ -21,6 +21,8 @@ export default function ProductGallery({
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const desktopThumbsRef = useRef<HTMLDivElement>(null);
+  const mobileThumbsRef = useRef<HTMLDivElement>(null);
 
   const goToNext = useCallback(() => {
     setSelectedIndex((prev) => (prev + 1) % images.length);
@@ -37,6 +39,35 @@ export default function ProductGallery({
     const interval = setInterval(goToNext, autoPlayInterval);
     return () => clearInterval(interval);
   }, [images.length, isPaused, autoPlayInterval, goToNext]);
+
+  // Auto-scroll thumbnails to center selected
+  useEffect(() => {
+    // Desktop vertical scroll
+    if (desktopThumbsRef.current) {
+      const container = desktopThumbsRef.current;
+      const thumb = container.children[selectedIndex] as HTMLElement;
+      if (thumb) {
+        const containerHeight = container.clientHeight;
+        const thumbTop = thumb.offsetTop;
+        const thumbHeight = thumb.clientHeight;
+        const scrollTo = thumbTop - containerHeight / 2 + thumbHeight / 2;
+        container.scrollTo({ top: scrollTo, behavior: "smooth" });
+      }
+    }
+
+    // Mobile horizontal scroll
+    if (mobileThumbsRef.current) {
+      const container = mobileThumbsRef.current;
+      const thumb = container.children[selectedIndex] as HTMLElement;
+      if (thumb) {
+        const containerWidth = container.clientWidth;
+        const thumbLeft = thumb.offsetLeft;
+        const thumbWidth = thumb.clientWidth;
+        const scrollTo = thumbLeft - containerWidth / 2 + thumbWidth / 2;
+        container.scrollTo({ left: scrollTo, behavior: "smooth" });
+      }
+    }
+  }, [selectedIndex]);
 
   if (images.length === 0) {
     return (
@@ -55,14 +86,17 @@ export default function ProductGallery({
       >
         {/* Thumbnails - Vertical Column on Left (Desktop) */}
         {images.length > 1 && (
-          <div className="hidden lg:flex flex-col gap-1.5 shrink-0 max-h-[600px] overflow-y-auto pr-1">
+          <div 
+            ref={desktopThumbsRef}
+            className="hidden lg:flex flex-col gap-1.5 shrink-0 max-h-[600px] overflow-y-auto pr-1 scrollbar-hide"
+          >
             {images.map((image, index) => (
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
                 className={`w-10 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
-                    ? "border-primary opacity-100"
+                    ? "border-primary opacity-100 scale-110"
                     : "border-transparent opacity-70 hover:opacity-100"
                 }`}
               >
@@ -126,14 +160,17 @@ export default function ProductGallery({
       {/* Mobile Thumbnails - Horizontal below main image */}
       {images.length > 1 && (
         <div className="lg:hidden">
-          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          <div 
+            ref={mobileThumbsRef}
+            className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide"
+          >
             {images.map((image, index) => (
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
                 className={`flex-shrink-0 w-12 h-14 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
-                    ? "border-primary opacity-100"
+                    ? "border-primary opacity-100 scale-110"
                     : "border-transparent opacity-60"
                 }`}
               >
