@@ -61,7 +61,7 @@ export default function ProductGallery({
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
-                className={`w-full h-12 rounded-sm overflow-hidden border-2 transition-colors bg-muted/50 ${
+                className={`w-full rounded-sm overflow-hidden border-2 transition-colors ${
                   selectedIndex === index
                     ? "border-primary"
                     : "border-transparent hover:border-muted-foreground"
@@ -70,7 +70,7 @@ export default function ProductGallery({
                 <img
                   src={image.url}
                   alt={`${productName} - Imagem ${index + 1}`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-auto"
                 />
               </button>
             ))}
