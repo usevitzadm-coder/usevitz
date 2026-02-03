@@ -269,8 +269,8 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="vitz-container pb-12 lg:pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-16">
+        <section className="vitz-container pb-12 lg:pb-20 px-3 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16">
             {/* Gallery */}
             <ProductGallery
               images={sortedImages}
@@ -417,7 +417,7 @@ const ProductPage = () => {
               <div className="pt-4">
                 <Button
                   variant="hero"
-                  className="w-full h-12 text-sm tracking-wider"
+                  className="w-full h-11 text-xs sm:text-sm tracking-wider"
                   onClick={handleAddToCart}
                   disabled={isOutOfStock || activeVariants.length === 0}
                 >
