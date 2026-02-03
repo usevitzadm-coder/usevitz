@@ -466,8 +466,28 @@ export default function ProductForm() {
         }
       }
 
-      // Handle image uploads
+      // Handle images
       if (productId) {
+        // Delete removed images first
+        if (isEditing) {
+          const existingImageIds = images.filter(img => img.id).map(img => img.id);
+          if (existingImageIds.length > 0) {
+            // Delete images that are no longer in the list
+            await supabase
+              .from('product_images')
+              .delete()
+              .eq('product_id', productId)
+              .not('id', 'in', `(${existingImageIds.join(',')})`);
+          } else {
+            // No existing images left, delete all
+            await supabase
+              .from('product_images')
+              .delete()
+              .eq('product_id', productId);
+          }
+        }
+
+        // Upload new images and update existing ones
         for (let i = 0; i < images.length; i++) {
           const img = images[i];
           if (img.file) {
