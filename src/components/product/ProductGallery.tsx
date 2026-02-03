@@ -77,12 +77,12 @@ export default function ProductGallery({
         )}
 
         {/* Main Image with Arrows */}
-        <div className="relative w-full">
-          <div className="aspect-[3/4] w-full overflow-hidden rounded-sm bg-muted">
+        <div className="relative w-full overflow-hidden">
+          <div className="aspect-[3/4] w-full rounded-sm bg-muted">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}
-              className="w-full h-full object-cover transition-opacity duration-300"
+              className="w-full h-full object-contain transition-opacity duration-300"
             />
           </div>
           
