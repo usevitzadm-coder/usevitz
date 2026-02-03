@@ -417,8 +417,8 @@ const ProductPage = () => {
               <div className="flex gap-4 pt-4">
                 <Button
                   variant="hero"
-                  size="xl"
-                  className="flex-1"
+                  size="lg"
+                  className="flex-1 text-sm lg:text-base py-3 lg:py-4"
                   onClick={handleAddToCart}
                   disabled={isOutOfStock || activeVariants.length === 0}
                 >

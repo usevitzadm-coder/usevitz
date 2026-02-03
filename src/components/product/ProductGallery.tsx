@@ -48,7 +48,7 @@ export default function ProductGallery({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div
         className="flex gap-3"
         onMouseEnter={() => setIsPaused(true)}
@@ -78,53 +78,53 @@ export default function ProductGallery({
         )}
 
         {/* Main Image with Arrows */}
-        <div className="relative flex-1 min-w-0">
-          <div className="aspect-[3/4] max-h-[50vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
+        <div className="relative flex-1 min-w-0 flex items-center justify-center">
+          <div className="relative w-full max-h-[45vh] lg:max-h-none aspect-[3/4] overflow-hidden rounded-sm bg-muted">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}
               className="w-full h-full object-cover transition-opacity duration-300"
             />
+            
+            {/* Navigation Arrows - Inside image container */}
+            {images.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-md hover:bg-background z-10"
+                  onClick={goToPrev}
+                >
+                  <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span className="sr-only">Imagem anterior</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-md hover:bg-background z-10"
+                  onClick={goToNext}
+                >
+                  <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <span className="sr-only">Próxima imagem</span>
+                </Button>
+              </>
+            )}
+
+            {/* Dots indicator (mobile only) */}
+            {images.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden z-10">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      selectedIndex === index ? "bg-foreground" : "bg-foreground/40"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* Navigation Arrows */}
-          {images.length > 1 && (
-            <>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-md hover:bg-background"
-                onClick={goToPrev}
-              >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="sr-only">Imagem anterior</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border-0 shadow-md hover:bg-background"
-                onClick={goToNext}
-              >
-                <ChevronRight className="w-5 h-5" />
-                <span className="sr-only">Próxima imagem</span>
-              </Button>
-            </>
-          )}
-
-          {/* Dots indicator (mobile only) */}
-          {images.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden">
-              {images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    selectedIndex === index ? "bg-foreground" : "bg-foreground/40"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
