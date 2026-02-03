@@ -78,8 +78,8 @@ export default function ProductGallery({
         )}
 
         {/* Main Image with Arrows */}
-        <div className="relative flex-1">
-          <div className="aspect-[3/4] max-h-[55vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
+        <div className="relative flex-1 min-w-0">
+          <div className="aspect-[3/4] max-h-[50vh] lg:max-h-none overflow-hidden rounded-sm bg-muted">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}
@@ -131,15 +131,15 @@ export default function ProductGallery({
       {/* Mobile Thumbnails - Horizontal below main image */}
       {images.length > 1 && (
         <div className="lg:hidden">
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
             {images.map((image, index) => (
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
-                className={`flex-shrink-0 w-14 h-16 rounded-sm overflow-hidden border-2 transition-colors ${
+                className={`flex-shrink-0 w-12 h-14 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
-                    ? "border-primary"
-                    : "border-transparent"
+                    ? "border-primary opacity-100"
+                    : "border-transparent opacity-60"
                 }`}
               >
                 <img
