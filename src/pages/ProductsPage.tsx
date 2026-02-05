@@ -8,10 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Helmet } from "react-helmet-async";
 import ProductFilters, { ProductFiltersState } from "@/components/products/ProductFilters";
 
-type SortOption = "newest" | "price-asc" | "price-desc" | "name";
+type SortOption = "order" | "newest" | "price-asc" | "price-desc" | "name";
 
 const ProductsPage = () => {
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("order");
   const [filters, setFilters] = useState<ProductFiltersState>({
     priceRange: [0, 1000],
     colors: [],
@@ -92,6 +92,9 @@ const ProductsPage = () => {
 
       // Sort - always use display_order as secondary sort for consistency
       switch (sortBy) {
+        case "order":
+          query = query.order("display_order", { ascending: true });
+          break;
         case "newest":
           query = query.order("created_at", { ascending: false }).order("display_order", { ascending: true });
           break;
@@ -175,6 +178,7 @@ const ProductsPage = () => {
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="order">Ordem padrão</SelectItem>
               <SelectItem value="newest">Mais recentes</SelectItem>
               <SelectItem value="price-asc">Menor preço</SelectItem>
               <SelectItem value="price-desc">Maior preço</SelectItem>
