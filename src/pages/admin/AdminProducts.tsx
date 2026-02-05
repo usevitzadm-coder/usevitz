@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, MoreHorizontal, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, MoreHorizontal, Eye, EyeOff, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -45,6 +45,7 @@ interface Product {
   price: number;
   is_active: boolean;
   badge: string | null;
+  display_order: number;
   category: { id: string; name: string } | null;
   images: { url: string; is_primary: boolean }[];
   variants: { stock: number }[];
@@ -62,7 +63,7 @@ export default function AdminProducts() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('newest');
+  const [sortBy, setSortBy] = useState<string>('display_order');
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -84,6 +85,7 @@ export default function AdminProducts() {
           price,
           is_active,
           badge,
+          display_order,
           category:categories(id, name),
           images:product_images(url, is_primary),
           variants:product_variants(stock),
@@ -94,7 +96,9 @@ export default function AdminProducts() {
         query = query.eq('category_id', categoryFilter);
       }
 
-      if (sortBy === 'newest') {
+      if (sortBy === 'display_order') {
+        query = query.order('display_order', { ascending: true });
+      } else if (sortBy === 'newest') {
         query = query.order('created_at', { ascending: false });
       } else if (sortBy === 'oldest') {
         query = query.order('created_at', { ascending: true });
@@ -207,6 +211,42 @@ export default function AdminProducts() {
     return primary?.url || images?.[0]?.url || '/placeholder.svg';
   }
 
+  async function moveProduct(product: Product, direction: 'up' | 'down') {
+    const currentIndex = products.findIndex(p => p.id === product.id);
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    
+    if (targetIndex < 0 || targetIndex >= products.length) return;
+    
+    const targetProduct = products[targetIndex];
+    
+    try {
+      // Swap display_order values
+      const { error: error1 } = await supabase
+        .from('products')
+        .update({ display_order: targetProduct.display_order })
+        .eq('id', product.id);
+      
+      if (error1) throw error1;
+      
+      const { error: error2 } = await supabase
+        .from('products')
+        .update({ display_order: product.display_order })
+        .eq('id', targetProduct.id);
+      
+      if (error2) throw error2;
+      
+      toast({ title: 'Ordem atualizada' });
+      fetchProducts();
+    } catch (error) {
+      console.error('Error updating order:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar a ordem.',
+        variant: 'destructive',
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -248,6 +288,7 @@ export default function AdminProducts() {
             <SelectValue placeholder="Ordenar por" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="display_order">Ordem de exibição</SelectItem>
             <SelectItem value="newest">Mais recentes</SelectItem>
             <SelectItem value="oldest">Mais antigos</SelectItem>
             <SelectItem value="low_stock">Estoque baixo</SelectItem>
@@ -259,6 +300,7 @@ export default function AdminProducts() {
         <Table>
           <TableHeader>
             <TableRow>
+              {sortBy === 'display_order' && <TableHead className="w-20">Ordem</TableHead>}
               <TableHead className="w-12"></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Categoria</TableHead>
@@ -272,21 +314,45 @@ export default function AdminProducts() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={sortBy === 'display_order' ? 9 : 8} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={sortBy === 'display_order' ? 9 : 8} className="text-center py-8 text-muted-foreground">
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              products.map((product) => {
+              products.map((product, index) => {
                 const totalStock = getTotalStock(product.variants);
                 return (
                   <TableRow key={product.id}>
+                    {sortBy === 'display_order' && (
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => moveProduct(product, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => moveProduct(product, 'down')}
+                            disabled={index === products.length - 1}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <img
                         src={getPrimaryImage(product.images)}
