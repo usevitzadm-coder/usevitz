@@ -90,20 +90,22 @@ const ProductsPage = () => {
       // Filter by price range
       query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
 
-      // Sort
+      // Sort - always use display_order as secondary sort for consistency
       switch (sortBy) {
         case "newest":
-          query = query.order("created_at", { ascending: false });
+          query = query.order("created_at", { ascending: false }).order("display_order", { ascending: true });
           break;
         case "price-asc":
-          query = query.order("price", { ascending: true });
+          query = query.order("price", { ascending: true }).order("display_order", { ascending: true });
           break;
         case "price-desc":
-          query = query.order("price", { ascending: false });
+          query = query.order("price", { ascending: false }).order("display_order", { ascending: true });
           break;
         case "name":
-          query = query.order("name", { ascending: true });
+          query = query.order("name", { ascending: true }).order("display_order", { ascending: true });
           break;
+        default:
+          query = query.order("display_order", { ascending: true });
       }
 
       const { data, error } = await query;
