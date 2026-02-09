@@ -90,6 +90,7 @@ export default function ProductForm() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const [isComingSoon, setIsComingSoon] = useState(false);
   const [badge, setBadge] = useState<string>('');
   const [benefits, setBenefits] = useState<string[]>(['']);
   const [sizeGuide, setSizeGuide] = useState('');
@@ -208,6 +209,7 @@ export default function ProductForm() {
       setOriginalPrice(product.original_price?.toString() || '');
       setCategoryId(product.category_id || '');
       setIsActive(product.is_active);
+      setIsComingSoon(product.is_coming_soon ?? false);
       setBadge(product.badge || '');
       setBenefits(product.benefits?.length ? product.benefits : ['']);
       setSizeGuide(product.size_guide || '');
@@ -385,6 +387,7 @@ export default function ProductForm() {
         original_price: originalPrice ? parseFloat(originalPrice) : null,
         category_id: categoryId || null,
         is_active: isActive,
+        is_coming_soon: isComingSoon,
         badge: badge || null,
         benefits: benefits.filter(b => b.trim()),
         size_guide: sizeGuide || null,
@@ -1129,6 +1132,14 @@ export default function ProductForm() {
                     id="isActive"
                     checked={isActive}
                     onCheckedChange={setIsActive}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isComingSoon">Produto em lançamento</Label>
+                  <Switch
+                    id="isComingSoon"
+                    checked={isComingSoon}
+                    onCheckedChange={setIsComingSoon}
                   />
                 </div>
                 <div className="space-y-2">

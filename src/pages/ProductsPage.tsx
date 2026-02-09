@@ -77,6 +77,7 @@ const ProductsPage = () => {
           short_description,
           category_id,
           created_at,
+          is_coming_soon,
           product_images(url, is_primary),
           product_variants(color, size, is_active)
         `)
@@ -225,6 +226,7 @@ const ProductsPage = () => {
                   rating: 0,
                   reviewCount: 0,
                   createdAt: product.created_at,
+                  isComingSoon: product.is_coming_soon ?? false,
                 }}
               />
             ))}

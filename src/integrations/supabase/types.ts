@@ -250,6 +250,35 @@ export type Database = {
         }
         Relationships: []
       }
+      launch_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_leads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -542,6 +571,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          is_coming_soon: boolean
           name: string
           original_price: number | null
           price: number
@@ -561,6 +591,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_coming_soon?: boolean
           name: string
           original_price?: number | null
           price: number
@@ -580,6 +611,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_coming_soon?: boolean
           name?: string
           original_price?: number | null
           price?: number
