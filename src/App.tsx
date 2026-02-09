@@ -24,6 +24,7 @@ import AboutPage from "./pages/AboutPage";
 import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import AccountPage from "./pages/AccountPage";
 import NotFound from "./pages/NotFound";
 import AdminGiftCards from "./pages/admin/AdminGiftCards";
 import {
@@ -72,6 +73,7 @@ const App = () => (
                 <Route path="/entrega" element={<DeliveryPolicyPage />} />
                 <Route path="/trocas" element={<ReturnsPage />} />
                 <Route path="/privacidade" element={<PrivacyPolicyPage />} />
+                <Route path="/conta" element={<AccountPage />} />
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
