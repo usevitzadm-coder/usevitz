@@ -25,6 +25,7 @@ export interface Product {
   reviewCount: number;
   sizeGuide?: string;
   createdAt: string;
+  isComingSoon?: boolean;
 }
 
 export interface CartItem {

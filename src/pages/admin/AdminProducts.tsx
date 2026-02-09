@@ -44,6 +44,7 @@ interface Product {
   slug: string;
   price: number;
   is_active: boolean;
+  is_coming_soon: boolean;
   badge: string | null;
   display_order: number;
   category: { id: string; name: string } | null;
@@ -84,6 +85,7 @@ export default function AdminProducts() {
           slug,
           price,
           is_active,
+          is_coming_soon,
           badge,
           display_order,
           category:categories(id, name),
@@ -366,6 +368,11 @@ export default function AdminProducts() {
                         {product.badge && (
                           <Badge variant="secondary" className="text-xs mt-1">
                             {product.badge}
+                          </Badge>
+                        )}
+                        {product.is_coming_soon && (
+                          <Badge variant="outline" className="text-xs mt-1 border-primary text-primary">
+                            Em breve
                           </Badge>
                         )}
                       </div>

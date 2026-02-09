@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/product/ProductCard";
 import ProductGallery from "@/components/product/ProductGallery";
+import LaunchLeadForm from "@/components/product/LaunchLeadForm";
 import { useToast } from "@/hooks/use-toast";
 
 const ProductPage = () => {
@@ -41,6 +42,7 @@ const ProductPage = () => {
           rating,
           review_count,
           category_id,
+          is_coming_soon,
           categories(name, slug),
           product_images(id, url, is_primary, display_order),
           product_variants(id, size, color, color_hex, stock, is_active)
@@ -138,6 +140,8 @@ const ProductPage = () => {
       </Layout>
     );
   }
+
+  const isComingSoon = product.is_coming_soon ?? false;
 
   // Sort images by display_order
   const sortedImages = [...(product.product_images || [])].sort(
@@ -272,11 +276,16 @@ const ProductPage = () => {
         <section className="vitz-container pb-12 lg:pb-20 px-3 sm:px-6 lg:px-8 max-w-full overflow-hidden">
           <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 max-w-full">
             {/* Gallery */}
-            <ProductGallery
-              images={sortedImages}
-              productName={product.name}
-              autoPlayInterval={3000}
-            />
+            <div className={isComingSoon ? "relative" : ""}>
+              <ProductGallery
+                images={sortedImages}
+                productName={product.name}
+                autoPlayInterval={3000}
+              />
+              {isComingSoon && (
+                <div className="absolute inset-0 backdrop-blur-md bg-background/10 rounded-sm pointer-events-none" />
+              )}
+            </div>
 
             {/* Info */}
             <div className="space-y-5 lg:space-y-6 min-w-0 max-w-full overflow-hidden">
@@ -333,7 +342,7 @@ const ProductPage = () => {
               )}
 
               {/* Color Selection */}
-              {colors.length > 0 && (
+              {!isComingSoon && colors.length > 0 && (
                 <div>
                   <h3 className="vitz-label mb-3">
                     Cor: {selectedColor && <span className="font-normal text-foreground ml-2 normal-case tracking-normal">{selectedColor}</span>}
@@ -357,7 +366,7 @@ const ProductPage = () => {
               )}
 
               {/* Size Selection */}
-              {sizes.length > 0 && (
+              {!isComingSoon && sizes.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="vitz-label">Tamanho</h3>
@@ -389,57 +398,65 @@ const ProductPage = () => {
               )}
 
               {/* Quantity */}
-              <div>
-                <h3 className="vitz-label mb-3">Quantidade</h3>
-                <div className="flex items-center">
-                  <div className="flex items-center border border-border rounded">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-3 hover:bg-muted transition-colors"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-12 text-center font-medium">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      disabled={!selectedVariant || quantity >= selectedVariant.stock}
-                      className="p-3 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus size={16} />
-                    </button>
+              {!isComingSoon && (
+                <div>
+                  <h3 className="vitz-label mb-3">Quantidade</h3>
+                  <div className="flex items-center">
+                    <div className="flex items-center border border-border rounded">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="p-3 hover:bg-muted transition-colors"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-12 text-center font-medium">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity(quantity + 1)}
+                        disabled={!selectedVariant || quantity >= selectedVariant.stock}
+                        className="p-3 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Add to Cart */}
+              {/* Add to Cart or Lead Capture */}
               <div className="pt-4">
-                <Button
-                  variant="hero"
-                  className="w-full h-11 text-xs sm:text-sm tracking-wider"
-                  onClick={handleAddToCart}
-                  disabled={isOutOfStock || activeVariants.length === 0}
-                >
-                  {activeVariants.length === 0
-                    ? "Sem estoque"
-                    : isOutOfStock
-                    ? "Esgotado"
-                    : "Adicionar ao Carrinho"}
-                </Button>
+                {isComingSoon ? (
+                  <LaunchLeadForm productId={product.id} />
+                ) : (
+                  <Button
+                    variant="hero"
+                    className="w-full h-11 text-xs sm:text-sm tracking-wider"
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock || activeVariants.length === 0}
+                  >
+                    {activeVariants.length === 0
+                      ? "Sem estoque"
+                      : isOutOfStock
+                      ? "Esgotado"
+                      : "Adicionar ao Carrinho"}
+                  </Button>
+                )}
               </div>
 
               {/* Benefits */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-border">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Truck size={18} className="shrink-0" />
-                  <span>Frete grátis acima de R$ 299</span>
+              {!isComingSoon && (
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-border">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Truck size={18} className="shrink-0" />
+                    <span>Frete grátis acima de R$ 299</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <RefreshCw size={18} className="shrink-0" />
+                    <span>Troca grátis</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw size={18} className="shrink-0" />
-                  <span>Troca grátis</span>
-                </div>
-              </div>
+              )}
 
               {/* Description */}
               {product.description && (
