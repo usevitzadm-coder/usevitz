@@ -283,7 +283,7 @@ const ProductPage = () => {
                 autoPlayInterval={3000}
               />
               {isComingSoon && (
-                <div className="absolute inset-0 backdrop-blur-md bg-background/10 rounded-sm pointer-events-none" />
+                <div className="absolute inset-0 backdrop-blur-xl bg-background/20 rounded-sm pointer-events-none" />
               )}
             </div>
 
@@ -324,16 +324,18 @@ const ProductPage = () => {
               )}
 
               {/* Price */}
-              <div className="flex items-baseline gap-3">
-                <span className="font-heading text-3xl text-foreground">
-                  {formatPrice(product.price)}
-                </span>
-                {product.original_price && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.original_price)}
+              {!isComingSoon && (
+                <div className="flex items-baseline gap-3">
+                  <span className="font-heading text-3xl text-foreground">
+                    {formatPrice(product.price)}
                   </span>
-                )}
-              </div>
+                  {product.original_price && (
+                    <span className="text-lg text-muted-foreground line-through">
+                      {formatPrice(product.original_price)}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {product.short_description && (
                 <p className="vitz-body text-muted-foreground">
