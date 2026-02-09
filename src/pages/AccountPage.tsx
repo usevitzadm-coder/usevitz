@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, LogOut, Mail, Lock, Eye, EyeOff, Phone } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import PasswordStrengthMeter, { getPasswordStrength } from "@/components/account/PasswordStrengthMeter";
 
 const AccountPage = () => {
   const { user, isLoading, signIn, signUp, signOut } = useAuth();
@@ -21,6 +22,7 @@ const AccountPage = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [signupName, setSignupName] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirm, setSignupConfirm] = useState("");
@@ -61,7 +63,6 @@ const AccountPage = () => {
       });
     } else {
       toast({ title: "Bem-vinda de volta!" });
-      // Check if there's a redirect
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get("redirect");
       if (redirect) {
@@ -81,17 +82,17 @@ const AccountPage = () => {
       return;
     }
 
-    if (signupPassword.length < 6) {
+    if (getPasswordStrength(signupPassword) < 4) {
       toast({
-        title: "Senha muito curta",
-        description: "Use pelo menos 6 caracteres.",
+        title: "Senha muito fraca",
+        description: "Atenda pelo menos 4 dos 5 requisitos de segurança.",
         variant: "destructive",
       });
       return;
     }
 
     setSubmitting(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName);
+    const { error } = await signUp(signupEmail, signupPassword, signupName, signupPhone);
     setSubmitting(false);
 
     if (error) {
@@ -264,6 +265,22 @@ const AccountPage = () => {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="signup-phone">Telefone</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="signup-phone"
+                            type="tel"
+                            placeholder="(11) 99999-9999"
+                            className="pl-10"
+                            value={signupPhone}
+                            onChange={(e) => setSignupPhone(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
                         <Label htmlFor="signup-email">E-mail</Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -286,7 +303,7 @@ const AccountPage = () => {
                           <Input
                             id="signup-password"
                             type={showPassword ? "text" : "password"}
-                            placeholder="Mínimo 6 caracteres"
+                            placeholder="Crie uma senha forte"
                             className="pl-10 pr-10"
                             value={signupPassword}
                             onChange={(e) => setSignupPassword(e.target.value)}
@@ -300,6 +317,7 @@ const AccountPage = () => {
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
+                        <PasswordStrengthMeter password={signupPassword} />
                       </div>
 
                       <div className="space-y-2">
