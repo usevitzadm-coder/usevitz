@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ShoppingBag, Truck, CreditCard, Gift, Loader2, Package, Tag, X, QrCode, FileText, Copy, Check } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,14 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { items, getCartTotal, clearCart } = useCart();
+  const { user, isLoading: authLoading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/conta?redirect=/checkout", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
   const totalPrice = getCartTotal();
   const [isLoading, setIsLoading] = useState(false);
   const [giftCardCode, setGiftCardCode] = useState("");
