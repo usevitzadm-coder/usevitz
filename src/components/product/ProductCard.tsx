@@ -40,7 +40,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           src={product.images[0]}
           alt={product.name}
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            isComingSoon ? "blur-sm scale-105" : ""
+            isComingSoon ? "blur-lg scale-110" : ""
           }`}
           loading="lazy"
         />
