@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Mail, Lock, Eye, EyeOff, Phone, Package, Loader2 } from "lucide-react";
+import { User, LogOut, Mail, Lock, Eye, EyeOff, Phone, Package, Loader2, XCircle, MessageCircle } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +70,12 @@ const AccountPage = () => {
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  // Cancellation state
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [existingCancellations, setExistingCancellations] = useState<string[]>([]);
+
   // Load profile and orders when user is available
   useEffect(() => {
     if (user) {
@@ -91,6 +101,15 @@ const AccountPage = () => {
           if (data) setOrders(data);
           setOrdersLoading(false);
         });
+
+      // Load existing cancellation requests
+      supabase
+        .from("cancellation_requests")
+        .select("order_id")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data) setExistingCancellations(data.map((r: { order_id: string }) => r.order_id));
+        });
     }
   }, [user]);
 
@@ -99,6 +118,31 @@ const AccountPage = () => {
       style: "currency",
       currency: "BRL",
     }).format(price);
+  };
+
+  const handleCancelRequest = async () => {
+    if (!cancelOrderId || !cancelReason.trim() || !user) return;
+    setCancelSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("cancellation_requests")
+        .insert({
+          order_id: cancelOrderId,
+          user_id: user.id,
+          reason: cancelReason.trim(),
+        });
+
+      if (error) throw error;
+
+      setExistingCancellations((prev) => [...prev, cancelOrderId]);
+      setCancelOrderId(null);
+      setCancelReason("");
+      toast({ title: "Solicitação enviada!", description: "Retornaremos em até 3 dias úteis." });
+    } catch {
+      toast({ title: "Erro ao enviar solicitação", variant: "destructive" });
+    } finally {
+      setCancelSubmitting(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -260,11 +304,27 @@ const AccountPage = () => {
                               </div>
                               <p className="font-semibold">{formatPrice(order.total)}</p>
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge className={status.className}>{status.label}</Badge>
-                              <Badge variant="outline" className={payment.className}>{payment.label}</Badge>
-                              {order.shipping_method && (
-                                <span className="text-xs text-muted-foreground">{order.shipping_method}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge className={status.className}>{status.label}</Badge>
+                                <Badge variant="outline" className={payment.className}>{payment.label}</Badge>
+                                {order.shipping_method && (
+                                  <span className="text-xs text-muted-foreground">{order.shipping_method}</span>
+                                )}
+                              </div>
+                              {order.status !== "cancelled" && order.status !== "delivered" && !existingCancellations.includes(order.id) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs text-destructive hover:text-destructive"
+                                  onClick={() => setCancelOrderId(order.id)}
+                                >
+                                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                                  Cancelar
+                                </Button>
+                              )}
+                              {existingCancellations.includes(order.id) && (
+                                <span className="text-xs text-muted-foreground italic">Cancelamento solicitado</span>
                               )}
                             </div>
                           </div>
@@ -276,6 +336,59 @@ const AccountPage = () => {
               </Card>
             </div>
           </div>
+
+          {/* Cancellation Dialog */}
+          <Dialog open={!!cancelOrderId} onOpenChange={() => { setCancelOrderId(null); setCancelReason(""); }}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Solicitar Cancelamento</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Motivo do cancelamento</Label>
+                  <Textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Descreva o motivo do cancelamento..."
+                    rows={4}
+                    className="mt-1"
+                    maxLength={500}
+                  />
+                </div>
+
+                <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-sm">
+                  <p className="text-muted-foreground">
+                    ⏱ Prazo de resposta: <strong>até 3 dias úteis</strong>
+                  </p>
+                  <p className="text-muted-foreground">
+                    Para agilizar, fale conosco pelo WhatsApp:
+                  </p>
+                  <a
+                    href="https://wa.me/5511999999999"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Chamar no WhatsApp
+                  </a>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => { setCancelOrderId(null); setCancelReason(""); }}>
+                    Voltar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleCancelRequest}
+                    disabled={cancelSubmitting || !cancelReason.trim()}
+                  >
+                    {cancelSubmitting ? "Enviando..." : "Enviar solicitação"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
+          </Dialog>
         </Layout>
       </>
     );
