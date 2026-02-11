@@ -112,7 +112,7 @@ export default function ProductGallery({
 
         {/* Main Image with Arrows */}
         <div className="relative w-full min-w-0 overflow-hidden">
-          <div className="aspect-[3/4] w-full rounded-sm bg-muted overflow-hidden">
+          <div className="aspect-square sm:aspect-[3/4] w-full rounded-sm bg-muted overflow-hidden">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}
