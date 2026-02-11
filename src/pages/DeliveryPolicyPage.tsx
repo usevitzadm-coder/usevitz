@@ -40,7 +40,7 @@ const DeliveryPolicyPage = () => {
     {
       title: "6. Problemas com a Entrega",
       content: [
-        "Se houver qualquer problema com a entrega (atraso, extravio ou avaria), entre em contato com nosso suporte pelo e-mail usevitz.adm@gmail.com ou WhatsApp (11) 91520-4545, que nossa equipe estará pronta para ajudar. Em caso de devoluções, poderá ser consultada toda a nossa política de devolução."
+        "Se houver qualquer problema com a entrega (atraso, extravio ou avaria), entre em contato com nosso suporte pelo e-mail suporte@usevitz.com ou WhatsApp (11) 91520-4545, que nossa equipe estará pronta para ajudar. Em caso de devoluções, poderá ser consultada toda a nossa política de devolução."
       ],
       hasLink: true
     }
