@@ -273,8 +273,8 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="vitz-container pb-12 lg:pb-20 px-3 sm:px-6 lg:px-8 max-w-full overflow-hidden">
-          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 max-w-full">
+        <section className="vitz-container pb-12 lg:pb-20 px-4 sm:px-6 lg:px-8 max-w-full overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 max-w-full mx-auto" style={{ maxWidth: "calc(100vw - 2rem)" }}>
             {/* Gallery */}
             <div className={isComingSoon ? "relative" : ""}>
               <ProductGallery
