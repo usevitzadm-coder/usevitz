@@ -35,8 +35,8 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${prehead
 <tr><td align="center" style="padding:40px 20px;">
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
 <!-- Header -->
-<tr><td style="background-color:#1a1a1a;padding:24px 40px;text-align:center;">
-<img src="https://bpkeajklymvupdxhqtgm.supabase.co/storage/v1/object/public/products/email-assets%2Flogo-vitz.png" alt="Vitz" width="120" style="display:inline-block;" />
+<tr><td style="background-color:#f9f5f0;padding:32px 40px;text-align:center;border-bottom:1px solid #eee;">
+<img src="https://bpkeajklymvupdxhqtgm.supabase.co/storage/v1/object/public/products/email-assets%2Flogo-vitz.png" alt="Vitz" width="160" style="display:inline-block;" />
 </td></tr>
 <!-- Content -->
 <tr><td style="padding:40px;">
