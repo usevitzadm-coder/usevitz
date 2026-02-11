@@ -247,7 +247,7 @@ const ProductPage = () => {
       </Helmet>
       <Layout>
         {/* Breadcrumb */}
-        <nav className="vitz-container py-4">
+        <nav className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-4">
           <ol className="flex items-center gap-2 text-sm text-muted-foreground">
             <li>
               <Link to="/" className="hover:text-foreground transition-colors">
@@ -273,8 +273,9 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="vitz-container pb-12 lg:pb-20 px-4 sm:px-6 lg:px-8 max-w-full overflow-hidden">
-          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 max-w-full mx-auto" style={{ maxWidth: "calc(100vw - 2rem)" }}>
+        <section className="pb-12 lg:pb-20 overflow-x-hidden">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 w-full">
             {/* Gallery */}
             <div className={isComingSoon ? "relative" : ""}>
               <ProductGallery
@@ -488,6 +489,7 @@ const ProductPage = () => {
                 </div>
               )}
             </div>
+          </div>
           </div>
         </section>
 

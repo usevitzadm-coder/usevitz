@@ -20,7 +20,7 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border overflow-hidden">
       <div className="vitz-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile Left Icons - Menu + Search */}
