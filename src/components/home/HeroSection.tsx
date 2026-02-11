@@ -6,7 +6,7 @@ const HeroSection = () => {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img src={heroImage} alt="Vitz lifestyle - Modelos praticando yoga com roupas fitness premium" className="w-full h-full object-cover object-[center_55%] md:object-[center_50%]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/75 to-background/30" />
       </div>
 
       {/* Content */}
@@ -17,7 +17,7 @@ const HeroSection = () => {
             Movimento é Vida.   <br />
             <span className="text-primary bg-secondary-foreground">Movimento é Vitz.</span>
           </h1>
-          <p className="vitz-body text-muted-foreground max-w-md">
+          <p className="vitz-body text-foreground/75 max-w-md">
             Roupas fitness premium desenvolvidas para quem vive em movimento. 
             Conforto, performance e estilo em cada peça.
           </p>
