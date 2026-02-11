@@ -46,6 +46,10 @@ interface VariantWithProduct {
   };
 }
 
+interface ColorMap {
+  [name: string]: string;
+}
+
 type StockFilter = 'all' | 'low' | 'out' | 'ok';
 
 export default function AdminStock() {
@@ -58,12 +62,33 @@ export default function AdminStock() {
   const [adjustQuantity, setAdjustQuantity] = useState('');
   const [adjustReason, setAdjustReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [colorMap, setColorMap] = useState<ColorMap>({});
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
+    fetchColors();
+  }, []);
+
+  useEffect(() => {
     fetchVariants();
   }, [stockFilter, searchQuery]);
+
+  async function fetchColors() {
+    try {
+      const { data } = await supabase
+        .from('colors')
+        .select('name, hex_code');
+      
+      const map: ColorMap = {};
+      (data || []).forEach(c => {
+        map[c.name.toLowerCase()] = c.hex_code;
+      });
+      setColorMap(map);
+    } catch (error) {
+      console.error('Error fetching colors:', error);
+    }
+  }
 
   async function fetchVariants() {
     setIsLoading(true);
@@ -338,7 +363,7 @@ export default function AdminStock() {
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-4 h-4 rounded-full border"
-                        style={{ backgroundColor: variant.color_hex }}
+                        style={{ backgroundColor: colorMap[variant.color.toLowerCase()] || variant.color_hex }}
                       />
                       <span>{variant.color} / {variant.size}</span>
                     </div>
