@@ -63,7 +63,7 @@ export default function AdminStock() {
 
   useEffect(() => {
     fetchVariants();
-  }, [stockFilter]);
+  }, [stockFilter, searchQuery]);
 
   async function fetchVariants() {
     setIsLoading(true);
