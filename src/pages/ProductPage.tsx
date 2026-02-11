@@ -273,11 +273,11 @@ const ProductPage = () => {
         </nav>
 
         {/* Product Details */}
-        <section className="pb-12 lg:pb-20 overflow-x-hidden">
+        <section className="pb-12 lg:pb-20 overflow-hidden w-full max-w-[100vw]">
           <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full overflow-hidden">
-          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 w-full">
+          <div className="grid lg:grid-cols-2 gap-4 lg:gap-16 w-full min-w-0">
             {/* Gallery */}
-            <div className={isComingSoon ? "relative" : ""}>
+            <div className={`min-w-0 overflow-hidden ${isComingSoon ? "relative" : ""}`}>
               <ProductGallery
                 images={sortedImages}
                 productName={product.name}
@@ -289,7 +289,7 @@ const ProductPage = () => {
             </div>
 
             {/* Info */}
-            <div className="space-y-5 lg:space-y-6 min-w-0 max-w-full overflow-hidden">
+            <div className="space-y-5 lg:space-y-6 min-w-0 overflow-hidden">
               {product.badge && (
                 <span className="inline-block bg-primary text-primary-foreground text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
                   {product.badge === "novo"
