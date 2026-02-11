@@ -89,7 +89,7 @@ const Footer = () => {
                 <Instagram size={20} />
               </a>
               <a
-                href="mailto:contato@usevitz.com"
+                href="mailto:suporte@usevitz.com"
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 aria-label="E-mail"
               >

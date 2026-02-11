@@ -186,10 +186,10 @@ const PrivacyPolicyPage = () => {
                   <p className="text-foreground/80 leading-relaxed mt-4">
                     Para mais informações ou solicitações relacionadas à privacidade, entre em contato pelo e-mail{" "}
                     <a 
-                      href="mailto:usevitz.adm@gmail.com" 
+                      href="mailto:suporte@usevitz.com" 
                       className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
                     >
-                      usevitz.adm@gmail.com
+                      suporte@usevitz.com
                     </a>
                     {" "}ou WhatsApp{" "}
                     <a 

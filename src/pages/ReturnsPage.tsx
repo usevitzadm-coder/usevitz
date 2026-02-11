@@ -75,7 +75,7 @@ const ReturnsPage = () => {
                     3. Procedimento
                   </h2>
                   <p className="text-foreground/80 leading-relaxed mb-4">
-                    Para solicitar a troca ou devolução, entre em contato pelo e-mail usevitz.adm@gmail.com 
+                    Para solicitar a troca ou devolução, entre em contato pelo e-mail suporte@usevitz.com 
                     ou WhatsApp (11) 91520-4545 informando:
                   </p>
                   <ul className="space-y-2 ml-4">
