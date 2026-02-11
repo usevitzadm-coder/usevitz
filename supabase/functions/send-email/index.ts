@@ -36,7 +36,7 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${prehead
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
 <!-- Header -->
 <tr><td style="background-color:#1a1a1a;padding:24px 40px;text-align:center;">
-<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:300;letter-spacing:4px;">VITZ</h1>
+<img src="https://bpkeajklymvupdxhqtgm.supabase.co/storage/v1/object/public/products/email-assets%2Flogo-vitz.png" alt="Vitz" width="120" style="display:inline-block;" />
 </td></tr>
 <!-- Content -->
 <tr><td style="padding:40px;">
