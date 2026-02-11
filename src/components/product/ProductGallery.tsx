@@ -78,9 +78,9 @@ export default function ProductGallery({
   }
 
   return (
-    <div className="space-y-3 max-w-full overflow-hidden">
+    <div className="space-y-3 w-full overflow-hidden box-border">
       <div
-        className="flex gap-3 max-w-full"
+        className="flex gap-3 w-full overflow-hidden"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -94,9 +94,9 @@ export default function ProductGallery({
               <button
                 key={image.id}
                 onClick={() => setSelectedIndex(index)}
-                className={`w-10 rounded-sm overflow-hidden border-2 transition-all ${
+                className={`w-10 rounded-sm overflow-hidden border-2 transition-all flex-shrink-0 ${
                   selectedIndex === index
-                    ? "border-primary opacity-100 scale-110"
+                    ? "border-primary opacity-100 scale-105"
                     : "border-transparent opacity-70 hover:opacity-100"
                 }`}
               >
@@ -111,8 +111,8 @@ export default function ProductGallery({
         )}
 
         {/* Main Image with Arrows */}
-        <div className="relative w-full min-w-0 overflow-hidden">
-          <div className="aspect-square sm:aspect-[3/4] w-full rounded-sm bg-muted overflow-hidden">
+        <div className="relative flex-1 min-w-0 overflow-hidden">
+          <div className="aspect-square sm:aspect-[3/4] w-full max-w-full rounded-sm bg-muted overflow-hidden">
             <img
               src={images[selectedIndex]?.url}
               alt={productName}
@@ -162,7 +162,7 @@ export default function ProductGallery({
         <div className="lg:hidden">
           <div 
             ref={mobileThumbsRef}
-            className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide"
+            className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide max-w-full"
           >
             {images.map((image, index) => (
               <button
@@ -170,7 +170,7 @@ export default function ProductGallery({
                 onClick={() => setSelectedIndex(index)}
                 className={`flex-shrink-0 w-12 h-14 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
-                    ? "border-primary opacity-100 scale-110"
+                    ? "border-primary opacity-100"
                     : "border-transparent opacity-60"
                 }`}
               >
