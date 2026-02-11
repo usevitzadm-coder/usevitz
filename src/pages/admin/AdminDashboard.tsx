@@ -49,7 +49,7 @@ export default function AdminDashboard() {
           supabase.from('tags').select('id', { count: 'exact', head: true }),
           supabase.from('product_variants').select('id', { count: 'exact', head: true }).lt('stock', 5),
           supabase.from('orders').select('id, order_number, customer_name, total, status, payment_status, created_at').order('created_at', { ascending: false }).limit(5),
-          supabase.from('order_items').select('product_name, quantity, total_price'),
+          supabase.from('order_items').select('product_name, quantity, total_price, order_id, order:orders!inner(payment_status)').eq('order.payment_status', 'approved'),
         ]);
 
         setStats({
