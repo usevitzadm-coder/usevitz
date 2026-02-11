@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronLeft,
   Gift,
-  Palette
+  Palette,
+  XCircle
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -39,6 +40,7 @@ const mainNavItems = [
 
 const otherNavItems = [
   { title: 'Pedidos', url: '/admin/pedidos', icon: ShoppingCart },
+  { title: 'Cancelamentos', url: '/admin/cancelamentos', icon: XCircle },
   { title: 'Cupons', url: '/admin/cupons', icon: Ticket },
   { title: 'Configurações', url: '/admin/configuracoes', icon: Settings },
 ];

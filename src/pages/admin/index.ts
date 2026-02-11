@@ -9,3 +9,4 @@ export { default as AdminSettings } from './AdminSettings';
 export { default as AdminCoupons } from './AdminCoupons';
 export { default as AdminOrders } from './AdminOrders';
 export { default as AdminColors } from './AdminColors';
+export { default as AdminCancellations } from './AdminCancellations';
