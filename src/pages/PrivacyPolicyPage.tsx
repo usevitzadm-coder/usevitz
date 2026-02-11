@@ -193,7 +193,7 @@ const PrivacyPolicyPage = () => {
                     </a>
                     {" "}ou WhatsApp{" "}
                     <a 
-                      href="https://wa.me/5511915204545" 
+                      href="https://wa.me/5511915294545" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-primary font-medium hover:text-primary/80 transition-colors"
