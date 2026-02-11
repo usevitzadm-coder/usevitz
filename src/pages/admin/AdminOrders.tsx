@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Package, Loader2 } from "lucide-react";
+import { Search, Eye, Package, Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -51,6 +51,7 @@ interface Order {
   status: string;
   payment_status: string;
   payment_method: string | null;
+  payment_id: string | null;
   created_at: string;
 }
 
@@ -85,6 +86,7 @@ const AdminOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -118,6 +120,34 @@ const AdminOrders = () => {
       toast({ title: "Erro ao atualizar status", variant: "destructive" });
     },
   });
+
+  const handleSyncPaymentStatus = async (order: Order) => {
+    if (!order.payment_id) {
+      toast({ title: "Pedido sem ID de pagamento", variant: "destructive" });
+      return;
+    }
+
+    setSyncingOrderId(order.id);
+    try {
+      const apiKey = await getApiKeyFromEdgeFunction(order.payment_id);
+      if (apiKey) {
+        queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+        toast({ title: "Status de pagamento atualizado!" });
+      }
+    } catch (error) {
+      toast({ title: "Erro ao sincronizar status", variant: "destructive" });
+    } finally {
+      setSyncingOrderId(null);
+    }
+  };
+
+  const getApiKeyFromEdgeFunction = async (paymentId: string) => {
+    const { data, error } = await supabase.functions.invoke("sync-payment-status", {
+      body: { paymentId },
+    });
+    if (error) throw error;
+    return data;
+  };
 
   const handleViewOrder = async (order: Order) => {
     setSelectedOrder(order);
@@ -265,23 +295,21 @@ const AdminOrders = () => {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={order.payment_status}
-                      onValueChange={(value) =>
-                        updateStatusMutation.mutate({ orderId: order.id, field: "payment_status", value })
-                      }
-                    >
-                      <SelectTrigger className="w-[130px] h-8">
-                        <SelectValue>{getStatusBadge(order.payment_status, paymentStatusOptions)}</SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paymentStatusOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-1">
+                      {getStatusBadge(order.payment_status, paymentStatusOptions)}
+                      {order.payment_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleSyncPaymentStatus(order)}
+                          disabled={syncingOrderId === order.id}
+                          title="Sincronizar com Pagar.me"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${syncingOrderId === order.id ? "animate-spin" : ""}`} />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>

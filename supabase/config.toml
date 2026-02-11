@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.purchase-gift-card]
 verify_jwt = false
+
+[functions.pagarme-webhook]
+verify_jwt = false
+
+[functions.sync-payment-status]
+verify_jwt = false
