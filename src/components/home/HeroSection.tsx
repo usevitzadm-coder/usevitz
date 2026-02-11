@@ -21,12 +21,9 @@ const HeroSection = () => {
             Roupas fitness premium desenvolvidas para quem vive em movimento. 
             Conforto, performance e estilo em cada peça.
           </p>
-          <div className="flex flex-wrap gap-4 pt-4">
+          <div className="pt-4">
             <Button variant="hero" size="xl" asChild>
-              <Link to="/colecao/feminino">Comprar Agora</Link>
-            </Button>
-            <Button variant="heroOutline" size="xl" asChild>
-              <Link to="/novidades">Ver Novidades</Link>
+              <Link to="/produtos">Ver Produtos</Link>
             </Button>
           </div>
         </div>
