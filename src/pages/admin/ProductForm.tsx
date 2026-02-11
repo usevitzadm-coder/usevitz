@@ -1000,7 +1000,7 @@ export default function ProductForm() {
                                       className="w-4 h-4 rounded-full border" 
                                       style={{ backgroundColor: variant.color_hex }}
                                     />
-                                    <SelectValue />
+                                    <span>{variant.color}</span>
                                   </div>
                                 </SelectTrigger>
                                 <SelectContent>
