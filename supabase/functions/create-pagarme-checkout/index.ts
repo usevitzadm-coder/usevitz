@@ -216,22 +216,13 @@ serve(async (req: Request) => {
     console.log("Server-validated totals:", { subtotal, shippingCost, couponDiscount, giftCardDiscount, baseTotal, total, totalInCents, hasInterest });
 
     // Prepare items for Pagar.me (using validated server prices)
+    // NOTE: Do NOT add shipping here - it goes in the shipping.amount field
     const orderItems = validatedItems.map((item) => ({
       code: item.id,
       description: `${item.name}${item.size ? ` - ${item.size}` : ""}${item.color ? ` - ${item.color}` : ""}`,
       amount: Math.round(item.price * 100),
       quantity: item.quantity,
     }));
-
-    // Add shipping as item if applicable
-    if (shippingOption && shippingOption.price > 0) {
-      orderItems.push({
-        code: "shipping",
-        description: `Frete - ${shippingOption.name}`,
-        amount: Math.round(shippingOption.price * 100),
-        quantity: 1,
-      });
-    }
 
     // Parse phone
     const phoneDigits = customer.phone.replace(/\D/g, "");
@@ -271,6 +262,7 @@ serve(async (req: Request) => {
     if (paymentMethod === "credit_card" && cardData) {
       payment = {
         payment_method: "credit_card",
+        amount: totalInCents,
         credit_card: {
           installments: cardData.installments || 1,
           statement_descriptor: "VITZ",
@@ -287,6 +279,7 @@ serve(async (req: Request) => {
     } else if (paymentMethod === "pix") {
       payment = {
         payment_method: "pix",
+        amount: totalInCents,
         pix: {
           expires_in: 3600,
         },
@@ -294,6 +287,7 @@ serve(async (req: Request) => {
     } else if (paymentMethod === "boleto") {
       payment = {
         payment_method: "boleto",
+        amount: totalInCents,
         boleto: {
           instructions: "Pagar até o vencimento",
           due_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
