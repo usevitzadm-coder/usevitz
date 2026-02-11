@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface CartItem {
@@ -77,6 +77,16 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Extract user from auth header
+    const authHeader = req.headers.get("authorization");
+    let userId: string | null = null;
+    if (authHeader) {
+      const supabaseAnon = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabaseAnon.auth.getUser(token);
+      userId = user?.id || null;
+    }
+
     const {
       items,
       customer,
@@ -85,28 +95,128 @@ serve(async (req: Request) => {
       paymentMethod,
       cardData,
       giftCardCode,
-      giftCardDiscount = 0,
+      giftCardDiscount: clientGiftCardDiscount = 0,
       couponCode,
-      couponDiscount = 0,
+      couponDiscount: clientCouponDiscount = 0,
     }: CheckoutRequest = await req.json();
 
-    console.log("Processing Pagar.me checkout:", { paymentMethod, itemsCount: items.length });
+    console.log("Processing Pagar.me checkout:", { paymentMethod, itemsCount: items.length, userId });
 
-    // Calculate totals
-    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    // ===== SERVER-SIDE PRICE VALIDATION =====
+    // Fetch real prices from database for all variants
+    const variantIds = items.map(item => item.variant_id).filter(Boolean);
+    const productIds = items.map(item => item.id);
+
+    // Fetch products with their prices
+    const { data: dbProducts, error: productsError } = await supabase
+      .from("products")
+      .select("id, price, is_active")
+      .in("id", productIds);
+
+    if (productsError || !dbProducts) {
+      throw new Error("Failed to fetch product prices from database");
+    }
+
+    // Validate each item's price against the database
+    let subtotal = 0;
+    const validatedItems: CartItem[] = [];
+
+    for (const item of items) {
+      const dbProduct = dbProducts.find(p => p.id === item.id);
+      if (!dbProduct) {
+        throw new Error(`Product ${item.id} not found`);
+      }
+      if (!dbProduct.is_active) {
+        throw new Error(`Product ${item.name} is no longer available`);
+      }
+
+      // Use the DATABASE price, not the client price
+      const serverPrice = Number(dbProduct.price);
+      
+      if (Math.abs(serverPrice - item.price) > 0.01) {
+        console.warn(`Price mismatch for ${item.name}: client=${item.price}, server=${serverPrice}`);
+      }
+
+      validatedItems.push({ ...item, price: serverPrice });
+      subtotal += serverPrice * item.quantity;
+    }
+
+    console.log("Server-validated subtotal:", subtotal);
+
+    // ===== SERVER-SIDE COUPON VALIDATION =====
+    let couponDiscount = 0;
+    if (couponCode) {
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.toUpperCase().trim())
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (coupon) {
+        const now = new Date();
+        const validStart = !coupon.starts_at || new Date(coupon.starts_at) <= now;
+        const validEnd = !coupon.expires_at || new Date(coupon.expires_at) > now;
+        const validUses = !coupon.max_uses || coupon.used_count < coupon.max_uses;
+        const validMin = !coupon.min_order_value || subtotal >= coupon.min_order_value;
+
+        if (validStart && validEnd && validUses && validMin) {
+          if (coupon.discount_type === "percentage") {
+            couponDiscount = (subtotal * coupon.discount_value) / 100;
+          } else {
+            couponDiscount = Math.min(coupon.discount_value, subtotal);
+          }
+        }
+      }
+    }
+
+    // ===== SERVER-SIDE GIFT CARD VALIDATION =====
+    let giftCardDiscount = 0;
+    if (giftCardCode && clientGiftCardDiscount > 0) {
+      const normalizedCode = giftCardCode.replace(/[-\s]/g, "").toUpperCase();
+      const formattedCode = normalizedCode.match(/.{1,4}/g)?.join("-") || normalizedCode;
+
+      const { data: giftCard } = await supabase
+        .from("gift_cards")
+        .select("current_balance, is_active, expires_at")
+        .eq("code", formattedCode)
+        .single();
+
+      if (giftCard && giftCard.is_active && new Date(giftCard.expires_at) > new Date()) {
+        giftCardDiscount = Math.min(giftCard.current_balance, subtotal - couponDiscount);
+      }
+    }
+
     const shippingCost = shippingOption?.price || 0;
     const totalDiscounts = giftCardDiscount + couponDiscount;
-    
+
     // For credit card with interest, use the totalWithInterest from cardData
     const hasInterest = paymentMethod === "credit_card" && cardData?.hasInterest;
     const baseTotal = Math.max(0, subtotal - totalDiscounts + shippingCost);
-    const total = hasInterest && cardData?.totalWithInterest ? cardData.totalWithInterest : baseTotal;
+    
+    // Validate interest calculation server-side
+    let total = baseTotal;
+    if (hasInterest && cardData?.totalWithInterest && cardData.installments > 1) {
+      // Recalculate interest server-side
+      const INTEREST_RATE = 0.0299;
+      const n = cardData.installments;
+      const coefficient = (INTEREST_RATE * Math.pow(1 + INTEREST_RATE, n)) / (Math.pow(1 + INTEREST_RATE, n) - 1);
+      const serverInstallmentValue = baseTotal * coefficient;
+      const serverTotalWithInterest = serverInstallmentValue * n;
+      
+      // Allow small rounding difference (max R$0.10)
+      if (Math.abs(serverTotalWithInterest - cardData.totalWithInterest) > 0.10) {
+        console.warn(`Interest total mismatch: client=${cardData.totalWithInterest}, server=${serverTotalWithInterest}`);
+      }
+      total = serverTotalWithInterest;
+    }
+
     const totalInCents = Math.round(total * 100);
 
-    console.log("Order totals:", { subtotal, shippingCost, totalDiscounts, baseTotal, total, totalInCents, hasInterest });
+    console.log("Server-validated totals:", { subtotal, shippingCost, couponDiscount, giftCardDiscount, baseTotal, total, totalInCents, hasInterest });
 
-    // Prepare items for Pagar.me
-    const orderItems = items.map((item) => ({
+    // Prepare items for Pagar.me (using validated server prices)
+    const orderItems = validatedItems.map((item) => ({
       code: item.id,
       description: `${item.name}${item.size ? ` - ${item.size}` : ""}${item.color ? ` - ${item.color}` : ""}`,
       amount: Math.round(item.price * 100),
@@ -178,7 +288,7 @@ serve(async (req: Request) => {
       payment = {
         payment_method: "pix",
         pix: {
-          expires_in: 3600, // 1 hour
+          expires_in: 3600,
         },
       };
     } else if (paymentMethod === "boleto") {
@@ -186,7 +296,7 @@ serve(async (req: Request) => {
         payment_method: "boleto",
         boleto: {
           instructions: "Pagar até o vencimento",
-          due_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days
+          due_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         },
       };
     } else {
@@ -256,12 +366,13 @@ serve(async (req: Request) => {
       responseData.approved = charge.status === "paid";
     }
 
-    // Create order in database
+    // Create order in database (with server-validated values)
     const orderNumber = `VITZ-${Date.now().toString(36).toUpperCase()}`;
     const paymentStatus = charge.status === "paid" ? "approved" : "pending";
-    
-    const orderData = {
+
+    const orderData: any = {
       order_number: orderNumber,
+      user_id: userId,
       customer_name: customer.name,
       customer_email: customer.email,
       customer_phone: customer.phone || null,
@@ -295,8 +406,8 @@ serve(async (req: Request) => {
     } else {
       console.log("Order record created:", orderRecord.id);
 
-      // Create order items
-      const orderItemsData = items.map((item) => ({
+      // Create order items (with server-validated prices)
+      const orderItemsData = validatedItems.map((item) => ({
         order_id: orderRecord.id,
         product_id: item.id,
         variant_id: item.variant_id || null,
@@ -319,25 +430,49 @@ serve(async (req: Request) => {
     }
 
     // Handle gift card discount if applied
-    if (giftCardCode && giftCardDiscount > 0) {
+    if (giftCardCode && giftCardDiscount > 0 && orderRecord) {
+      const normalizedCode = giftCardCode.replace(/[-\s]/g, "").toUpperCase();
+      const formattedCode = normalizedCode.match(/.{1,4}/g)?.join("-") || normalizedCode;
+      
       // Deduct from gift card balance
-      const { error: giftCardError } = await supabase.rpc("use_gift_card", {
-        p_code: giftCardCode,
-        p_amount: giftCardDiscount,
-        p_order_id: orderRecord?.id || null,
-      });
+      const { data: gc } = await supabase
+        .from("gift_cards")
+        .select("id, current_balance")
+        .eq("code", formattedCode)
+        .single();
 
-      if (giftCardError) {
-        console.error("Error updating gift card:", giftCardError);
+      if (gc) {
+        await supabase
+          .from("gift_cards")
+          .update({ current_balance: gc.current_balance - giftCardDiscount })
+          .eq("id", gc.id);
+
+        await supabase
+          .from("gift_card_transactions")
+          .insert({
+            gift_card_id: gc.id,
+            amount: -giftCardDiscount,
+            type: "redemption",
+            order_id: orderRecord.id,
+            notes: `Used on order ${orderNumber}`,
+          });
       }
     }
 
     // Increment coupon usage if applied
-    if (couponCode) {
-      await supabase
+    if (couponCode && couponDiscount > 0) {
+      const { data: coupon } = await supabase
         .from("coupons")
-        .update({ used_count: supabase.rpc("increment_used_count") })
-        .eq("code", couponCode);
+        .select("id, used_count")
+        .eq("code", couponCode.toUpperCase().trim())
+        .single();
+
+      if (coupon) {
+        await supabase
+          .from("coupons")
+          .update({ used_count: coupon.used_count + 1 })
+          .eq("id", coupon.id);
+      }
     }
 
     return new Response(JSON.stringify(responseData), {
