@@ -22,7 +22,7 @@ const HeroSection = () => {
             Conforto, performance e estilo em cada peça.
           </p>
           <div className="pt-4">
-            <Button variant="hero" size="xl" asChild>
+            <Button variant="hero" size="lg" className="md:h-16 md:px-12 md:text-lg" asChild>
               <Link to="/produtos">Ver Produtos</Link>
             </Button>
           </div>
