@@ -13,7 +13,7 @@ function mapPagarmeStatus(pagarmeStatus: string): string {
     pending: "pending",
     processing: "pending",
     authorized: "pending",
-    canceled: "rejected",
+    canceled: "refunded",
     failed: "rejected",
     expired: "rejected",
     refunded: "refunded",
