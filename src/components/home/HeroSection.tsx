@@ -17,7 +17,7 @@ const HeroSection = () => {
             Movimento é Vida.   <br />
             <span className="text-primary bg-secondary-foreground">Movimento é Vitz.</span>
           </h1>
-          <p className="vitz-body text-foreground/75 max-w-md">
+          <p className="vitz-body text-foreground/75 max-w-md font-medium">
             Roupas fitness premium desenvolvidas para quem vive em movimento. 
             Conforto, performance e estilo em cada peça.
           </p>
