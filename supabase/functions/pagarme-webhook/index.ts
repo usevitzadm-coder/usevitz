@@ -41,7 +41,6 @@ serve(async (req: Request) => {
     const body = await req.json();
     console.log("Pagar.me webhook received:", JSON.stringify(body.type));
 
-    // Pagar.me sends webhooks with type like "charge.paid", "charge.refunded", etc.
     const eventType = body.type || "";
     const eventData = body.data;
 
@@ -51,6 +50,42 @@ serve(async (req: Request) => {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Helper to send email notification
+    async function sendOrderEmail(orderId: string, emailType: string) {
+      try {
+        // Fetch order with items
+        const { data: order } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("payment_id", orderId)
+          .single();
+
+        if (!order) return;
+
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("product_name, variant_info, quantity, unit_price, total_price")
+          .eq("order_id", order.id);
+
+        // Call send-email function
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: emailType,
+            to: order.customer_email,
+            data: { ...order, items: items || [] },
+          }),
+        });
+        console.log(`Email ${emailType} sent to ${order.customer_email}`);
+      } catch (err) {
+        console.error(`Failed to send ${emailType} email:`, err);
+      }
     }
 
     // Handle charge events
@@ -80,6 +115,15 @@ serve(async (req: Request) => {
         console.error("Error updating order:", error);
       } else if (data && data.length > 0) {
         console.log(`Order ${data[0].order_number} payment_status updated to ${newPaymentStatus}`);
+        
+        // Send email based on new payment status
+        if (newPaymentStatus === "approved") {
+          await sendOrderEmail(orderId, "payment_approved");
+        } else if (newPaymentStatus === "rejected") {
+          await sendOrderEmail(orderId, "payment_rejected");
+        } else if (newPaymentStatus === "refunded") {
+          await sendOrderEmail(orderId, "order_cancelled");
+        }
       } else {
         console.log(`No order found with payment_id=${orderId}`);
       }

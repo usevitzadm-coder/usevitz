@@ -101,6 +101,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       },
     });
+
+    // Send welcome email (fire and forget)
+    if (!error && fullName) {
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "welcome",
+          to: email,
+          data: { name: fullName },
+        },
+      }).catch(err => console.error("Failed to send welcome email:", err));
+    }
+
     return { error: error as Error | null };
   };
 

@@ -103,6 +103,33 @@ const AdminOrders = () => {
     },
   });
 
+  const sendOrderEmail = async (orderId: string, emailType: string) => {
+    try {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+
+      if (!order) return;
+
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("product_name, variant_info, quantity, unit_price, total_price")
+        .eq("order_id", orderId);
+
+      await supabase.functions.invoke("send-email", {
+        body: {
+          type: emailType,
+          to: order.customer_email,
+          data: { ...order, items: items || [] },
+        },
+      });
+    } catch (err) {
+      console.error(`Failed to send ${emailType} email:`, err);
+    }
+  };
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, field, value }: { orderId: string; field: string; value: string }) => {
       const { error } = await supabase
@@ -111,6 +138,18 @@ const AdminOrders = () => {
         .eq("id", orderId);
 
       if (error) throw error;
+
+      // Send email based on status change
+      if (field === "status") {
+        const emailMap: Record<string, string> = {
+          shipped: "order_shipped",
+          delivered: "order_delivered",
+          cancelled: "order_cancelled",
+        };
+        if (emailMap[value]) {
+          await sendOrderEmail(orderId, emailMap[value]);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
