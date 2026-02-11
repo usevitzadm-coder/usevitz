@@ -257,31 +257,31 @@ serve(async (req: Request) => {
     }
 
     // Create order in database
+    const orderNumber = `VITZ-${Date.now().toString(36).toUpperCase()}`;
+    const paymentStatus = charge.status === "paid" ? "approved" : "pending";
+    
     const orderData = {
-      external_id: pagarmeOrder.id,
-      payment_provider: "pagarme",
-      payment_status: charge.status === "paid" ? "approved" : charge.status === "pending" ? "pending" : "processing",
-      total_amount: total,
-      subtotal: subtotal,
-      shipping_cost: shippingCost,
-      discount_amount: totalDiscounts,
+      order_number: orderNumber,
       customer_name: customer.name,
       customer_email: customer.email,
-      customer_phone: customer.phone,
-      customer_cpf: customer.cpf.replace(/\D/g, ""),
-      shipping_address: JSON.stringify({
-        zipCode: shipping.zipCode,
-        street: shipping.street,
-        number: shipping.number,
-        complement: shipping.complement,
-        neighborhood: shipping.neighborhood,
-        city: shipping.city,
-        state: shipping.state,
-      }),
-      shipping_method: shippingOption?.name || "Standard",
-      shipping_deadline: shippingOption?.delivery_time || 7,
+      customer_phone: customer.phone || null,
+      customer_document: customer.cpf.replace(/\D/g, "") || null,
+      shipping_address: `${shipping.street}, ${shipping.number}${shipping.complement ? ` - ${shipping.complement}` : ""}`,
+      shipping_neighborhood: shipping.neighborhood || null,
+      shipping_city: shipping.city,
+      shipping_state: shipping.state,
+      shipping_cep: shipping.zipCode.replace(/\D/g, ""),
+      shipping_method: shippingOption?.name || null,
+      shipping_cost: shippingCost,
+      subtotal: subtotal,
+      discount: couponDiscount,
+      gift_card_amount: giftCardDiscount,
+      total: total,
+      status: "pending",
+      payment_status: paymentStatus,
+      payment_method: paymentMethod,
+      payment_id: pagarmeOrder.id,
       coupon_code: couponCode || null,
-      gift_card_code: giftCardCode || null,
     };
 
     const { data: orderRecord, error: orderError } = await supabase
@@ -301,8 +301,7 @@ serve(async (req: Request) => {
         product_id: item.id,
         variant_id: item.variant_id || null,
         product_name: item.name,
-        variant_size: item.size || null,
-        variant_color: item.color || null,
+        variant_info: `${item.color || ""}${item.color && item.size ? " / " : ""}${item.size || ""}` || null,
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.price * item.quantity,
