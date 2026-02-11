@@ -113,6 +113,26 @@ const CheckoutPage = () => {
     state: "",
   });
 
+  // Auto-fill user data from profile
+  useEffect(() => {
+    if (!user) return;
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      setCustomer((prev) => ({
+        ...prev,
+        name: data?.full_name || user.user_metadata?.full_name || prev.name,
+        email: data?.email || user.email || prev.email,
+        phone: user.user_metadata?.phone || prev.phone,
+      }));
+    };
+    fetchProfile();
+  }, [user]);
+
   // Load coupon from URL params (passed from cart)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -1024,6 +1044,89 @@ const CheckoutPage = () => {
                   </Card>
                 )}
 
+                {/* Coupon */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Tag className="w-5 h-5" />
+                      Cupom de Desconto
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded">
+                        <div className="flex items-center gap-2">
+                          <Tag size={16} className="text-primary" />
+                          <div>
+                            <p className="font-mono font-medium text-sm">{appliedCoupon.code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {appliedCoupon.discount_type === 'percentage' 
+                                ? `${appliedCoupon.discount_value}% de desconto`
+                                : `${formatPrice(appliedCoupon.discount_value)} de desconto`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={removeCoupon}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-3">
+                        <Input
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          placeholder="CODIGO"
+                          className="flex-1 uppercase font-mono"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={handleApplyCoupon}
+                          disabled={isApplyingCoupon || !couponCode.trim()}
+                        >
+                          {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Gift Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Gift className="w-5 h-5" />
+                      Gift Card
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-3">
+                      <Input
+                        value={giftCardCode}
+                        onChange={(e) => setGiftCardCode(e.target.value.toUpperCase())}
+                        placeholder="XXXX-XXXX-XXXX-XXXX"
+                        disabled={giftCardApplied}
+                        className="font-mono"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={applyGiftCard}
+                        disabled={giftCardApplied || !giftCardCode.trim()}
+                      >
+                        {giftCardApplied ? "Aplicado" : "Aplicar"}
+                      </Button>
+                    </div>
+                    {giftCardApplied && (
+                      <p className="text-sm text-primary mt-2">
+                        Desconto de {formatPrice(giftCardDiscount)} aplicado!
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Payment Method */}
                 <Card>
                   <CardHeader>
@@ -1163,89 +1266,6 @@ const CheckoutPage = () => {
                         <p>Após finalizar, você receberá o boleto para pagamento.</p>
                         <p>O boleto vence em 3 dias úteis.</p>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Coupon */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Tag className="w-5 h-5" />
-                      Cupom de Desconto
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {appliedCoupon ? (
-                      <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/30 rounded">
-                        <div className="flex items-center gap-2">
-                          <Tag size={16} className="text-primary" />
-                          <div>
-                            <p className="font-mono font-medium text-sm">{appliedCoupon.code}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {appliedCoupon.discount_type === 'percentage' 
-                                ? `${appliedCoupon.discount_value}% de desconto`
-                                : `${formatPrice(appliedCoupon.discount_value)} de desconto`
-                              }
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={removeCoupon}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-3">
-                        <Input
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          placeholder="CODIGO"
-                          className="flex-1 uppercase font-mono"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={handleApplyCoupon}
-                          disabled={isApplyingCoupon || !couponCode.trim()}
-                        >
-                          {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Gift Card */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Gift className="w-5 h-5" />
-                      Gift Card
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-3">
-                      <Input
-                        value={giftCardCode}
-                        onChange={(e) => setGiftCardCode(e.target.value.toUpperCase())}
-                        placeholder="XXXX-XXXX-XXXX-XXXX"
-                        disabled={giftCardApplied}
-                        className="font-mono"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={applyGiftCard}
-                        disabled={giftCardApplied || !giftCardCode.trim()}
-                      >
-                        {giftCardApplied ? "Aplicado" : "Aplicar"}
-                      </Button>
-                    </div>
-                    {giftCardApplied && (
-                      <p className="text-sm text-green-600 mt-2">
-                        Desconto de {formatPrice(giftCardDiscount)} aplicado!
-                      </p>
                     )}
                   </CardContent>
                 </Card>
