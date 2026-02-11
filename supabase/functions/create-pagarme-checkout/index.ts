@@ -469,6 +469,51 @@ serve(async (req: Request) => {
       }
     }
 
+    // Send order confirmation email
+    if (orderRecord) {
+      try {
+        const orderItemsForEmail = validatedItems.map((item) => ({
+          product_name: item.name,
+          variant_info: `${item.color || ""}${item.color && item.size ? " / " : ""}${item.size || ""}` || null,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+        }));
+
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "order_confirmation",
+            to: customer.email,
+            data: {
+              order_number: orderNumber,
+              customer_name: customer.name,
+              subtotal: serverSubtotal,
+              shipping_cost: shippingCost,
+              discount: couponDiscount,
+              gift_card_amount: giftCardDiscount,
+              total: serverTotal,
+              shipping_method: shippingMethod || null,
+              shipping_address: `${shipping.street}, ${shipping.number}${shipping.complement ? ` - ${shipping.complement}` : ""}`,
+              shipping_city: shipping.city,
+              shipping_state: shipping.state,
+              shipping_cep: shipping.zipCode,
+              shipping_neighborhood: shipping.neighborhood,
+              coupon_code: couponCode || null,
+              items: orderItemsForEmail,
+            },
+          }),
+        });
+        console.log("Order confirmation email sent to", customer.email);
+      } catch (emailErr) {
+        console.error("Failed to send order confirmation email:", emailErr);
+      }
+    }
+
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
