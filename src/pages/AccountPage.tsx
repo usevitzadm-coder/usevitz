@@ -364,7 +364,7 @@ const AccountPage = () => {
                     Para agilizar, fale conosco pelo WhatsApp:
                   </p>
                   <a
-                    href="https://wa.me/5511915294545"
+                    href="https://wa.me/5511915204545"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
