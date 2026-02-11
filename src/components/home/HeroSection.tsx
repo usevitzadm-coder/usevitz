@@ -6,7 +6,7 @@ const HeroSection = () => {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img src={heroImage} alt="Vitz lifestyle - Modelos praticando yoga com roupas fitness premium" className="w-full h-full object-cover object-[center_55%] md:object-[center_50%]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/40 md:from-background/95 md:via-background/75 md:to-background/30" />
+        <div className="absolute inset-0 bg-background/40 md:bg-transparent md:bg-gradient-to-r md:from-background/95 md:via-background/75 md:to-background/30" />
       </div>
 
       {/* Content */}
