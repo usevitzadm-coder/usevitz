@@ -154,6 +154,45 @@ export type Database = {
         }
         Relationships: []
       }
+      costs: {
+        Row: {
+          amount: number
+          cash_withdrawn: number
+          category: string
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          paid_date: string | null
+          payment_method: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          cash_withdrawn?: number
+          category: string
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          paid_date?: string | null
+          payment_method?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cash_withdrawn?: number
+          category?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          paid_date?: string | null
+          payment_method?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string

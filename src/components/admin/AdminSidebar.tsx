@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   Gift,
   Palette,
-  XCircle
+  XCircle,
+  DollarSign
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -42,6 +43,7 @@ const otherNavItems = [
   { title: 'Pedidos', url: '/admin/pedidos', icon: ShoppingCart },
   { title: 'Cancelamentos', url: '/admin/cancelamentos', icon: XCircle },
   { title: 'Cupons', url: '/admin/cupons', icon: Ticket },
+  { title: 'Custos', url: '/admin/custos', icon: DollarSign },
   { title: 'Configurações', url: '/admin/configuracoes', icon: Settings },
 ];
 
