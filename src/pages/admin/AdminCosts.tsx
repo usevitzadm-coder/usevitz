@@ -63,7 +63,9 @@ const emptyCostForm: CostForm = {
 
 export default function AdminCosts() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState('controle');
+  const [tab, setTab] = useState('contas');
+  const [payDialogCost, setPayDialogCost] = useState<Cost | null>(null);
+  const [payForm, setPayForm] = useState({ paid_date: '', payment_method: '' });
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -112,6 +114,20 @@ export default function AdminCosts() {
       setDeleteId(null);
     },
     onError: () => toast.error('Erro ao excluir'),
+  });
+
+  const markAsPaidMutation = useMutation({
+    mutationFn: async ({ id, paid_date, payment_method }: { id: string; paid_date: string; payment_method: string | null }) => {
+      const { error } = await supabase.from('costs').update({ paid_date, payment_method }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['costs'] });
+      toast.success('Conta marcada como paga!');
+      setPayDialogCost(null);
+      setPayForm({ paid_date: '', payment_method: '' });
+    },
+    onError: () => toast.error('Erro ao registrar pagamento'),
   });
 
   const cashMutation = useMutation({
@@ -183,15 +199,94 @@ export default function AdminCosts() {
 
   const today = new Date().toISOString().split('T')[0];
 
+  // Contas a pagar: unpaid costs due in current month
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const contasAPagar = costs.filter((c) => {
+    if (c.paid_date) return false;
+    const d = parseISO(c.due_date);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+  const totalContas = contasAPagar.reduce((s, c) => s + Number(c.amount), 0);
+
+  const handleMarkPaid = () => {
+    if (!payDialogCost || !payForm.paid_date) {
+      toast.error('Informe a data de pagamento');
+      return;
+    }
+    markAsPaidMutation.mutate({
+      id: payDialogCost.id,
+      paid_date: payForm.paid_date,
+      payment_method: payForm.payment_method || null,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Controle de Custos</h1>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
+          <TabsTrigger value="contas">Contas a Pagar</TabsTrigger>
           <TabsTrigger value="controle">Controle de Custos</TabsTrigger>
           <TabsTrigger value="investimento">Investimento Realizado</TabsTrigger>
         </TabsList>
+
+        {/* ===== ABA CONTAS A PAGAR ===== */}
+        <TabsContent value="contas" className="space-y-4">
+          <div className="rounded-lg border p-4">
+            <p className="text-xs text-muted-foreground">Total a Pagar — {format(now, 'MMMM yyyy')}</p>
+            <p className="text-lg font-bold text-red-600">{fmt(totalContas)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{contasAPagar.length} conta(s) pendente(s)</p>
+          </div>
+
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-28" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contasAPagar.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-8">Nenhuma conta a pagar este mês 🎉</TableCell></TableRow>
+                ) : (
+                  contasAPagar.map((c) => {
+                    const overdue = isBefore(parseISO(c.due_date), new Date());
+                    return (
+                      <TableRow key={c.id} className={overdue ? 'bg-red-50/50' : ''}>
+                        <TableCell className="font-medium max-w-[260px] truncate">{c.description}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs whitespace-nowrap">{c.category}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{fmt(Number(c.amount))}</TableCell>
+                        <TableCell className="whitespace-nowrap">{fmtDate(c.due_date)}</TableCell>
+                        <TableCell>
+                          {overdue ? (
+                            <Badge variant="destructive" className="text-xs">Vencida</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">A vencer</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" onClick={() => { setPayDialogCost(c); setPayForm({ paid_date: today, payment_method: '' }); }}>
+                            Pagar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
 
         {/* ===== ABA CONTROLE ===== */}
         <TabsContent value="controle" className="space-y-4">
@@ -402,6 +497,32 @@ export default function AdminCosts() {
             <Button variant="outline" onClick={closeDialog}>Cancelar</Button>
             <Button onClick={handleSave} disabled={upsertMutation.isPending}>
               {upsertMutation.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pay dialog */}
+      <Dialog open={!!payDialogCost} onOpenChange={(o) => { if (!o) setPayDialogCost(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar Pagamento</DialogTitle>
+            <DialogDescription>{payDialogCost?.description} — {payDialogCost ? fmt(Number(payDialogCost.amount)) : ''}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div>
+              <Label>Data de Pagamento *</Label>
+              <Input type="date" value={payForm.paid_date} onChange={(e) => setPayForm({ ...payForm, paid_date: e.target.value })} />
+            </div>
+            <div>
+              <Label>Forma de Pagamento</Label>
+              <Input value={payForm.payment_method} onChange={(e) => setPayForm({ ...payForm, payment_method: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPayDialogCost(null)}>Cancelar</Button>
+            <Button onClick={handleMarkPaid} disabled={markAsPaidMutation.isPending}>
+              {markAsPaidMutation.isPending ? 'Salvando...' : 'Confirmar Pagamento'}
             </Button>
           </DialogFooter>
         </DialogContent>
