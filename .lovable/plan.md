@@ -1,80 +1,72 @@
 
-# Estrategia de Lancamento: Produtos "Coming Soon"
+
+# Controle de Custos - Painel Administrativo Vitz
 
 ## Resumo
-Adicionar um campo `is_coming_soon` na tabela de produtos para marcar itens como "em breve". Esses produtos aparecem no catalogo com imagens desfocadas, sem opcao de compra, e com um formulario de captura de e-mail para acesso antecipado. Uma nova tabela `launch_leads` armazena os e-mails capturados.
 
-## O que muda para voce (Admin)
-- No formulario de produto, um novo toggle **"Produto em lancamento"** ao lado do toggle "Ativo"
-- Os produtos marcados aparecem normalmente na listagem do admin com um badge "Em breve"
-- Na aba de configuracoes ou em uma nova secao, voce pode ver os leads capturados por produto
+Criar um modulo completo de Controle de Custos no painel admin, replicando a logica da planilha atual com duas visoes: "Controle de Custos" (cadastro e gestao) e "Investimento Realizado" (custos pagos com rateio entre socios).
 
-## O que o cliente ve
-- **Catalogo (/produtos)**: O card do produto aparece com a imagem desfocada (blur), um badge "Em Breve" e sem preco visivel
-- **Pagina do produto (/produto/slug)**: Todas as imagens da galeria ficam com desfoque. Os seletores de cor, tamanho e quantidade ficam ocultos. No lugar do botao "Adicionar ao Carrinho", aparece um formulario com campo de e-mail e o texto: *"Inscreva-se aqui para ficar por dentro do lancamento e ter acesso antecipado"*
-- Ao se inscrever, o cliente recebe uma confirmacao visual (toast)
+## O que sera criado
 
----
+### 1. Tabela no banco de dados: `costs`
 
-## Detalhes Tecnicos
+| Coluna | Tipo | Descricao |
+|--------|------|-----------|
+| id | uuid | PK |
+| description | text | Descricao do custo |
+| category | text | "Fixo Mensal", "Fixo Anual" ou "Variavel" |
+| amount | numeric | Valor |
+| due_date | date | Data de vencimento |
+| paid_date | date (nullable) | Data de pagamento |
+| payment_method | text (nullable) | Forma de pagamento |
+| cash_withdrawn | numeric (default 0) | Quanto foi retirado do caixa |
+| created_at | timestamptz | Criacao |
+| updated_at | timestamptz | Atualizacao |
 
-### 1. Migracao de Banco de Dados
+- RLS: somente admins podem ler/escrever
+- Todos os ~60 custos da planilha serao importados via migration SQL
 
-**Tabela `products`** - novo campo:
-```sql
-ALTER TABLE products ADD COLUMN is_coming_soon boolean NOT NULL DEFAULT false;
-```
+### 2. Pagina Admin: `/admin/custos`
 
-**Nova tabela `launch_leads`**:
-```sql
-CREATE TABLE launch_leads (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  email text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(product_id, email)
-);
+Pagina com duas abas (Tabs):
 
-ALTER TABLE launch_leads ENABLE ROW LEVEL SECURITY;
+**Aba 1 - Controle de Custos:**
+- Tabela com todas as colunas: Descricao, Categoria, Valor, Vencimento, Pagamento, Forma de Pagamento
+- Botao "Novo Custo" abre dialog/formulario
+- Edicao inline ou via dialog para preencher data de pagamento e forma
+- Indicador visual: custos vencidos em vermelho, pagos em verde
+- Filtros por categoria e status (pago/pendente)
+- Totalizadores: total geral, total pago, total pendente
 
--- Qualquer pessoa pode se inscrever
-CREATE POLICY "Anyone can subscribe to launches"
-  ON launch_leads FOR INSERT WITH CHECK (true);
+**Aba 2 - Investimento Realizado:**
+- Lista automaticamente apenas custos com `paid_date` preenchida
+- Colunas: Descricao, Valor, Retirado do Caixa, e a diferenca dividida por 5 socios (Nelinho, Nat, Nick, Nady, Gui)
+- Campo editavel "Retirado do Caixa" para cada custo
+- Calculo automatico: (Valor - Retirado do Caixa) / 5 = valor por socio
+- Totalizadores por socio no rodape
 
--- Admins podem ver todos os leads
-CREATE POLICY "Admins can manage launch leads"
-  ON launch_leads FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
-```
+### 3. Navegacao
 
-### 2. Arquivos Modificados
+- Novo item "Custos" no sidebar admin (icone DollarSign), no grupo "Outros"
+- Rota `/admin/custos` no App.tsx
 
-**`src/types/product.ts`**
-- Adicionar `isComingSoon?: boolean` na interface `Product`
+## Secao Tecnica
 
-**`src/components/product/ProductCard.tsx`**
-- Se `product.isComingSoon`, aplicar `blur-sm` na imagem
-- Exibir badge "Em Breve" no lugar do badge normal
-- Ocultar preco e descricao curta
-- Manter o link funcional (leva para a PDP)
+### Arquivos a criar:
+- `src/pages/admin/AdminCosts.tsx` - pagina principal com as duas abas
 
-**`src/pages/ProductPage.tsx`**
-- Se `is_coming_soon`, aplicar `blur-md` em todas as imagens da galeria
-- Ocultar seletores de cor, tamanho e quantidade
-- Substituir o botao "Adicionar ao Carrinho" por um formulario de captura de lead (campo e-mail + botao "Quero saber primeiro")
-- Ao enviar, inserir na tabela `launch_leads` e exibir toast de confirmacao
+### Arquivos a modificar:
+- Migration SQL: criar tabela `costs` + inserir dados historicos + RLS policies
+- `src/components/admin/AdminSidebar.tsx` - adicionar link "Custos"
+- `src/App.tsx` - adicionar rota `/admin/custos`
+- `src/pages/admin/index.ts` - exportar AdminCosts
 
-**`src/pages/ProductsPage.tsx`**
-- Incluir `is_coming_soon` no select da query
+### Dados importados (60+ registros):
+Todos os custos da planilha serao inseridos na migration, incluindo os que ja foram pagos (com paid_date preenchida) e os pendentes (sem paid_date).
 
-**`src/pages/admin/ProductForm.tsx`**
-- Adicionar toggle "Produto em lancamento" na secao de configuracoes (ao lado de "Ativo")
-- Salvar/carregar o campo `is_coming_soon`
+### Logica do rateio entre socios:
+- Quando um custo e pago, ele aparece na aba "Investimento Realizado"
+- O admin pode informar quanto foi retirado do caixa da empresa
+- A diferenca (Valor - Caixa) e dividida igualmente entre os 5 socios
+- Os nomes dos socios sao fixos: Nelinho, Nat, Nick, Nady, Gui
 
-**`src/pages/admin/AdminProducts.tsx`**
-- Exibir badge "Em breve" na listagem quando o produto estiver marcado
-
-### 3. Componente de Captura de Lead (inline na PDP)
-- Campo de e-mail com validacao basica
-- Botao com texto "Quero saber primeiro"
-- Mensagem contextual: "Inscreva-se para ficar por dentro do lancamento e ter acesso antecipado"
-- Prevencao de duplicatas via constraint UNIQUE no banco (com tratamento de erro amigavel)
