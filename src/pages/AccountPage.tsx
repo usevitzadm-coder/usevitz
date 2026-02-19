@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, Mail, Lock, Eye, EyeOff, Phone, Package, Loader2, XCircle, MessageCircle } from "lucide-react";
+import { User, LogOut, Mail, Lock, Eye, EyeOff, Phone, Package, Loader2, XCircle, MessageCircle, ArrowLeft, KeyRound } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,14 @@ const AccountPage = () => {
   const [signupConfirm, setSignupConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Forgot password state
+  type ForgotStep = "idle" | "email" | "otp" | "newPassword";
+  const [forgotStep, setForgotStep] = useState<ForgotStep>("idle");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState<{ full_name: string; email: string } | null>(null);
@@ -202,6 +210,58 @@ const AccountPage = () => {
         title: "Conta criada!",
         description: "Verifique seu e-mail para confirmar o cadastro.",
       });
+    }
+  };
+
+  const handleForgotSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotSubmitting(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: forgotEmail,
+      options: { shouldCreateUser: false },
+    });
+    setForgotSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao enviar código", description: "Verifique o e-mail informado.", variant: "destructive" });
+    } else {
+      toast({ title: "Código enviado!", description: "Verifique seu e-mail." });
+      setForgotStep("otp");
+    }
+  };
+
+  const handleForgotVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotSubmitting(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email: forgotEmail,
+      token: forgotOtp,
+      type: "email",
+    });
+    setForgotSubmitting(false);
+    if (error) {
+      toast({ title: "Código inválido ou expirado", description: "Tente novamente.", variant: "destructive" });
+    } else {
+      setForgotStep("newPassword");
+    }
+  };
+
+  const handleForgotSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (getPasswordStrength(forgotNewPassword) < 3) {
+      toast({ title: "Senha muito fraca", description: "Use pelo menos 8 caracteres com letras e números.", variant: "destructive" });
+      return;
+    }
+    setForgotSubmitting(true);
+    const { error } = await supabase.auth.updateUser({ password: forgotNewPassword });
+    setForgotSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao redefinir senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha redefinida com sucesso!", description: "Você já está logada." });
+      setForgotStep("idle");
+      setForgotEmail("");
+      setForgotOtp("");
+      setForgotNewPassword("");
     }
   };
 
@@ -411,6 +471,122 @@ const AccountPage = () => {
               </p>
             </div>
 
+            {/* Forgot Password Flow */}
+            {forgotStep !== "idle" ? (
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => { setForgotStep("idle"); setForgotEmail(""); setForgotOtp(""); setForgotNewPassword(""); }}
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Voltar para o login
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="w-5 h-5 text-primary" />
+                    <h2 className="font-semibold text-base">
+                      {forgotStep === "email" && "Redefinir senha"}
+                      {forgotStep === "otp" && "Confirmar código"}
+                      {forgotStep === "newPassword" && "Nova senha"}
+                    </h2>
+                  </div>
+
+                  {forgotStep === "email" && (
+                    <form onSubmit={handleForgotSendOtp} className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Informe seu e-mail e enviaremos um código de verificação.
+                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email">E-mail</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="pl-10"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={forgotSubmitting}>
+                        {forgotSubmitting ? "Enviando..." : "Enviar código"}
+                      </Button>
+                    </form>
+                  )}
+
+                  {forgotStep === "otp" && (
+                    <form onSubmit={handleForgotVerifyOtp} className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Digite o código de 6 dígitos enviado para <strong>{forgotEmail}</strong>.
+                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-otp">Código de verificação</Label>
+                        <Input
+                          id="forgot-otp"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="000000"
+                          maxLength={6}
+                          className="text-center text-2xl tracking-widest font-mono"
+                          value={forgotOtp}
+                          onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={forgotSubmitting || forgotOtp.length < 6}>
+                        {forgotSubmitting ? "Verificando..." : "Confirmar código"}
+                      </Button>
+                      <button
+                        type="button"
+                        className="w-full text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+                        onClick={handleForgotSendOtp}
+                        disabled={forgotSubmitting}
+                      >
+                        Reenviar código
+                      </button>
+                    </form>
+                  )}
+
+                  {forgotStep === "newPassword" && (
+                    <form onSubmit={handleForgotSetPassword} className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Crie uma nova senha para sua conta.
+                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-new-password">Nova senha</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="forgot-new-password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Crie uma senha forte"
+                            className="pl-10 pr-10"
+                            value={forgotNewPassword}
+                            onChange={(e) => setForgotNewPassword(e.target.value)}
+                            required
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <PasswordStrengthMeter password={forgotNewPassword} />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={forgotSubmitting}>
+                        {forgotSubmitting ? "Salvando..." : "Redefinir senha"}
+                      </Button>
+                    </form>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
             <Card>
               <CardContent className="pt-6">
                 <Tabs defaultValue="login">
@@ -458,6 +634,16 @@ const AccountPage = () => {
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
+                      </div>
+
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+                          onClick={() => { setForgotEmail(loginEmail); setForgotStep("email"); }}
+                        >
+                          Esqueci a senha
+                        </button>
                       </div>
 
                       <Button type="submit" className="w-full" disabled={submitting}>
@@ -556,6 +742,7 @@ const AccountPage = () => {
                 </Tabs>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </Layout>
@@ -564,3 +751,4 @@ const AccountPage = () => {
 };
 
 export default AccountPage;
+
