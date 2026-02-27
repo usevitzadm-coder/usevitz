@@ -11,3 +11,4 @@ export { default as AdminOrders } from './AdminOrders';
 export { default as AdminColors } from './AdminColors';
 export { default as AdminCancellations } from './AdminCancellations';
 export { default as AdminCosts } from './AdminCosts';
+export { default as AdminContacts } from './AdminContacts';

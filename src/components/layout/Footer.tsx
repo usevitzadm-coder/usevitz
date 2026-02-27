@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Instagram, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Import payment logos
 import visaLogo from "@/assets/payment/visa.svg";
@@ -12,12 +15,42 @@ import boletoLogo from "@/assets/payment/boleto.png";
 import logoVitz from "@/assets/logo-vitz.png";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
   const institutionalLinks = [
     { name: "Quem Somos", href: "/sobre" },
     { name: "Política de Entrega", href: "/entrega" },
     { name: "Trocas e Devoluções", href: "/trocas" },
     { name: "Política de Privacidade", href: "/privacidade" },
   ];
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({ title: "E-mail inválido", description: "Por favor, insira um e-mail válido.", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("newsletter_leads").insert({ email, source: "footer_cupom_primeira_compra" });
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Você já está inscrito!", description: "Esse e-mail já está cadastrado." });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Inscrição confirmada! 🎉", description: "Você receberá novidades e seu cupom de 10% off." });
+        setEmail("");
+      }
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível realizar a inscrição.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <footer className="bg-primary text-primary-foreground">
@@ -31,17 +64,21 @@ const Footer = () => {
             <p className="text-sm text-primary-foreground/80 mb-6">
               Receba novidades, lançamentos exclusivos e 10% off na primeira compra
             </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder="Seu e-mail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 h-11 bg-white/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
               />
               <Button 
+                type="submit"
                 variant="secondary" 
                 className="h-11 px-6 bg-background text-foreground hover:bg-background/90"
+                disabled={isSubmitting}
               >
-                Inscrever
+                {isSubmitting ? "Enviando..." : "Inscrever"}
               </Button>
             </form>
           </div>
@@ -70,29 +107,13 @@ const Footer = () => {
               sexta-feira das 09h às 18h
             </p>
             <div className="flex gap-4">
-              <a
-                href="https://wa.me/5511915204545"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                aria-label="WhatsApp"
-              >
+              <a href="https://wa.me/5511915204545" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="WhatsApp">
                 <Phone size={20} />
               </a>
-              <a
-                href="https://instagram.com/usevitz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                aria-label="Instagram"
-              >
+              <a href="https://instagram.com/usevitz" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a
-                href="mailto:suporte@usevitz.com"
-                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                aria-label="E-mail"
-              >
+              <a href="mailto:suporte@usevitz.com" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="E-mail">
                 <Mail size={20} />
               </a>
             </div>
@@ -103,10 +124,7 @@ const Footer = () => {
             <ul className="space-y-3">
               {institutionalLinks.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2 transition-colors"
-                  >
+                  <Link to={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2 transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -118,23 +136,18 @@ const Footer = () => {
           <div>
             <h4 className="font-medium mb-4">Formas de Pagamento</h4>
             <div className="grid grid-cols-3 gap-2">
-              {/* Elo */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Elo">
                 <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" />
               </div>
-              {/* Mastercard */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Mastercard">
                 <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" />
               </div>
-              {/* Visa */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Visa">
                 <img src={visaLogo} alt="Visa" className="h-4 w-auto object-contain" />
               </div>
-              {/* Pix */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Pix">
                 <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" />
               </div>
-              {/* Boleto */}
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
                 <img src={boletoLogo} alt="Boleto" className="h-9 w-auto object-contain" />
               </div>
