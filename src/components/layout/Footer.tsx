@@ -20,11 +20,11 @@ const Footer = () => {
   const { toast } = useToast();
 
   const institutionalLinks = [
-    { name: "Quem Somos", href: "/sobre" },
-    { name: "Política de Entrega", href: "/entrega" },
-    { name: "Trocas e Devoluções", href: "/trocas" },
-    { name: "Política de Privacidade", href: "/privacidade" },
-  ];
+  { name: "Quem Somos", href: "/sobre" },
+  { name: "Política de Entrega", href: "/entrega" },
+  { name: "Trocas e Devoluções", href: "/trocas" },
+  { name: "Política de Privacidade", href: "/privacidade" }];
+
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +62,7 @@ const Footer = () => {
               Faça parte do movimento
             </h3>
             <p className="text-sm text-primary-foreground/80 mb-6">
-              Receba novidades, lançamentos exclusivos e 10% off na primeira compra
+              Receba novidades, lançamentos exclusivos e 5% off na primeira compra
             </p>
             <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <Input
@@ -70,14 +70,14 @@ const Footer = () => {
                 placeholder="Seu e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-11 bg-white/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
-              />
-              <Button 
+                className="flex-1 h-11 bg-white/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60" />
+
+              <Button
                 type="submit"
-                variant="secondary" 
+                variant="secondary"
                 className="h-11 px-6 bg-background text-foreground hover:bg-background/90"
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
+
                 {isSubmitting ? "Enviando..." : "Inscrever"}
               </Button>
             </form>
@@ -91,11 +91,11 @@ const Footer = () => {
           {/* Logo */}
           <div className="flex items-start justify-center md:justify-start">
             <Link to="/" className="inline-block">
-              <img 
-                src={logoVitz} 
-                alt="Vitz" 
-                className="h-[7.5rem] brightness-0 invert"
-              />
+              <img
+                src={logoVitz}
+                alt="Vitz"
+                className="h-[7.5rem] brightness-0 invert" />
+
             </Link>
           </div>
 
@@ -122,13 +122,13 @@ const Footer = () => {
           {/* Links Institucionais */}
           <div>
             <ul className="space-y-3">
-              {institutionalLinks.map((link) => (
-                <li key={link.name}>
+              {institutionalLinks.map((link) =>
+              <li key={link.name}>
                   <Link to={link.href} className="text-sm text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2 transition-colors">
                     {link.name}
                   </Link>
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
@@ -162,8 +162,8 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
 
 export default Footer;
