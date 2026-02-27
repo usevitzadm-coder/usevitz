@@ -7,9 +7,10 @@ import { Mail } from "lucide-react";
 
 interface LaunchLeadFormProps {
   productId: string;
+  productName?: string;
 }
 
-const LaunchLeadForm = ({ productId }: LaunchLeadFormProps) => {
+const LaunchLeadForm = ({ productId, productName }: LaunchLeadFormProps) => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -45,11 +46,16 @@ const LaunchLeadForm = ({ productId }: LaunchLeadFormProps) => {
           throw error;
         }
       } else {
+        const subscribedEmail = email;
         setIsSubscribed(true);
         toast({
           title: "Inscrição confirmada! 🎉",
           description: "Você será notificado quando este produto estiver disponível.",
         });
+        // Send launch notification email
+        supabase.functions.invoke("send-email", {
+          body: { type: "launch_notify", to: subscribedEmail, data: { product_name: productName || "novo produto" } },
+        }).catch(() => {});
       }
     } catch (error) {
       console.error("Error subscribing:", error);

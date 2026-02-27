@@ -430,7 +430,7 @@ const ProductPage = () => {
               {/* Add to Cart or Lead Capture */}
               <div className="pt-4">
                 {isComingSoon ? (
-                  <LaunchLeadForm productId={product.id} />
+                  <LaunchLeadForm productId={product.id} productName={product.name} />
                 ) : (
                   <Button
                     variant="hero"
