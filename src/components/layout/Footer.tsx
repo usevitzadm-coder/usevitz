@@ -42,8 +42,12 @@ const Footer = () => {
           throw error;
         }
       } else {
-        toast({ title: "Inscrição confirmada! 🎉", description: "Você receberá novidades e seu cupom de 10% off." });
+        toast({ title: "Inscrição confirmada! 🎉", description: "Você receberá novidades e seu cupom de 5% off." });
         setEmail("");
+        // Send coupon email in background
+        supabase.functions.invoke("send-email", {
+          body: { type: "newsletter_coupon", to: email },
+        }).catch(() => {});
       }
     } catch {
       toast({ title: "Erro", description: "Não foi possível realizar a inscrição.", variant: "destructive" });

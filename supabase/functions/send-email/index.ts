@@ -206,6 +206,27 @@ function orderCancelledEmail(order: OrderData, founderName: string): { subject: 
   };
 }
 
+function newsletterCouponEmail(founderName: string): { subject: string; html: string } {
+  return {
+    subject: `Seu cupom de 5% OFF chegou! 🎁`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px;font-size:22px;">Você ganhou 5% OFF! 🎉</h2>
+      <p style="line-height:1.6;color:#444;">Oi! Aqui é a <strong>${founderName}</strong>, co-fundadora da Vitz.</p>
+      <p style="line-height:1.6;color:#444;">Obrigada por se inscrever na nossa newsletter! Como boas-vindas, preparamos um presente especial pra você:</p>
+      <div style="text-align:center;margin:32px 0;padding:24px;background:#f9f5f0;border-radius:12px;">
+        <p style="margin:0 0 8px;font-size:14px;color:#888;">Seu cupom de desconto:</p>
+        <p style="margin:0;font-size:28px;font-weight:700;letter-spacing:3px;color:#1a1a1a;">PRIMEIRACOMPRA</p>
+        <p style="margin:8px 0 0;font-size:14px;color:#888;">5% de desconto na sua primeira compra</p>
+      </div>
+      <p style="line-height:1.6;color:#444;">É só usar o código acima no checkout. Simples assim! 😊</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://usevitz.com" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Usar Meu Cupom</a>
+      </div>
+      <p style="line-height:1.6;color:#444;">Com carinho,<br><strong>${founderName}</strong> 💛<br><em>Co-fundadora da Vitz</em></p>
+    `, `Você ganhou 5% OFF na primeira compra! Use o código PRIMEIRACOMPRA.`),
+  };
+}
+
 function paymentRejectedEmail(order: OrderData, founderName: string): { subject: string; html: string } {
   return {
     subject: `Pagamento não aprovado — Pedido ${order.order_number}`,
@@ -229,7 +250,7 @@ function paymentRejectedEmail(order: OrderData, founderName: string): { subject:
 
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
@@ -247,6 +268,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return orderDeliveredEmail(data as OrderData, founderName);
     case "order_cancelled":
       return orderCancelledEmail(data as OrderData, founderName);
+    case "newsletter_coupon":
+      return newsletterCouponEmail(founderName);
     default:
       return null;
   }
