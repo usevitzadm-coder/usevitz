@@ -248,9 +248,30 @@ function paymentRejectedEmail(order: OrderData, founderName: string): { subject:
   };
 }
 
+function launchNotifyEmail(productName: string, founderName: string): { subject: string; html: string } {
+  return {
+    subject: `Você está na lista VIP do lançamento! 🚀`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px;font-size:22px;">Você está na lista! 🎉</h2>
+      <p style="line-height:1.6;color:#444;">Oi! Aqui é a <strong>${founderName}</strong>, co-fundadora da Vitz.</p>
+      <p style="line-height:1.6;color:#444;">Obrigada pelo interesse no <strong>${productName}</strong>! Você agora faz parte da nossa lista VIP de lançamento.</p>
+      <div style="text-align:center;margin:32px 0;padding:24px;background:#f9f5f0;border-radius:12px;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Data do lançamento:</p>
+        <p style="margin:0;font-size:28px;font-weight:700;color:#1a1a1a;">03 de Março</p>
+        <p style="margin:8px 0 0;font-size:14px;color:#888;">Você será a primeira a saber! 💛</p>
+      </div>
+      <p style="line-height:1.6;color:#444;">Fique de olho no seu e-mail — no dia do lançamento, vamos te avisar com acesso antecipado antes de todo mundo!</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://usevitz.com" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Explorar a Vitz</a>
+      </div>
+      <p style="line-height:1.6;color:#444;">Com carinho,<br><strong>${founderName}</strong> 💛<br><em>Co-fundadora da Vitz</em></p>
+    `, `Você está na lista VIP de lançamento da Vitz!`),
+  };
+}
+
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
@@ -270,6 +291,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return orderCancelledEmail(data as OrderData, founderName);
     case "newsletter_coupon":
       return newsletterCouponEmail(founderName);
+    case "launch_notify":
+      return launchNotifyEmail(data.product_name || "novo produto", founderName);
     default:
       return null;
   }
