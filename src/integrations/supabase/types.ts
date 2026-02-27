@@ -359,6 +359,27 @@ export type Database = {
           },
         ]
       }
+      newsletter_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string

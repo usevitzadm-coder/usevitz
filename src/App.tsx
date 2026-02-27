@@ -41,6 +41,7 @@ import {
   AdminColors,
   AdminCancellations,
   AdminCosts,
+  AdminContacts,
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
@@ -179,6 +180,14 @@ const App = () => (
                   element={
                     <AdminLayout>
                       <AdminCosts />
+                    </AdminLayout>
+                  }
+                />
+                <Route
+                  path="/admin/contatos"
+                  element={
+                    <AdminLayout>
+                      <AdminContacts />
                     </AdminLayout>
                   }
                 />

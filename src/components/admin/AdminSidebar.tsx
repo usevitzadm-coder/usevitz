@@ -11,7 +11,8 @@ import {
   Gift,
   Palette,
   XCircle,
-  DollarSign
+  DollarSign,
+  Users
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
@@ -37,6 +38,7 @@ const mainNavItems = [
   { title: 'Cores', url: '/admin/cores', icon: Palette },
   { title: 'Estoque', url: '/admin/estoque', icon: Boxes },
   { title: 'Gift Cards', url: '/admin/gift-cards', icon: Gift },
+  { title: 'Contatos & Leads', url: '/admin/contatos', icon: Users },
 ];
 
 const otherNavItems = [
