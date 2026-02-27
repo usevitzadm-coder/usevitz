@@ -42,11 +42,12 @@ const Footer = () => {
           throw error;
         }
       } else {
+        const subscribedEmail = email;
         toast({ title: "Inscrição confirmada! 🎉", description: "Você receberá novidades e seu cupom de 5% off." });
         setEmail("");
         // Send coupon email in background
         supabase.functions.invoke("send-email", {
-          body: { type: "newsletter_coupon", to: email },
+          body: { type: "newsletter_coupon", to: subscribedEmail },
         }).catch(() => {});
       }
     } catch {
