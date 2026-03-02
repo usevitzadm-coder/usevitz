@@ -10,24 +10,16 @@ export const useEarlyAccess = () => {
   const eaFromUrl = searchParams.get("ea");
 
   const [code, setCode] = useState<string | null>(() => {
-    return eaFromUrl || sessionStorage.getItem(EA_STORAGE_KEY);
+    return eaFromUrl || localStorage.getItem(EA_STORAGE_KEY);
   });
 
-  // Persist code in sessionStorage when found in URL
+  // Persist code in localStorage when found in URL
   useEffect(() => {
     if (eaFromUrl) {
-      sessionStorage.setItem(EA_STORAGE_KEY, eaFromUrl);
+      localStorage.setItem(EA_STORAGE_KEY, eaFromUrl);
       setCode(eaFromUrl);
     }
   }, [eaFromUrl]);
-
-  // On mount, always re-read from sessionStorage (for page navigations)
-  useEffect(() => {
-    const stored = sessionStorage.getItem(EA_STORAGE_KEY);
-    if (stored && !code) {
-      setCode(stored);
-    }
-  }, []);
 
   const { data: isEarlyAccess } = useQuery({
     queryKey: ["early-access-code", code],
@@ -42,7 +34,8 @@ export const useEarlyAccess = () => {
       return data?.value === code;
     },
     enabled: !!code,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 30,
+    placeholderData: !!localStorage.getItem(EA_STORAGE_KEY) || undefined,
   });
 
   return isEarlyAccess || false;
