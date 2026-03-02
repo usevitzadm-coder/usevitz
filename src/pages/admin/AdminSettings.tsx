@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, MapPin, Loader2, Users, Plus, Trash2, Shield } from "lucide-react";
+import { Save, MapPin, Loader2, Users, Plus, Trash2, Shield, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +55,8 @@ const AdminSettings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [originCep, setOriginCep] = useState("");
   const [originAddress, setOriginAddress] = useState("");
+  const [earlyAccessCode, setEarlyAccessCode] = useState("");
+  const [isSavingEA, setIsSavingEA] = useState(false);
 
   // Admin users state
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -65,6 +67,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchEarlyAccessCode();
     fetchAdminUsers();
   }, []);
 
@@ -86,6 +89,38 @@ const AdminSettings = () => {
       console.error("Error fetching settings:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchEarlyAccessCode = async () => {
+    try {
+      const { data } = await supabase
+        .from("store_settings")
+        .select("value")
+        .eq("key", "early_access_code")
+        .maybeSingle();
+      if (data) setEarlyAccessCode(data.value);
+    } catch (error) {
+      console.error("Error fetching early access code:", error);
+    }
+  };
+
+  const handleSaveEarlyAccess = async () => {
+    setIsSavingEA(true);
+    try {
+      const { error } = await supabase
+        .from("store_settings")
+        .upsert({
+          key: "early_access_code",
+          value: earlyAccessCode.trim(),
+          description: "Código de early access para clientes VIP",
+        }, { onConflict: "key" });
+      if (error) throw error;
+      toast({ title: "Código de early access salvo!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSavingEA(false);
     }
   };
 
@@ -462,6 +497,44 @@ const AdminSettings = () => {
               </Dialog>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Early Access Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="w-5 h-5" />
+            Early Access (Clientes VIP)
+          </CardTitle>
+          <CardDescription>
+            Configure o código secreto para clientes fiéis acessarem produtos em lançamento antes da data oficial. Compartilhe links como: <code className="text-xs bg-muted px-1 py-0.5 rounded">usevitz.lovable.app/produtos?ea=CODIGO</code>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="max-w-xs">
+            <Label htmlFor="earlyAccessCode">Código de Acesso</Label>
+            <Input
+              id="earlyAccessCode"
+              value={earlyAccessCode}
+              onChange={(e) => setEarlyAccessCode(e.target.value.toUpperCase())}
+              placeholder="Ex: VITZ2026"
+              className="font-mono uppercase"
+            />
+          </div>
+          <Button onClick={handleSaveEarlyAccess} disabled={isSavingEA}>
+            {isSavingEA ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Salvar Código
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 

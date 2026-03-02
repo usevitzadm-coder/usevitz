@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Minus, Plus, ChevronRight, Truck, RefreshCw } from "lucide-react";
@@ -18,9 +18,28 @@ const ProductPage = () => {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
+  const [searchParams] = useSearchParams();
+  const eaCode = searchParams.get("ea");
+
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+
+  // Fetch early access code from store_settings
+  const { data: earlyAccessValid } = useQuery({
+    queryKey: ["early-access-code", eaCode],
+    queryFn: async () => {
+      if (!eaCode) return false;
+      const { data, error } = await supabase
+        .from("store_settings")
+        .select("value")
+        .eq("key", "early_access_code")
+        .maybeSingle();
+      if (error) return false;
+      return data?.value === eaCode;
+    },
+    enabled: !!eaCode,
+  });
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
@@ -141,7 +160,7 @@ const ProductPage = () => {
     );
   }
 
-  const isComingSoon = product.is_coming_soon ?? false;
+  const isComingSoon = (product.is_coming_soon ?? false) && !earlyAccessValid;
 
   // Sort images by display_order
   const sortedImages = [...(product.product_images || [])].sort(
