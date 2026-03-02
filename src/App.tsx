@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -47,6 +47,20 @@ import {
 } from "./pages/admin";
 
 const queryClient = new QueryClient();
+const EARLY_ACCESS_STORAGE_KEY = "vitz_ea_code";
+
+const EarlyAccessCapture = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const codeFromUrl = new URLSearchParams(location.search).get("ea")?.trim();
+    if (codeFromUrl) {
+      localStorage.setItem(EARLY_ACCESS_STORAGE_KEY, codeFromUrl.toUpperCase());
+    }
+  }, [location.search]);
+
+  return null;
+};
 
 const App = () => {
   useEffect(() => {
@@ -69,6 +83,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <EarlyAccessCapture />
               <ScrollToTop />
               <Routes>
                 {/* Public routes */}
