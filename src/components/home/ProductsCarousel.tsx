@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
 interface CarouselProduct {
   id: string;
@@ -20,6 +21,7 @@ interface CarouselProduct {
 const ProductsCarousel = () => {
   const [products, setProducts] = useState<CarouselProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const earlyAccessValid = useEarlyAccess();
   
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
@@ -178,7 +180,7 @@ const ProductsCarousel = () => {
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex -ml-4">
             {products.map((product) => {
-              const isComingSoon = product.is_coming_soon;
+              const isComingSoon = earlyAccessValid ? false : product.is_coming_soon;
               const badgeLabel = isComingSoon ? null : getBadgeLabel(product.badge);
               
               return (
