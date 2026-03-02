@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product";
-import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const earlyAccess = useEarlyAccess();
-  const isComingSoon = earlyAccess ? false : product.isComingSoon;
+  const isComingSoon = product.isComingSoon;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
