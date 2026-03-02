@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/layout/Layout";
@@ -11,6 +12,25 @@ import ProductFilters, { ProductFiltersState } from "@/components/products/Produ
 type SortOption = "order" | "newest" | "price-asc" | "price-desc" | "name";
 
 const ProductsPage = () => {
+  const [searchParams] = useSearchParams();
+  const eaCode = searchParams.get("ea");
+
+  // Validate early access code
+  const { data: earlyAccessValid } = useQuery({
+    queryKey: ["early-access-code", eaCode],
+    queryFn: async () => {
+      if (!eaCode) return false;
+      const { data, error } = await supabase
+        .from("store_settings")
+        .select("value")
+        .eq("key", "early_access_code")
+        .maybeSingle();
+      if (error) return false;
+      return data?.value === eaCode;
+    },
+    enabled: !!eaCode,
+  });
+
   const [sortBy, setSortBy] = useState<SortOption>("order");
   const [filters, setFilters] = useState<ProductFiltersState>({
     priceRange: [0, 1000],
@@ -210,6 +230,7 @@ const ProductsPage = () => {
             {products.map((product) => (
               <ProductCard
                 key={product.id}
+                forceAvailable={earlyAccessValid || false}
                 product={{
                   id: product.id,
                   name: product.name,
