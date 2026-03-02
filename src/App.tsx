@@ -12,6 +12,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import ProductPage from "./pages/ProductPage";
 import CollectionPage from "./pages/CollectionPage";
+import NewArrivalsPage from "./pages/NewArrivalsPage";
 import CartPage from "./pages/CartPage";
 import SearchPage from "./pages/SearchPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -83,7 +84,7 @@ const App = () => {
                 <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
                 <Route path="/checkout/erro" element={<CheckoutErrorPage />} />
                 <Route path="/checkout/pendente" element={<CheckoutPendingPage />} />
-                <Route path="/novidades" element={<CollectionPage />} />
+                <Route path="/novidades" element={<NewArrivalsPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
                 <Route path="/sobre" element={<AboutPage />} />
                 <Route path="/entrega" element={<DeliveryPolicyPage />} />
