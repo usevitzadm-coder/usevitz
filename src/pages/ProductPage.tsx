@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Minus, Plus, ChevronRight, Truck, RefreshCw } from "lucide-react";
@@ -12,34 +12,17 @@ import ProductCard from "@/components/product/ProductCard";
 import ProductGallery from "@/components/product/ProductGallery";
 import LaunchLeadForm from "@/components/product/LaunchLeadForm";
 import { useToast } from "@/hooks/use-toast";
+import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
 const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
   const { toast } = useToast();
-
-  const [searchParams] = useSearchParams();
-  const eaCode = searchParams.get("ea");
+  const earlyAccessValid = useEarlyAccess();
 
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-
-  // Fetch early access code from store_settings
-  const { data: earlyAccessValid } = useQuery({
-    queryKey: ["early-access-code", eaCode],
-    queryFn: async () => {
-      if (!eaCode) return false;
-      const { data, error } = await supabase
-        .from("store_settings")
-        .select("value")
-        .eq("key", "early_access_code")
-        .maybeSingle();
-      if (error) return false;
-      return data?.value === eaCode;
-    },
-    enabled: !!eaCode,
-  });
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({

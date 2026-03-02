@@ -1,15 +1,14 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Product } from "@/types/product";
+import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
 interface ProductCardProps {
   product: Product;
-  forceAvailable?: boolean;
 }
 
-const ProductCard = ({ product, forceAvailable }: ProductCardProps) => {
-  const [searchParams] = useSearchParams();
-  const eaCode = searchParams.get("ea");
-  const isComingSoon = forceAvailable ? false : product.isComingSoon;
+const ProductCard = ({ product }: ProductCardProps) => {
+  const earlyAccess = useEarlyAccess();
+  const isComingSoon = earlyAccess ? false : product.isComingSoon;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -35,7 +34,7 @@ const ProductCard = ({ product, forceAvailable }: ProductCardProps) => {
 
   return (
     <Link
-      to={`/produto/${product.slug}${eaCode ? `?ea=${eaCode}` : ""}`}
+      to={`/produto/${product.slug}`}
       className="group block"
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-muted mb-4">
