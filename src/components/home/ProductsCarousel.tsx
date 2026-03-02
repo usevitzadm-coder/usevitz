@@ -14,6 +14,7 @@ interface CarouselProduct {
   badge: string | null;
   short_description: string | null;
   image_url: string | null;
+  is_coming_soon: boolean;
 }
 
 const ProductsCarousel = () => {
@@ -58,6 +59,7 @@ const ProductsCarousel = () => {
             original_price,
             badge,
             short_description,
+            is_coming_soon,
             images:product_images(url, is_primary)
           `)
           .eq("is_active", true)
@@ -73,6 +75,7 @@ const ProductsCarousel = () => {
           original_price: product.original_price,
           badge: product.badge,
           short_description: product.short_description,
+          is_coming_soon: product.is_coming_soon,
           image_url: product.images?.find((img: { is_primary: boolean }) => img.is_primary)?.url 
             || product.images?.[0]?.url 
             || null,
@@ -175,7 +178,8 @@ const ProductsCarousel = () => {
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex -ml-4">
             {products.map((product) => {
-              const badgeLabel = getBadgeLabel(product.badge);
+              const isComingSoon = product.is_coming_soon;
+              const badgeLabel = isComingSoon ? null : getBadgeLabel(product.badge);
               
               return (
                 <div
@@ -188,13 +192,20 @@ const ProductsCarousel = () => {
                         <img
                           src={product.image_url}
                           alt={product.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                            isComingSoon ? "blur-lg scale-110" : ""
+                          }`}
                           loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                           Sem imagem
                         </div>
+                      )}
+                      {isComingSoon && (
+                        <span className="absolute top-3 left-3 bg-foreground text-background text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
+                          Em Breve
+                        </span>
                       )}
                       {badgeLabel && (
                         <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
@@ -206,21 +217,28 @@ const ProductsCarousel = () => {
                       <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
                         {product.name}
                       </h3>
-                      {product.short_description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {product.short_description}
-                        </p>
+                      {!isComingSoon && (
+                        <>
+                          {product.short_description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {product.short_description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="font-medium text-foreground">
+                              {formatPrice(product.price)}
+                            </span>
+                            {product.original_price && product.original_price > product.price && (
+                              <span className="text-sm text-muted-foreground line-through">
+                                {formatPrice(product.original_price)}
+                              </span>
+                            )}
+                          </div>
+                        </>
                       )}
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="font-medium text-foreground">
-                          {formatPrice(product.price)}
-                        </span>
-                        {product.original_price && product.original_price > product.price && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            {formatPrice(product.original_price)}
-                          </span>
-                        )}
-                      </div>
+                      {isComingSoon && (
+                        <p className="text-xs text-muted-foreground italic">Lançamento em breve</p>
+                      )}
                     </div>
                   </Link>
                 </div>
