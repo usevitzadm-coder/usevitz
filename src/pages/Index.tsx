@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
 import ValueProps from "@/components/home/ValueProps";
 import ProductsCarousel from "@/components/home/ProductsCarousel";
-import NewArrivals from "@/components/home/NewArrivals";
+
 import LooksProntos from "@/components/home/LooksProntos";
 import GiftCardSection from "@/components/home/GiftCardSection";
 import Testimonials from "@/components/home/Testimonials";
@@ -24,7 +24,7 @@ const Index = () => {
       <Layout>
         <HeroSection />
         <ValueProps />
-        <NewArrivals />
+        
         <ProductsCarousel />
         <LooksProntos />
         <GiftCardSection />
