@@ -228,7 +228,7 @@ const ProductsPage = () => {
                   rating: 0,
                   reviewCount: 0,
                   createdAt: product.created_at,
-                  isComingSoon: product.is_coming_soon ?? false,
+                  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false),
                 }}
               />
             ))}
