@@ -1,32 +1,48 @@
 
-# Early Access para Clientes Fieis
 
-## Conceito
-Criar um sistema de "early access" via link secreto (ex: `?ea=CODIGO_SECRETO`) que permite que clientes selecionados visualizem e comprem produtos marcados como "Em Breve" normalmente, sem blur, sem precos escondidos e com o botao de carrinho funcionando.
+## Problema Identificado
 
-## Como vai funcionar
-1. Voce compartilha um link como `usevitz.lovable.app/produto/nome-do-produto?ea=VITZ2026` com clientes fieis
-2. Ao acessar com esse parametro, o produto aparece como se ja estivesse lancado: imagens sem blur, preco visivel, selecao de cor/tamanho e botao de adicionar ao carrinho
-3. O codigo de early access sera configuravel pelo admin na pagina de configuracoes
+O hook `useEarlyAccess` tem dois problemas criticos:
 
-## Alteracoes Tecnicas
+1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
 
-### 1. Pagina do Produto (`ProductPage.tsx`)
-- Ler o parametro `ea` da URL via `useSearchParams`
-- Buscar o codigo de early access valido da tabela `store_settings` (chave `early_access_code`)
-- Se o codigo bater, forcar `isComingSoon = false`, permitindo compra normal
+2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
 
-### 2. Card do Produto (`ProductCard.tsx`)
-- Propagar o parametro `?ea=...` nos links dos cards de produto para que ao navegar pela listagem, o early access se mantenha
+3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
 
-### 3. Pagina de Listagem (`ProductsPage.tsx`)
-- Propagar o parametro `ea` para os ProductCards, removendo blur e mostrando precos
+---
 
-### 4. Configuracao do Admin
-- Adicionar uma entrada na tabela `store_settings` com a chave `early_access_code` e o valor do codigo secreto (ex: `VITZ2026`)
-- Pode ser adicionado diretamente ou via pagina de configuracoes do admin
+## Plano de Correcao
 
-### 5. Seguranca
-- O codigo e verificado contra o banco de dados (nao hardcoded no frontend)
-- Sem o codigo correto, os produtos continuam com a experiencia de lancamento normal
-- O admin pode mudar o codigo a qualquer momento para invalidar links antigos
+### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
+
+- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
+- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
+- Simplificar a logica de inicializacao
+
+### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+
+- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
+  ```
+  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
+  ```
+
+### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+
+- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+
+### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+
+- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
+
+---
+
+## Resumo dos Arquivos Alterados
+
+| Arquivo | Alteracao |
+|---|---|
+| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
+| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
+
+Duas alteracoes simples que resolvem o problema de forma definitiva.
+
