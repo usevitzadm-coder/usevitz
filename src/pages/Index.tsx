@@ -1,13 +1,15 @@
+import { lazy, Suspense } from "react";
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
 import HeroSection from "@/components/home/HeroSection";
 import ValueProps from "@/components/home/ValueProps";
 import ProductsCarousel from "@/components/home/ProductsCarousel";
 
-import LooksProntos from "@/components/home/LooksProntos";
-import GiftCardSection from "@/components/home/GiftCardSection";
-import Testimonials from "@/components/home/Testimonials";
-import BrandStory from "@/components/home/BrandStory";
+// Lazy load below-the-fold sections to reduce initial JS parse time
+const LooksProntos = lazy(() => import("@/components/home/LooksProntos"));
+const GiftCardSection = lazy(() => import("@/components/home/GiftCardSection"));
+const Testimonials = lazy(() => import("@/components/home/Testimonials"));
+const BrandStory = lazy(() => import("@/components/home/BrandStory"));
 
 const Index = () => {
   return (
@@ -26,10 +28,12 @@ const Index = () => {
         <ValueProps />
         
         <ProductsCarousel />
-        <LooksProntos />
-        <GiftCardSection />
-        <BrandStory />
-        <Testimonials />
+        <Suspense fallback={null}>
+          <LooksProntos />
+          <GiftCardSection />
+          <BrandStory />
+          <Testimonials />
+        </Suspense>
       </Layout>
     </>
   );

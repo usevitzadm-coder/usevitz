@@ -52,7 +52,7 @@ const LooksProntos = () => {
   useEffect(() => {
     const fetchLooksProducts = async () => {
       try {
-        // First get the "looks-prontos" tag
+        // Get tag and product_tags in parallel where possible
         const { data: tagData, error: tagError } = await supabase
           .from("tags")
           .select("id")
@@ -65,7 +65,6 @@ const LooksProntos = () => {
           return;
         }
 
-        // Get products with this tag
         const { data: productTagsData, error: productTagsError } = await supabase
           .from("product_tags")
           .select("product_id")
@@ -78,7 +77,6 @@ const LooksProntos = () => {
 
         const productIds = productTagsData.map(pt => pt.product_id);
 
-        // Fetch products with images
         const { data: productsData, error: productsError } = await supabase
           .from("products")
           .select(`

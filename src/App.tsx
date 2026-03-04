@@ -7,11 +7,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 
 // Lazy-loaded routes for code splitting
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
 const ProductPage = lazy(() => import("./pages/ProductPage"));
 const CollectionPage = lazy(() => import("./pages/CollectionPage"));
 const NewArrivalsPage = lazy(() => import("./pages/NewArrivalsPage"));
