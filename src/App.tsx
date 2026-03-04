@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,41 +10,41 @@ import { AuthProvider } from "@/context/AuthContext";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
-import ProductPage from "./pages/ProductPage";
-import CollectionPage from "./pages/CollectionPage";
-import NewArrivalsPage from "./pages/NewArrivalsPage";
-import CartPage from "./pages/CartPage";
-import SearchPage from "./pages/SearchPage";
-import ProductsPage from "./pages/ProductsPage";
-import GiftCardPage from "./pages/GiftCardPage";
-import CheckGiftCardPage from "./pages/CheckGiftCardPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
-import CheckoutErrorPage from "./pages/CheckoutErrorPage";
-import CheckoutPendingPage from "./pages/CheckoutPendingPage";
-import AboutPage from "./pages/AboutPage";
-import DeliveryPolicyPage from "./pages/DeliveryPolicyPage";
-import ReturnsPage from "./pages/ReturnsPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import AccountPage from "./pages/AccountPage";
-import NotFound from "./pages/NotFound";
-import AdminGiftCards from "./pages/admin/AdminGiftCards";
-import {
-  AdminLogin,
-  AdminDashboard,
-  AdminProducts,
-  ProductForm,
-  AdminCategories,
-  AdminTags,
-  AdminStock,
-  AdminSettings,
-  AdminCoupons,
-  AdminOrders,
-  AdminColors,
-  AdminCancellations,
-  AdminCosts,
-  AdminContacts,
-} from "./pages/admin";
+
+// Lazy-loaded routes for code splitting
+const ProductPage = lazy(() => import("./pages/ProductPage"));
+const CollectionPage = lazy(() => import("./pages/CollectionPage"));
+const NewArrivalsPage = lazy(() => import("./pages/NewArrivalsPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const GiftCardPage = lazy(() => import("./pages/GiftCardPage"));
+const CheckGiftCardPage = lazy(() => import("./pages/CheckGiftCardPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const CheckoutSuccessPage = lazy(() => import("./pages/CheckoutSuccessPage"));
+const CheckoutErrorPage = lazy(() => import("./pages/CheckoutErrorPage"));
+const CheckoutPendingPage = lazy(() => import("./pages/CheckoutPendingPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const DeliveryPolicyPage = lazy(() => import("./pages/DeliveryPolicyPage"));
+const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminGiftCards = lazy(() => import("./pages/admin/AdminGiftCards"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
+const ProductForm = lazy(() => import("./pages/admin/ProductForm"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
+const AdminTags = lazy(() => import("./pages/admin/AdminTags"));
+const AdminStock = lazy(() => import("./pages/admin/AdminStock"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminColors = lazy(() => import("./pages/admin/AdminColors"));
+const AdminCancellations = lazy(() => import("./pages/admin/AdminCancellations"));
+const AdminCosts = lazy(() => import("./pages/admin/AdminCosts"));
+const AdminContacts = lazy(() => import("./pages/admin/AdminContacts"));
 
 const queryClient = new QueryClient();
 
@@ -71,6 +71,7 @@ const App = () => {
             <BrowserRouter>
               
               <ScrollToTop />
+              <Suspense fallback={null}>
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Index />} />
@@ -217,6 +218,7 @@ const App = () => {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </CartProvider>
