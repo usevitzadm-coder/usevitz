@@ -34,7 +34,7 @@ const NewArrivalsPage = () => {
             images:product_images(url, is_primary)
           `)
           .eq("is_active", true)
-          .eq("is_coming_soon", true);
+          .eq("badge", "novo");
 
         if (error) throw error;
 
