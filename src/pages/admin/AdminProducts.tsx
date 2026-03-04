@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, MoreHorizontal, Eye, EyeOff, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Edit, Trash2, MoreHorizontal, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,6 +37,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 
 interface Product {
   id: string;
@@ -58,6 +76,143 @@ interface Category {
   name: string;
 }
 
+function getTotalStock(variants: { stock: number }[]) {
+  return variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+}
+
+function getPrimaryImage(images: { url: string; is_primary: boolean }[]) {
+  const primary = images?.find(img => img.is_primary);
+  return primary?.url || images?.[0]?.url || '/placeholder.svg';
+}
+
+// Sortable row component
+function SortableRow({
+  product,
+  showOrder,
+  onToggleStatus,
+  onDelete,
+  onEdit,
+}: {
+  product: Product;
+  showOrder: boolean;
+  onToggleStatus: (p: Product) => void;
+  onDelete: (p: Product) => void;
+  onEdit: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: product.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const totalStock = getTotalStock(product.variants);
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      {showOrder && (
+        <TableCell>
+          <button
+            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted touch-none"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </TableCell>
+      )}
+      <TableCell>
+        <img
+          src={getPrimaryImage(product.images)}
+          alt={product.name}
+          className="w-10 h-10 object-cover rounded"
+        />
+      </TableCell>
+      <TableCell>
+        <div>
+          <p className="font-medium">{product.name}</p>
+          {product.badge && (
+            <Badge variant="secondary" className="text-xs mt-1">
+              {product.badge}
+            </Badge>
+          )}
+          {product.is_coming_soon && (
+            <Badge variant="outline" className="text-xs mt-1 border-primary text-primary">
+              Em breve
+            </Badge>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>{product.category?.name || '-'}</TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {product.tags?.slice(0, 2).map((t) => (
+            <Badge key={t.tag.id} variant="outline" className="text-xs">
+              {t.tag.name}
+            </Badge>
+          ))}
+          {product.tags?.length > 2 && (
+            <Badge variant="outline" className="text-xs">
+              +{product.tags.length - 2}
+            </Badge>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="text-right">
+        R$ {Number(product.price).toFixed(2)}
+      </TableCell>
+      <TableCell className="text-center">
+        <Badge variant={totalStock < 5 ? 'destructive' : totalStock < 20 ? 'secondary' : 'default'}>
+          {totalStock}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-center">
+        <Badge variant={product.is_active ? 'default' : 'secondary'}>
+          {product.is_active ? 'Ativo' : 'Inativo'}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(product.id)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onToggleStatus(product)}>
+              {product.is_active ? (
+                <>
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  Desativar
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Ativar
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDelete(product)}
+              className="text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -68,6 +223,11 @@ export default function AdminProducts() {
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   useEffect(() => {
     fetchProducts();
@@ -80,14 +240,7 @@ export default function AdminProducts() {
       let query = supabase
         .from('products')
         .select(`
-          id,
-          name,
-          slug,
-          price,
-          is_active,
-          is_coming_soon,
-          badge,
-          display_order,
+          id, name, slug, price, is_active, is_coming_soon, badge, display_order,
           category:categories(id, name),
           images:product_images(url, is_primary),
           variants:product_variants(stock),
@@ -109,19 +262,16 @@ export default function AdminProducts() {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
       let result = data || [];
 
-      // Client-side filtering for search
       if (searchQuery) {
-        result = result.filter(p => 
+        result = result.filter(p =>
           p.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
 
-      // Client-side sorting for low stock
       if (sortBy === 'low_stock') {
         result = result.sort((a, b) => {
           const aStock = a.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
@@ -133,48 +283,27 @@ export default function AdminProducts() {
       setProducts(result as Product[]);
     } catch (error) {
       console.error('Error fetching products:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os produtos.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Não foi possível carregar os produtos.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   }
 
   async function fetchCategories() {
-    const { data } = await supabase
-      .from('categories')
-      .select('id, name')
-      .order('name');
+    const { data } = await supabase.from('categories').select('id, name').order('name');
     setCategories(data || []);
   }
 
   async function handleDelete() {
     if (!deleteProduct) return;
-
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', deleteProduct.id);
-
+      const { error } = await supabase.from('products').delete().eq('id', deleteProduct.id);
       if (error) throw error;
-
-      toast({
-        title: 'Produto excluído',
-        description: 'O produto foi excluído com sucesso.',
-      });
-      
+      toast({ title: 'Produto excluído', description: 'O produto foi excluído com sucesso.' });
       fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível excluir o produto.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Não foi possível excluir o produto.', variant: 'destructive' });
     } finally {
       setDeleteProduct(null);
     }
@@ -182,91 +311,58 @@ export default function AdminProducts() {
 
   async function toggleStatus(product: Product) {
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ is_active: !product.is_active })
-        .eq('id', product.id);
-
+      const { error } = await supabase.from('products').update({ is_active: !product.is_active }).eq('id', product.id);
       if (error) throw error;
-
-      toast({
-        title: product.is_active ? 'Produto desativado' : 'Produto ativado',
-      });
-      
+      toast({ title: product.is_active ? 'Produto desativado' : 'Produto ativado' });
       fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar o produto.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Não foi possível atualizar o produto.', variant: 'destructive' });
     }
   }
 
-  function getTotalStock(variants: { stock: number }[]) {
-    return variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
-  }
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-  function getPrimaryImage(images: { url: string; is_primary: boolean }[]) {
-    const primary = images?.find(img => img.is_primary);
-    return primary?.url || images?.[0]?.url || '/placeholder.svg';
-  }
+    const oldIndex = products.findIndex(p => p.id === active.id);
+    const newIndex = products.findIndex(p => p.id === over.id);
 
-  async function moveProduct(product: Product, direction: 'up' | 'down') {
-    const currentIndex = products.findIndex(p => p.id === product.id);
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    
-    if (targetIndex < 0 || targetIndex >= products.length) return;
-    
-    const targetProduct = products[targetIndex];
-    
+    const reordered = arrayMove(products, oldIndex, newIndex);
+    setProducts(reordered); // optimistic update
+
     try {
-      // Ensure distinct display_order values by using index-based values if they're equal
-      let currentOrder = product.display_order ?? 0;
-      let targetOrder = targetProduct.display_order ?? 0;
-      
-      if (currentOrder === targetOrder) {
-        // Assign sequential values based on current list position
-        currentOrder = currentIndex;
-        targetOrder = targetIndex;
+      // Batch update all display_order values
+      const updates = reordered.map((p, i) => ({
+        id: p.id,
+        display_order: i,
+      }));
+
+      for (const u of updates) {
+        const { error } = await supabase
+          .from('products')
+          .update({ display_order: u.display_order })
+          .eq('id', u.id);
+        if (error) throw error;
       }
 
-      // Swap display_order values
-      const { error: error1 } = await supabase
-        .from('products')
-        .update({ display_order: targetOrder })
-        .eq('id', product.id);
-      
-      if (error1) throw error1;
-      
-      const { error: error2 } = await supabase
-        .from('products')
-        .update({ display_order: currentOrder })
-        .eq('id', targetProduct.id);
-      
-      if (error2) throw error2;
-      
       toast({ title: 'Ordem atualizada' });
-      fetchProducts();
     } catch (error) {
       console.error('Error updating order:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar a ordem.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Não foi possível salvar a ordem.', variant: 'destructive' });
+      fetchProducts(); // rollback
     }
   }
+
+  const showOrder = sortBy === 'display_order';
+  const colSpan = showOrder ? 9 : 8;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-semibold">Produtos</h1>
-          <p className="text-muted-foreground">
-            Gerencie os produtos da sua loja
-          </p>
+          <p className="text-muted-foreground">Gerencie os produtos da sua loja</p>
         </div>
         <Button onClick={() => navigate('/admin/produtos/novo')}>
           <Plus className="h-4 w-4 mr-2" />
@@ -312,7 +408,7 @@ export default function AdminProducts() {
         <Table>
           <TableHeader>
             <TableRow>
-              {sortBy === 'display_order' && <TableHead className="w-20">Ordem</TableHead>}
+              {showOrder && <TableHead className="w-14"></TableHead>}
               <TableHead className="w-12"></TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Categoria</TableHead>
@@ -323,140 +419,57 @@ export default function AdminProducts() {
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
+          {isLoading ? (
+            <TableBody>
               <TableRow>
-                <TableCell colSpan={sortBy === 'display_order' ? 9 : 8} className="text-center py-8">
+                <TableCell colSpan={colSpan} className="text-center py-8">
                   Carregando...
                 </TableCell>
               </TableRow>
-            ) : products.length === 0 ? (
+            </TableBody>
+          ) : products.length === 0 ? (
+            <TableBody>
               <TableRow>
-                <TableCell colSpan={sortBy === 'display_order' ? 9 : 8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={colSpan} className="text-center py-8 text-muted-foreground">
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
-            ) : (
-              products.map((product, index) => {
-                const totalStock = getTotalStock(product.variants);
-                return (
-                  <TableRow key={product.id}>
-                    {sortBy === 'display_order' && (
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => moveProduct(product, 'up')}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => moveProduct(product, 'down')}
-                            disabled={index === products.length - 1}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <img
-                        src={getPrimaryImage(product.images)}
-                        alt={product.name}
-                        className="w-10 h-10 object-cover rounded"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        {product.badge && (
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            {product.badge}
-                          </Badge>
-                        )}
-                        {product.is_coming_soon && (
-                          <Badge variant="outline" className="text-xs mt-1 border-primary text-primary">
-                            Em breve
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {product.category?.name || '-'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {product.tags?.slice(0, 2).map((t) => (
-                          <Badge key={t.tag.id} variant="outline" className="text-xs">
-                            {t.tag.name}
-                          </Badge>
-                        ))}
-                        {product.tags?.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{product.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      R$ {Number(product.price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={totalStock < 5 ? 'destructive' : totalStock < 20 ? 'secondary' : 'default'}>
-                        {totalStock}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={product.is_active ? 'default' : 'secondary'}>
-                        {product.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/admin/produtos/${product.id}`)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toggleStatus(product)}>
-                            {product.is_active ? (
-                              <>
-                                <EyeOff className="h-4 w-4 mr-2" />
-                                Desativar
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Ativar
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setDeleteProduct(product)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
+            </TableBody>
+          ) : showOrder ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={products.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                <TableBody>
+                  {products.map((product) => (
+                    <SortableRow
+                      key={product.id}
+                      product={product}
+                      showOrder={showOrder}
+                      onToggleStatus={toggleStatus}
+                      onDelete={setDeleteProduct}
+                      onEdit={(id) => navigate(`/admin/produtos/${id}`)}
+                    />
+                  ))}
+                </TableBody>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <TableBody>
+              {products.map((product) => (
+                <SortableRow
+                  key={product.id}
+                  product={product}
+                  showOrder={showOrder}
+                  onToggleStatus={toggleStatus}
+                  onDelete={setDeleteProduct}
+                  onEdit={(id) => navigate(`/admin/produtos/${id}`)}
+                />
+              ))}
+            </TableBody>
+          )}
         </Table>
       </div>
 
@@ -465,7 +478,7 @@ export default function AdminProducts() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir produto</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o produto "{deleteProduct?.name}"? 
+              Tem certeza que deseja excluir o produto "{deleteProduct?.name}"?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
