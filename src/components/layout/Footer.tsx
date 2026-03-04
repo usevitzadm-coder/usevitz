@@ -142,19 +142,19 @@ const Footer = () => {
             <h4 className="font-medium mb-4">Formas de Pagamento</h4>
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Elo">
-                <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" />
+                <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" width="51" height="20" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Mastercard">
-                <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" />
+                <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" width="39" height="28" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Visa">
-                <img src={visaLogo} alt="Visa" className="h-4 w-auto object-contain" />
+                <img src={visaLogo} alt="Visa" className="h-4 w-auto object-contain" width="49" height="16" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Pix">
-                <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" />
+                <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" width="52" height="52" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
-                <img src={boletoLogo} alt="Boleto" className="h-9 w-auto object-contain" />
+                <img src={boletoLogo} alt="Boleto" className="h-9 w-auto object-contain" width="36" height="36" />
               </div>
             </div>
           </div>
