@@ -222,17 +222,27 @@ export default function AdminProducts() {
     const targetProduct = products[targetIndex];
     
     try {
+      // Ensure distinct display_order values by using index-based values if they're equal
+      let currentOrder = product.display_order ?? 0;
+      let targetOrder = targetProduct.display_order ?? 0;
+      
+      if (currentOrder === targetOrder) {
+        // Assign sequential values based on current list position
+        currentOrder = currentIndex;
+        targetOrder = targetIndex;
+      }
+
       // Swap display_order values
       const { error: error1 } = await supabase
         .from('products')
-        .update({ display_order: targetProduct.display_order })
+        .update({ display_order: targetOrder })
         .eq('id', product.id);
       
       if (error1) throw error1;
       
       const { error: error2 } = await supabase
         .from('products')
-        .update({ display_order: product.display_order })
+        .update({ display_order: currentOrder })
         .eq('id', targetProduct.id);
       
       if (error2) throw error2;
