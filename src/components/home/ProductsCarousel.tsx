@@ -5,6 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEarlyAccess } from "@/hooks/useEarlyAccess";
+import { getOptimizedImageUrl } from "@/lib/imageUtils";
 
 interface CarouselProduct {
   id: string;
@@ -191,9 +192,11 @@ const ProductsCarousel = () => {
                   <Link to={`/produto/${product.slug}`} className="group block">
                     <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-muted mb-4">
                       {product.image_url ? (
-                        <img
-                          src={product.image_url}
+                         <img
+                          src={getOptimizedImageUrl(product.image_url, 480, 640)}
                           alt={product.name}
+                          width={480}
+                          height={640}
                           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
                             isComingSoon ? "blur-lg scale-110" : ""
                           }`}
