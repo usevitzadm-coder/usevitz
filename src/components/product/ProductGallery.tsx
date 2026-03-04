@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { getOptimizedImageUrl } from "@/lib/imageUtils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductImage {
@@ -113,11 +114,11 @@ export default function ProductGallery({
         {/* Main Image with Arrows */}
         <div className="relative flex-1 min-w-0 overflow-hidden max-w-full">
           <div className="aspect-square sm:aspect-[3/4] w-full rounded-sm bg-muted overflow-hidden">
-            <img
-              src={images[selectedIndex]?.url}
-              alt={productName}
-              className="w-full h-full object-contain transition-opacity duration-300"
-            />
+             <img
+               src={getOptimizedImageUrl(images[selectedIndex]?.url, 800, 1067)}
+               alt={productName}
+               className="w-full h-full object-contain transition-opacity duration-300"
+             />
           </div>
           
           {/* Navigation Arrows */}

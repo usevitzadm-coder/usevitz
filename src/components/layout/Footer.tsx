@@ -96,10 +96,13 @@ const Footer = () => {
           {/* Logo */}
           <div className="flex items-start justify-center md:justify-start">
             <Link to="/" className="inline-block">
-              <img
+             <img
                 src={logoVitz}
                 alt="Vitz"
-                className="h-[7.5rem] brightness-0 invert" />
+                className="h-[7.5rem] brightness-0 invert"
+                width={120}
+                height={120}
+                loading="lazy" />
 
             </Link>
           </div>
@@ -141,20 +144,20 @@ const Footer = () => {
           <div>
             <h4 className="font-medium mb-4">Formas de Pagamento</h4>
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Elo">
-                <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" width="51" height="20" />
+               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Elo">
+                <img src={eloLogo} alt="Elo" className="h-5 w-auto object-contain" width={51} height={20} loading="lazy" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Mastercard">
-                <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" width="39" height="28" />
+                <img src={mastercardLogo} alt="Mastercard" className="h-7 w-auto object-contain" width={39} height={28} loading="lazy" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-2 h-10" title="Visa">
-                <img src={visaLogo} alt="Visa" className="h-4 w-auto object-contain" width="49" height="16" />
+                <img src={visaLogo} alt="Visa" className="h-4 w-auto object-contain" width={49} height={16} loading="lazy" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Pix">
-                <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" width="52" height="52" />
+                <img src={pixLogo} alt="Pix" className="h-[3.25rem] w-auto object-contain" width={52} height={52} loading="lazy" />
               </div>
               <div className="bg-white rounded overflow-hidden flex items-center justify-center p-1 h-10" title="Boleto">
-                <img src={boletoLogo} alt="Boleto" className="h-9 w-auto object-contain" width="36" height="36" />
+                <img src={boletoLogo} alt="Boleto" className="h-9 w-auto object-contain" width={36} height={36} loading="lazy" />
               </div>
             </div>
           </div>

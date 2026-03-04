@@ -42,10 +42,12 @@ const Header = () => {
           {/* Logo + Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="flex items-center flex-shrink-0">
-              <img 
+               <img 
                 src={logoVitz} 
                 alt="Vitz" 
                 className="h-[7.5rem]"
+                width={120}
+                height={120}
               />
             </Link>
 
@@ -66,10 +68,12 @@ const Header = () => {
           {/* Mobile Centered Logo */}
           <div className="md:hidden absolute left-1/2 -translate-x-1/2">
             <Link to="/" className="flex items-center">
-              <img 
+               <img 
                 src={logoVitz} 
                 alt="Vitz" 
                 className="h-[7.5rem]"
+                width={120}
+                height={120}
               />
             </Link>
           </div>

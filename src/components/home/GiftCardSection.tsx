@@ -11,10 +11,12 @@ const GiftCardSection = () => {
           {/* Image */}
           <div className="relative">
             <div className="relative overflow-hidden rounded-sm">
-              <img
+               <img
                 src={giftCardImage}
                 alt="Gift Card Vitz - Presente perfeito para quem ama fitness"
                 className="w-full h-auto object-cover"
+                width={600}
+                height={400}
               />
             </div>
           </div>

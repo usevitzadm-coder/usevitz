@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product";
+import { getOptimizedImageUrl } from "@/lib/imageUtils";
 
 interface ProductCardProps {
   product: Product;
@@ -36,14 +37,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="group block"
     >
       <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-muted mb-4">
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            isComingSoon ? "blur-lg scale-110" : ""
-          }`}
-          loading="lazy"
-        />
+         <img
+           src={getOptimizedImageUrl(product.images[0], 480, 640)}
+           alt={product.name}
+           width={480}
+           height={640}
+           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+             isComingSoon ? "blur-lg scale-110" : ""
+           }`}
+           loading="lazy"
+         />
         {isComingSoon && (
           <span className="absolute top-3 left-3 bg-foreground text-background text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
             Em Breve
