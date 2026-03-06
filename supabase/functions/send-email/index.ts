@@ -277,9 +277,33 @@ function adminNewSaleEmail(order: OrderData): { subject: string; html: string } 
   };
 }
 
+function adminOrderCancelledEmail(order: OrderData, reason: string): { subject: string; html: string } {
+  return {
+    subject: `⚠️ Pedido ${order.order_number} cancelado/reembolsado`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px;font-size:22px;">Pedido Cancelado/Reembolsado ⚠️</h2>
+      <div style="background:#ffebee;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <p style="margin:0;font-size:16px;font-weight:700;color:#c62828;">${reason === "refunded" ? "Reembolsado" : "Cancelado"}</p>
+      </div>
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Pedido</p>
+        <p style="margin:0;font-size:18px;font-weight:700;">${order.order_number}</p>
+      </div>
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Cliente</p>
+        <p style="margin:0;font-size:16px;font-weight:600;">${order.customer_name}</p>
+      </div>
+      ${orderSummary(order)}
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://usevitz.com/admin/pedidos" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Ver no Painel Admin</a>
+      </div>
+    `, `Pedido ${order.order_number} cancelado/reembolsado — ${formatPrice(order.total)}`),
+  };
+}
+
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale" | "admin_order_cancelled";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
@@ -303,6 +327,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return launchNotifyEmail(data.product_name || "novo produto", founderName);
     case "admin_new_sale":
       return adminNewSaleEmail(data as OrderData);
+    case "admin_order_cancelled":
+      return adminOrderCancelledEmail(data as OrderData, data.cancel_reason || "cancelled");
     default:
       return null;
   }

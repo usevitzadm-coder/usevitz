@@ -86,10 +86,9 @@ serve(async (req: Request) => {
         });
         console.log(`Email ${emailType} sent to ${order.customer_email}`);
 
-        // Send admin notification on new sale (payment approved)
-        if (emailType === "payment_approved") {
+        // Send admin notification on new sale or cancellation/refund
+        if (emailType === "payment_approved" || emailType === "order_cancelled") {
           try {
-            // Fetch admin emails from profiles joined with user_roles
             const { data: adminRoles } = await supabase
               .from("user_roles")
               .select("user_id")
@@ -106,6 +105,11 @@ serve(async (req: Request) => {
                 .map((p: any) => p.email)
                 .filter(Boolean);
 
+              const adminEmailType = emailType === "payment_approved" ? "admin_new_sale" : "admin_order_cancelled";
+              const adminData = emailType === "order_cancelled" 
+                ? { ...orderData, cancel_reason: "refunded" }
+                : orderData;
+
               for (const adminEmail of adminEmails) {
                 await fetch(`${supabaseUrl}/functions/v1/send-email`, {
                   method: "POST",
@@ -114,12 +118,12 @@ serve(async (req: Request) => {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    type: "admin_new_sale",
+                    type: adminEmailType,
                     to: adminEmail,
-                    data: orderData,
+                    data: adminData,
                   }),
                 });
-                console.log(`Admin sale notification sent to ${adminEmail}`);
+                console.log(`Admin ${adminEmailType} notification sent to ${adminEmail}`);
               }
             }
           } catch (adminErr) {
