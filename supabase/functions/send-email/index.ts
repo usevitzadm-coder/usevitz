@@ -228,50 +228,58 @@ function newsletterCouponEmail(founderName: string): { subject: string; html: st
 }
 
 function paymentRejectedEmail(order: OrderData, founderName: string): { subject: string; html: string } {
-  return {
-    subject: `Pagamento não aprovado — Pedido ${order.order_number}`,
-    html: baseLayout(`
-      <h2 style="margin:0 0 16px;font-size:22px;">Pagamento Não Aprovado 😕</h2>
-      <p style="line-height:1.6;color:#444;">Oi, <strong>${order.customer_name}</strong>. Aqui é a <strong>${founderName}</strong> da Vitz.</p>
-      <p style="line-height:1.6;color:#444;">O pagamento do pedido <strong>${order.order_number}</strong> no valor de <strong>${formatPrice(order.total)}</strong> <strong style="color:#dc2626;">não foi aprovado</strong>.</p>
-      <p style="line-height:1.6;color:#444;">Isso pode acontecer por diversos motivos. Sugerimos:</p>
-      <ul style="color:#444;line-height:1.8;">
-        <li>Verificar os dados do cartão</li>
-        <li>Tentar outro método de pagamento</li>
-        <li>Entrar em contato com seu banco</li>
-      </ul>
-      <div style="text-align:center;margin:32px 0;">
-        <a href="https://usevitz.com" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Tentar Novamente</a>
-      </div>
-      <p style="line-height:1.6;color:#444;">Estamos aqui se precisar de ajuda! 💛<br><strong>${founderName}</strong><br><em>Co-fundadora da Vitz</em></p>
-    `, `Pagamento do pedido ${order.order_number} não aprovado.`),
-  };
+  // ... keep existing code
 }
 
 function launchNotifyEmail(productName: string, founderName: string): { subject: string; html: string } {
+  // ... keep existing code
+}
+
+function adminNewSaleEmail(order: OrderData): { subject: string; html: string } {
+  const itemsList = (order.items || []).map(i =>
+    `<tr>
+      <td style="padding:8px 0;border-bottom:1px solid #eee;font-size:14px;">${i.product_name}${i.variant_info ? ` <span style="color:#888;">(${i.variant_info})</span>` : ""}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:center;font-size:14px;">${i.quantity}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right;font-size:14px;">${formatPrice(i.total_price)}</td>
+    </tr>`
+  ).join("");
+
   return {
-    subject: `Você está na lista VIP do lançamento! 🚀`,
+    subject: `🔔 Nova venda! Pedido ${order.order_number} — ${formatPrice(order.total)}`,
     html: baseLayout(`
-      <h2 style="margin:0 0 16px;font-size:22px;">Você está na lista! 🎉</h2>
-      <p style="line-height:1.6;color:#444;">Oi! Aqui é a <strong>${founderName}</strong>, co-fundadora da Vitz.</p>
-      <p style="line-height:1.6;color:#444;">Obrigada pelo interesse no <strong>${productName}</strong>! Você agora faz parte da nossa lista VIP de lançamento.</p>
-      <div style="text-align:center;margin:32px 0;padding:24px;background:#f9f5f0;border-radius:12px;">
-        <p style="margin:0 0 4px;font-size:14px;color:#888;">Data do lançamento:</p>
-        <p style="margin:0;font-size:28px;font-weight:700;color:#1a1a1a;">03 de Março</p>
-        <p style="margin:8px 0 0;font-size:14px;color:#888;">Você será a primeira a saber! 💛</p>
+      <h2 style="margin:0 0 16px;font-size:22px;">Nova Venda Confirmada! 🎉</h2>
+      <div style="background:#e8f5e9;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <p style="margin:0;font-size:16px;font-weight:700;color:#2e7d32;">Pagamento aprovado</p>
       </div>
-      <p style="line-height:1.6;color:#444;">Fique de olho no seu e-mail — no dia do lançamento, vamos te avisar com acesso antecipado antes de todo mundo!</p>
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Pedido</p>
+        <p style="margin:0;font-size:18px;font-weight:700;">${order.order_number}</p>
+      </div>
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:14px;color:#888;">Cliente</p>
+        <p style="margin:0;font-size:16px;font-weight:600;">${order.customer_name}</p>
+      </div>
+      ${itemsList ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:16px 0;">
+        <tr style="border-bottom:2px solid #1a1a1a;">
+          <th style="text-align:left;padding:8px 0;font-size:13px;">Produto</th>
+          <th style="text-align:center;padding:8px 0;font-size:13px;">Qtd</th>
+          <th style="text-align:right;padding:8px 0;font-size:13px;">Total</th>
+        </tr>
+        ${itemsList}
+      </table>` : ""}
+      ${orderSummary(order)}
+      ${shippingBlock(order)}
       <div style="text-align:center;margin:32px 0;">
-        <a href="https://usevitz.com" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Explorar a Vitz</a>
+        <a href="https://usevitz.com/admin/pedidos" style="display:inline-block;background-color:#1a1a1a;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Ver no Painel Admin</a>
       </div>
-      <p style="line-height:1.6;color:#444;">Com carinho,<br><strong>${founderName}</strong> 💛<br><em>Co-fundadora da Vitz</em></p>
-    `, `Você está na lista VIP de lançamento da Vitz!`),
+    `, `Nova venda! Pedido ${order.order_number} — ${formatPrice(order.total)}`),
   };
 }
 
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
@@ -293,6 +301,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return newsletterCouponEmail(founderName);
     case "launch_notify":
       return launchNotifyEmail(data.product_name || "novo produto", founderName);
+    case "admin_new_sale":
+      return adminNewSaleEmail(data as OrderData);
     default:
       return null;
   }
