@@ -167,7 +167,7 @@ export default function AdminDashboard() {
                 {recentOrders.map((order) => {
                   const statusInfo = getStatusLabel(order.status);
                   return (
-                    <div key={order.id} className="flex items-center justify-between gap-3">
+                    <div key={order.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
                           <ShoppingBag className="h-4 w-4 text-muted-foreground" />
@@ -179,8 +179,8 @@ export default function AdminDashboard() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant={statusInfo.variant} className="text-xs">
+                      <div className="flex items-center gap-2 min-w-0 sm:justify-end">
+                        <Badge variant={statusInfo.variant} className="text-xs shrink-0">
                           {statusInfo.label}
                         </Badge>
                         <span className="text-sm font-medium whitespace-nowrap">
@@ -208,15 +208,15 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {topProducts.map((product, index) => (
-                  <div key={product.product_name} className="flex items-center justify-between gap-3">
+                  <div key={product.product_name} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
                         {index + 1}
                       </div>
                       <p className="text-sm font-medium truncate">{product.product_name}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-medium">{formatCurrency(product.total_revenue)}</p>
+                    <div className="text-left sm:text-right sm:pl-2">
+                      <p className="text-sm font-medium whitespace-nowrap">{formatCurrency(product.total_revenue)}</p>
                       <p className="text-xs text-muted-foreground">{product.total_sold} un.</p>
                     </div>
                   </div>
