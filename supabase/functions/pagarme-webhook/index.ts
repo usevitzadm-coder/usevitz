@@ -69,7 +69,9 @@ serve(async (req: Request) => {
           .select("product_name, variant_info, quantity, unit_price, total_price")
           .eq("order_id", order.id);
 
-        // Call send-email function
+        const orderData = { ...order, items: items || [] };
+
+        // Call send-email function for customer
         await fetch(`${supabaseUrl}/functions/v1/send-email`, {
           method: "POST",
           headers: {
@@ -79,10 +81,51 @@ serve(async (req: Request) => {
           body: JSON.stringify({
             type: emailType,
             to: order.customer_email,
-            data: { ...order, items: items || [] },
+            data: orderData,
           }),
         });
         console.log(`Email ${emailType} sent to ${order.customer_email}`);
+
+        // Send admin notification on new sale (payment approved)
+        if (emailType === "payment_approved") {
+          try {
+            // Fetch admin emails from profiles joined with user_roles
+            const { data: adminRoles } = await supabase
+              .from("user_roles")
+              .select("user_id")
+              .eq("role", "admin");
+
+            if (adminRoles && adminRoles.length > 0) {
+              const adminUserIds = adminRoles.map((r: any) => r.user_id);
+              const { data: adminProfiles } = await supabase
+                .from("profiles")
+                .select("email")
+                .in("id", adminUserIds);
+
+              const adminEmails = (adminProfiles || [])
+                .map((p: any) => p.email)
+                .filter(Boolean);
+
+              for (const adminEmail of adminEmails) {
+                await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${supabaseServiceKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    type: "admin_new_sale",
+                    to: adminEmail,
+                    data: orderData,
+                  }),
+                });
+                console.log(`Admin sale notification sent to ${adminEmail}`);
+              }
+            }
+          } catch (adminErr) {
+            console.error("Failed to send admin notifications:", adminErr);
+          }
+        }
       } catch (err) {
         console.error(`Failed to send ${emailType} email:`, err);
       }
