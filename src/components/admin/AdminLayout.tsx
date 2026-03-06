@@ -31,12 +31,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background overflow-x-hidden">
+      <div className="min-h-screen flex w-full bg-background max-w-[100vw] overflow-x-hidden">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 w-0">
           <AdminTopbar />
-          <main className="flex-1 p-3 sm:p-6 overflow-x-auto">
-            {children}
+          <main className="flex-1 p-3 sm:p-6 overflow-x-auto min-w-0">
+            <div className="min-w-0 max-w-full">
+              {children}
+            </div>
           </main>
         </div>
       </div>

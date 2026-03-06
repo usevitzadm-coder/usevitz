@@ -358,13 +358,13 @@ export default function AdminProducts() {
   const colSpan = showOrder ? 9 : 8;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-heading font-semibold">Produtos</h1>
-          <p className="text-muted-foreground">Gerencie os produtos da sua loja</p>
+    <div className="space-y-6 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-heading font-semibold">Produtos</h1>
+          <p className="text-muted-foreground text-sm">Gerencie os produtos da sua loja</p>
         </div>
-        <Button onClick={() => navigate('/admin/produtos/novo')}>
+        <Button onClick={() => navigate('/admin/produtos/novo')} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
         </Button>
