@@ -62,7 +62,7 @@ export function AdminSidebar() {
   };
 
   return (
-    <Sidebar collapsible="offcanvas" className="border-r border-border">
+    <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center justify-between">
           {!collapsed && (
