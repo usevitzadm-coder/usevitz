@@ -128,9 +128,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading font-semibold">Dashboard</h1>
+    <div className="space-y-6 min-w-0">
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-heading font-semibold">Dashboard</h1>
         <p className="text-muted-foreground">
           Visão geral do seu ecommerce Vitz
         </p>
