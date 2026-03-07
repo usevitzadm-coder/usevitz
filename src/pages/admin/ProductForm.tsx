@@ -51,6 +51,7 @@ interface ProductImage {
   url: string;
   is_primary: boolean;
   display_order: number;
+  color_id?: string | null;
   file?: File;
 }
 
@@ -515,11 +516,12 @@ export default function ProductForm() {
               url: publicUrl.publicUrl,
               is_primary: img.is_primary,
               display_order: i,
+              color_id: img.color_id || null,
             });
           } else if (img.id) {
             await supabase
               .from('product_images')
-              .update({ is_primary: img.is_primary, display_order: i })
+              .update({ is_primary: img.is_primary, display_order: i, color_id: img.color_id || null })
               .eq('id', img.id);
           }
         }
@@ -818,37 +820,62 @@ export default function ProductForm() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {images.map((img, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={img.url}
-                        alt={`Imagem ${index + 1}`}
-                        className="w-full aspect-square object-cover rounded-lg border"
-                      />
-                      {img.is_primary && (
-                        <Badge className="absolute top-2 left-2 text-xs">
-                          Principal
-                        </Badge>
-                      )}
-                      <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                        {!img.is_primary && (
+                    <div key={index} className="space-y-2">
+                      <div className="relative group">
+                        <img
+                          src={img.url}
+                          alt={`Imagem ${index + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg border"
+                        />
+                        {img.is_primary && (
+                          <Badge className="absolute top-2 left-2 text-xs">
+                            Principal
+                          </Badge>
+                        )}
+                        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                          {!img.is_primary && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setPrimaryImage(index)}
+                            >
+                              Principal
+                            </Button>
+                          )}
                           <Button
                             type="button"
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setPrimaryImage(index)}
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => removeImage(index)}
                           >
-                            Principal
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="destructive"
-                          onClick={() => removeImage(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        </div>
                       </div>
+                      <Select
+                        value={img.color_id || "all"}
+                        onValueChange={(v) => {
+                          const updated = [...images];
+                          updated[index] = { ...updated[index], color_id: v === "all" ? null : v };
+                          setImages(updated);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Cor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as cores</SelectItem>
+                          {colorOptions.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: c.hex_code }} />
+                                {c.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   ))}
                   <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors">

@@ -13,17 +13,26 @@ interface ProductGalleryProps {
   images: ProductImage[];
   productName: string;
   autoPlayInterval?: number;
+  activeIndex?: number;
 }
 
 export default function ProductGallery({
   images,
   productName,
   autoPlayInterval = 3000,
+  activeIndex,
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const desktopThumbsRef = useRef<HTMLDivElement>(null);
   const mobileThumbsRef = useRef<HTMLDivElement>(null);
+
+  // Navigate to activeIndex when parent changes it (e.g. color selection)
+  useEffect(() => {
+    if (activeIndex !== undefined && activeIndex >= 0 && activeIndex < images.length) {
+      setSelectedIndex(activeIndex);
+    }
+  }, [activeIndex, images.length]);
 
   const goToNext = useCallback(() => {
     setSelectedIndex((prev) => (prev + 1) % images.length);

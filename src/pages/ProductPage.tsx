@@ -23,6 +23,7 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+  const [galleryIndex, setGalleryIndex] = useState<number | undefined>(undefined);
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
@@ -54,6 +55,24 @@ const ProductPage = () => {
         .maybeSingle();
 
       if (error) throw error;
+      
+      // Fetch color_id for images separately (type not yet in generated types)
+      if (data?.product_images?.length) {
+        const imageIds = data.product_images.map((img: any) => img.id);
+        const { data: imageColors } = await supabase
+          .from("product_images")
+          .select("id, color_id")
+          .in("id", imageIds);
+        
+        if (imageColors) {
+          const colorMap = Object.fromEntries(imageColors.map((ic: any) => [ic.id, ic.color_id]));
+          data.product_images = data.product_images.map((img: any) => ({
+            ...img,
+            color_id: colorMap[img.id] || null,
+          }));
+        }
+      }
+      
       return data;
     },
     enabled: !!slug,
@@ -65,7 +84,7 @@ const ProductPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("colors")
-        .select("name, hex_code")
+        .select("id, name, hex_code")
         .eq("is_active", true);
 
       if (error) throw error;
@@ -159,6 +178,9 @@ const ProductPage = () => {
   // Use admin colors for accurate hex values
   const adminColorMap = Object.fromEntries(
     (adminColors || []).map((c) => [c.name.toLowerCase(), c.hex_code])
+  );
+  const adminColorIdMap = Object.fromEntries(
+    (adminColors || []).map((c) => [c.name.toLowerCase(), c.id])
   );
   const colorHexMap = Object.fromEntries(
     colors.map((color) => [color, adminColorMap[color.toLowerCase()] || "#cccccc"])
@@ -284,6 +306,7 @@ const ProductPage = () => {
                 images={sortedImages}
                 productName={product.name}
                 autoPlayInterval={3000}
+                activeIndex={galleryIndex}
               />
               {isComingSoon && (
                 <div className="absolute inset-0 backdrop-blur-xl bg-background/20 rounded-sm pointer-events-none" />
@@ -355,8 +378,16 @@ const ProductPage = () => {
                   <div className="flex gap-2">
                     {colors.map((color) => (
                       <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
+                         key={color}
+                        onClick={() => {
+                          setSelectedColor(color);
+                          // Find first image linked to this color
+                          const colorId = adminColorIdMap[color.toLowerCase()];
+                          if (colorId) {
+                            const idx = sortedImages.findIndex((img: any) => img.color_id === colorId);
+                            if (idx !== -1) setGalleryIndex(idx);
+                          }
+                        }}
                         className={`w-10 h-10 rounded-full border-2 transition-all ${
                           selectedColor === color
                             ? "border-foreground scale-110"
