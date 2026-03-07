@@ -47,7 +47,7 @@ const ProductPage = () => {
           category_id,
           is_coming_soon,
           categories(name, slug),
-          product_images(id, url, is_primary, display_order, color_id),
+          product_images(id, url, is_primary, display_order),
           product_variants(id, size, color, color_hex, stock, is_active)
         `)
         .eq("slug", slug)
@@ -55,6 +55,24 @@ const ProductPage = () => {
         .maybeSingle();
 
       if (error) throw error;
+      
+      // Fetch color_id for images separately (type not yet in generated types)
+      if (data?.product_images?.length) {
+        const imageIds = data.product_images.map((img: any) => img.id);
+        const { data: imageColors } = await supabase
+          .from("product_images")
+          .select("id, color_id")
+          .in("id", imageIds);
+        
+        if (imageColors) {
+          const colorMap = Object.fromEntries(imageColors.map((ic: any) => [ic.id, ic.color_id]));
+          data.product_images = data.product_images.map((img: any) => ({
+            ...img,
+            color_id: colorMap[img.id] || null,
+          }));
+        }
+      }
+      
       return data;
     },
     enabled: !!slug,
