@@ -511,7 +511,7 @@ export default function ProductForm() {
               .from('products')
               .getPublicUrl(fileName);
 
-            await supabase.from('product_images').insert({
+            await (supabase.from('product_images') as any).insert({
               product_id: productId,
               url: publicUrl.publicUrl,
               is_primary: img.is_primary,
@@ -519,8 +519,8 @@ export default function ProductForm() {
               color_id: img.color_id || null,
             });
           } else if (img.id) {
-            await supabase
-              .from('product_images')
+            await (supabase
+              .from('product_images') as any)
               .update({ is_primary: img.is_primary, display_order: i, color_id: img.color_id || null })
               .eq('id', img.id);
           }
