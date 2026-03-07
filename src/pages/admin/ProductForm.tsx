@@ -189,18 +189,25 @@ export default function ProductForm() {
   async function fetchProduct() {
     setIsLoading(true);
     try {
-      const { data: product, error } = await supabase
+      const { data: product, error: productError } = await supabase
         .from('products')
         .select(`
           *,
-          images:product_images(*),
           variants:product_variants(*),
           product_tags(tag_id)
         `)
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (productError) throw productError;
+
+      const { data: productImages, error: imagesError } = await supabase
+        .from('product_images')
+        .select('id, url, is_primary, display_order, color_id')
+        .eq('product_id', id)
+        .order('display_order', { ascending: true });
+
+      if (imagesError) throw imagesError;
 
       setName(product.name);
       setSlug(product.slug);
@@ -216,24 +223,13 @@ export default function ProductForm() {
       setSizeGuide(product.size_guide || '');
       setSelectedTags(product.product_tags?.map((pt: any) => pt.tag_id) || []);
       setVariants(product.variants || []);
-      
-      // Fetch color_id separately since it's not in generated types yet
-      const sortedImages = (product.images || []).sort((a: any, b: any) => a.display_order - b.display_order);
-      if (sortedImages.length > 0) {
-        const imageIds = sortedImages.map((img: any) => img.id);
-        const { data: imageColors } = await supabase
-          .from('product_images')
-          .select('id, color_id' as any)
-          .in('id', imageIds);
-        if (imageColors) {
-          const colorMap = Object.fromEntries((imageColors as any[]).map((ic: any) => [ic.id, ic.color_id]));
-          setImages(sortedImages.map((img: any) => ({ ...img, color_id: colorMap[img.id] || null })));
-        } else {
-          setImages(sortedImages);
-        }
-      } else {
-        setImages([]);
-      }
+
+      setImages(
+        (productImages || []).map((img) => ({
+          ...img,
+          color_id: img.color_id ?? null,
+        }))
+      );
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -489,58 +485,62 @@ export default function ProductForm() {
 
       // Handle images
       if (productId) {
-        // Delete removed images first
-        if (isEditing) {
-          const existingImageIds = images.filter(img => img.id).map(img => img.id);
-          if (existingImageIds.length > 0) {
-            // Delete images that are no longer in the list
-            await supabase
-              .from('product_images')
-              .delete()
-              .eq('product_id', productId)
-              .not('id', 'in', `(${existingImageIds.join(',')})`);
-          } else {
-            // No existing images left, delete all
-            await supabase
-              .from('product_images')
-              .delete()
-              .eq('product_id', productId);
-          }
-        }
+        const imageRows: {
+          product_id: string;
+          url: string;
+          is_primary: boolean;
+          display_order: number;
+          color_id: string | null;
+        }[] = [];
 
-        // Upload new images and update existing ones
         for (let i = 0; i < images.length; i++) {
           const img = images[i];
+          let imageUrl = img.url;
+
           if (img.file) {
             const fileExt = img.file.name.split('.').pop();
             const fileName = `${productId}/${Date.now()}-${i}.${fileExt}`;
-            
+
             const { error: uploadError } = await supabase.storage
               .from('products')
               .upload(fileName, img.file);
 
-            if (uploadError) {
-              console.error('Error uploading image:', uploadError);
-              continue;
-            }
+            if (uploadError) throw uploadError;
 
             const { data: publicUrl } = supabase.storage
               .from('products')
               .getPublicUrl(fileName);
 
-            await (supabase.from('product_images') as any).insert({
-              product_id: productId,
-              url: publicUrl.publicUrl,
-              is_primary: img.is_primary,
-              display_order: i,
-              color_id: img.color_id || null,
-            });
-          } else if (img.id) {
-            await (supabase
-              .from('product_images') as any)
-              .update({ is_primary: img.is_primary, display_order: i, color_id: img.color_id || null })
-              .eq('id', img.id);
+            imageUrl = publicUrl.publicUrl;
           }
+
+          const normalizedColorId =
+            typeof img.color_id === 'string' && /^[0-9a-f-]{36}$/i.test(img.color_id)
+              ? img.color_id
+              : null;
+
+          imageRows.push({
+            product_id: productId,
+            url: imageUrl,
+            is_primary: img.is_primary,
+            display_order: i,
+            color_id: normalizedColorId,
+          });
+        }
+
+        const { error: deleteImagesError } = await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', productId);
+
+        if (deleteImagesError) throw deleteImagesError;
+
+        if (imageRows.length > 0) {
+          const { error: insertImagesError } = await supabase
+            .from('product_images')
+            .insert(imageRows);
+
+          if (insertImagesError) throw insertImagesError;
         }
       }
 
