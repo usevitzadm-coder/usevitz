@@ -216,7 +216,24 @@ export default function ProductForm() {
       setSizeGuide(product.size_guide || '');
       setSelectedTags(product.product_tags?.map((pt: any) => pt.tag_id) || []);
       setVariants(product.variants || []);
-      setImages(product.images?.sort((a: any, b: any) => a.display_order - b.display_order) || []);
+      
+      // Fetch color_id separately since it's not in generated types yet
+      const sortedImages = (product.images || []).sort((a: any, b: any) => a.display_order - b.display_order);
+      if (sortedImages.length > 0) {
+        const imageIds = sortedImages.map((img: any) => img.id);
+        const { data: imageColors } = await supabase
+          .from('product_images')
+          .select('id, color_id' as any)
+          .in('id', imageIds);
+        if (imageColors) {
+          const colorMap = Object.fromEntries((imageColors as any[]).map((ic: any) => [ic.id, ic.color_id]));
+          setImages(sortedImages.map((img: any) => ({ ...img, color_id: colorMap[img.id] || null })));
+        } else {
+          setImages(sortedImages);
+        }
+      } else {
+        setImages([]);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -511,7 +528,7 @@ export default function ProductForm() {
               .from('products')
               .getPublicUrl(fileName);
 
-            await supabase.from('product_images').insert({
+            await (supabase.from('product_images') as any).insert({
               product_id: productId,
               url: publicUrl.publicUrl,
               is_primary: img.is_primary,
@@ -519,8 +536,8 @@ export default function ProductForm() {
               color_id: img.color_id || null,
             });
           } else if (img.id) {
-            await supabase
-              .from('product_images')
+            await (supabase
+              .from('product_images') as any)
               .update({ is_primary: img.is_primary, display_order: i, color_id: img.color_id || null })
               .eq('id', img.id);
           }

@@ -61,7 +61,7 @@ const ProductPage = () => {
         const imageIds = data.product_images.map((img: any) => img.id);
         const { data: imageColors } = await supabase
           .from("product_images")
-          .select("id, color_id")
+          .select("id, color_id" as any)
           .in("id", imageIds);
         
         if (imageColors) {
