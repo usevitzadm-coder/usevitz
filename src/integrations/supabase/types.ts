@@ -549,6 +549,7 @@ export type Database = {
       }
       product_images: {
         Row: {
+          color_id: string | null
           created_at: string
           display_order: number | null
           id: string
@@ -557,6 +558,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          color_id?: string | null
           created_at?: string
           display_order?: number | null
           id?: string
@@ -565,6 +567,7 @@ export type Database = {
           url: string
         }
         Update: {
+          color_id?: string | null
           created_at?: string
           display_order?: number | null
           id?: string
@@ -573,6 +576,13 @@ export type Database = {
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_images_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_images_product_id_fkey"
             columns: ["product_id"]
