@@ -300,6 +300,19 @@ const CheckoutPage = () => {
         options = [freeShippingOption, ...options];
       }
 
+      // Add pickup option for specific CEP
+      const PICKUP_CEP = "05524000";
+      if (cep.replace(/\D/g, "") === PICKUP_CEP) {
+        const pickupOption: ShippingOption = {
+          id: 999,
+          name: "Retirada Combinada",
+          price: 0,
+          delivery_time: 0,
+          company: { name: "Vitz", picture: "" },
+        };
+        options = [pickupOption, ...options];
+      }
+
       if (options.length > 0) {
         setShippingOptions(options);
         // Auto-select cheapest option (free shipping if available)
@@ -1026,9 +1039,9 @@ const CheckoutPage = () => {
                                 )}
                                 <div>
                                   <p className="font-medium text-sm">{option.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {option.delivery_time} {option.delivery_time === 1 ? "dia útil" : "dias úteis"}
-                                  </p>
+                                   <p className="text-xs text-muted-foreground">
+                                     {option.delivery_time === 0 ? "A combinar" : `${option.delivery_time} ${option.delivery_time === 1 ? "dia útil" : "dias úteis"}`}
+                                   </p>
                                 </div>
                               </div>
                               <span className="font-semibold">{formatPrice(option.price)}</span>
