@@ -47,7 +47,7 @@ const ProductFilters = ({ categories, filters, onFiltersChange, maxPrice }: Prod
         const sizes = [...new Set(data.map((v) => v.size))];
         
         // Sort sizes logically
-        const sizeOrder = ["PP", "P", "M", "G", "GG", "XG", "XXG"];
+        const sizeOrder = ["PP", "P", "M", "G", "GG", "XG", "XXG", "Tam. Único"];
         sizes.sort((a, b) => {
           const indexA = sizeOrder.indexOf(a);
           const indexB = sizeOrder.indexOf(b);
