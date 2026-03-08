@@ -241,7 +241,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const calculateShipping = async (cep: string) => {
+  const calculateShipping = async (cep: string, stateOverride?: string) => {
     if (!cep || cep.length < 8 || items.length === 0) return;
 
     setIsCalculatingShipping(true);
@@ -284,7 +284,8 @@ const CheckoutPage = () => {
       }
 
       // Check for free shipping eligibility (Southeast + minimum order)
-      const isSoutheast = SOUTHEAST_STATES.includes(shipping.state);
+      const resolvedState = stateOverride || shipping.state;
+      const isSoutheast = SOUTHEAST_STATES.includes(resolvedState);
       const qualifiesForFreeShipping = isSoutheast && totalPrice >= FREE_SHIPPING_MIN;
 
       if (qualifiesForFreeShipping) {
