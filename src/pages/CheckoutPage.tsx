@@ -225,15 +225,16 @@ const CheckoutPage = () => {
       if (!response.ok) return;
       const data = await response.json();
       if (!data.erro) {
+        const uf = data.uf || "";
         setShipping((prev) => ({
           ...prev,
           street: data.logradouro || "",
           neighborhood: data.bairro || "",
           city: data.localidade || "",
-          state: data.uf || "",
+          state: uf,
         }));
-        // Calculate shipping after getting address
-        calculateShipping(cleanCep);
+        // Calculate shipping after getting address, passing state directly
+        calculateShipping(cleanCep, uf);
       }
     } catch (error) {
       console.error("Error fetching address:", error);
