@@ -142,6 +142,7 @@ const AdminOrders = () => {
       // Send email based on status change
       if (field === "status") {
         const emailMap: Record<string, string> = {
+          confirmed: "order_confirmed",
           shipped: "order_shipped",
           delivered: "order_delivered",
           cancelled: "order_cancelled",
