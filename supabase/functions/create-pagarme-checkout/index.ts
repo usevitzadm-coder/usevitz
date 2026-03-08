@@ -363,6 +363,7 @@ serve(async (req: Request) => {
     // Create order in database (with server-validated values)
     const orderNumber = `VITZ-${Date.now().toString(36).toUpperCase()}`;
     const paymentStatus = charge.status === "paid" ? "approved" : "pending";
+    const orderStatus = paymentStatus === "approved" ? "confirmed" : "pending";
 
     const orderData: any = {
       order_number: orderNumber,
@@ -382,7 +383,7 @@ serve(async (req: Request) => {
       discount: couponDiscount,
       gift_card_amount: giftCardDiscount,
       total: total,
-      status: "pending",
+      status: orderStatus,
       payment_status: paymentStatus,
       payment_method: paymentMethod,
       payment_id: pagarmeOrder.id,
