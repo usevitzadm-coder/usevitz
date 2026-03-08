@@ -61,7 +61,7 @@ interface ComponentProduct {
   variants: { id: string; size: string; color: string; stock: number }[];
 }
 
-const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG'];
+const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'Tam. Único'];
 
 interface ColorOption {
   id: string;
