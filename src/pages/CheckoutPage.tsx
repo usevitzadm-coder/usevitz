@@ -225,22 +225,23 @@ const CheckoutPage = () => {
       if (!response.ok) return;
       const data = await response.json();
       if (!data.erro) {
+        const uf = data.uf || "";
         setShipping((prev) => ({
           ...prev,
           street: data.logradouro || "",
           neighborhood: data.bairro || "",
           city: data.localidade || "",
-          state: data.uf || "",
+          state: uf,
         }));
-        // Calculate shipping after getting address
-        calculateShipping(cleanCep);
+        // Calculate shipping after getting address, passing state directly
+        calculateShipping(cleanCep, uf);
       }
     } catch (error) {
       console.error("Error fetching address:", error);
     }
   };
 
-  const calculateShipping = async (cep: string) => {
+  const calculateShipping = async (cep: string, stateOverride?: string) => {
     if (!cep || cep.length < 8 || items.length === 0) return;
 
     setIsCalculatingShipping(true);
@@ -283,7 +284,8 @@ const CheckoutPage = () => {
       }
 
       // Check for free shipping eligibility (Southeast + minimum order)
-      const isSoutheast = SOUTHEAST_STATES.includes(shipping.state);
+      const resolvedState = stateOverride || shipping.state;
+      const isSoutheast = SOUTHEAST_STATES.includes(resolvedState);
       const qualifiesForFreeShipping = isSoutheast && totalPrice >= FREE_SHIPPING_MIN;
 
       if (qualifiesForFreeShipping) {
