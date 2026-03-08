@@ -485,7 +485,7 @@ const ProductPage = () => {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 pt-4 border-t border-border">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Truck size={18} className="shrink-0" />
-                    <span>Frete grátis acima de R$ 299</span>
+                    <span>Frete grátis acima de R$ 239,90</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <RefreshCw size={18} className="shrink-0" />
