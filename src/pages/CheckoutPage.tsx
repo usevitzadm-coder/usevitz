@@ -1162,10 +1162,10 @@ const CheckoutPage = () => {
                           htmlFor="credit_card"
                           className="flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 hover:border-primary/50"
                         >
-                          <div className="flex gap-1">
-                            <img src={visaLogo} alt="Visa" className="h-4" />
-                            <img src={mastercardLogo} alt="Mastercard" className="h-4" />
-                            <img src={eloLogo} alt="Elo" className="h-4" />
+                          <div className="flex gap-1 max-w-full overflow-hidden">
+                            <img src={visaLogo} alt="Visa" className="h-4 shrink-0" />
+                            <img src={mastercardLogo} alt="Mastercard" className="h-4 shrink-0" />
+                            <img src={eloLogo} alt="Elo" className="h-4 shrink-0" />
                           </div>
                           <span className="text-sm font-medium">Cartão</span>
                         </Label>
