@@ -395,12 +395,17 @@ const AdminOrders = () => {
                   </TableCell>
                   <TableCell className="font-medium">{formatPrice(order.total)}</TableCell>
                   <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) =>
-                        updateStatusMutation.mutate({ orderId: order.id, field: "status", value })
-                      }
-                    >
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({
+                            orderId: order.id,
+                            field: "status",
+                            value,
+                            currentTrackingCode: order.tracking_code,
+                          })
+                        }
+                      >
                       <SelectTrigger className="w-[140px] h-8">
                         <SelectValue>{getStatusBadge(order.status, statusOptions)}</SelectValue>
                       </SelectTrigger>
