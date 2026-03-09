@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Coffee, Gift, ShoppingBag } from "lucide-react";
+import { Coffee, Gift, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import coffeeBg from "@/assets/coffee-beans-bg.jpg";
 import logoFeraCafe from "@/assets/logo-fera-cafe-white.png";
