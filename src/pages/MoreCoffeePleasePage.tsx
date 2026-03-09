@@ -104,21 +104,16 @@ const MoreCoffeePleasePage = () => {
       </Helmet>
 
       {/* Hero - deep coffee tones */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #3b1f04 0%, #5B2F06 30%, #7a4a1e 60%, #a0693a 100%)",
-        }}
-      >
-        {/* Subtle coffee bean texture overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 8px 12px at 20% 30%, #fff 0%, transparent 70%), radial-gradient(ellipse 8px 12px at 60% 70%, #fff 0%, transparent 70%), radial-gradient(ellipse 8px 12px at 80% 20%, #fff 0%, transparent 70%), radial-gradient(ellipse 8px 12px at 40% 80%, #fff 0%, transparent 70%)",
-            backgroundSize: "200px 200px",
-          }}
+      <section className="relative overflow-hidden">
+        {/* Background image */}
+        <img
+          src={coffeeBg}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          fetchPriority="high"
         />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-[#3b1f04]/75" />
 
         <div className="vitz-container relative z-10 py-20 md:py-28">
           <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
