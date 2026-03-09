@@ -144,9 +144,9 @@ const AdminOrders = () => {
 
       // Send email based on status change
       if (field === "status") {
+        // "shipped" email is handled by database trigger (only fires when tracking_code is filled)
         const emailMap: Record<string, string> = {
           confirmed: "order_confirmed",
-          shipped: "order_shipped",
           delivered: "order_delivered",
           cancelled: "order_cancelled",
         };
