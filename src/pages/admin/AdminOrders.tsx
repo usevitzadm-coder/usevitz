@@ -448,7 +448,7 @@ const AdminOrders = () => {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0"
-                          onClick={() => handleSaveTracking(order.id)}
+                          onClick={() => handleSaveTracking(order)}
                           disabled={updateTrackingMutation.isPending}
                         >
                           <Check className="h-3 w-3 text-green-600" />
