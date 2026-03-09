@@ -219,36 +219,7 @@ const MoreCoffeePleasePage = () => {
               Qualquer uma dessas peças garante seu drip coffee da Fera Café.
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {coffeeProducts.map((product, i) =>
-            <Link
-              key={i}
-              to={`/produto/${product.productSlug}`}
-              className="group relative aspect-[3/4] rounded-xl overflow-hidden"
-              style={{ border: "1px solid rgba(191, 162, 117, 0.2)" }}>
-              
-                  <img
-                src={product.url}
-                alt={product.productName}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              
-                  <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end"
-                style={{
-                  background:
-                  "linear-gradient(to top, rgba(59, 31, 4, 0.85) 0%, transparent 50%)"
-                }}>
-                
-                    <span
-                  className="p-4 text-sm font-medium"
-                  style={{ color: "#f5ead6", fontFamily: "var(--font-body)" }}>
-                  
-                      {product.productName}
-                    </span>
-                  </div>
-                </Link>
-            )}
-            </div>
+            <CoffeeCarousel products={coffeeProducts} />
 
             <div className="text-center mt-12">
               <Button
