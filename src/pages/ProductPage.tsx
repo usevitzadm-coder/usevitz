@@ -11,6 +11,7 @@ import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/product/ProductCard";
 import ProductGallery from "@/components/product/ProductGallery";
 import LaunchLeadForm from "@/components/product/LaunchLeadForm";
+import CoffeePromoToast from "@/components/product/CoffeePromoToast";
 import { useToast } from "@/hooks/use-toast";
 import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
