@@ -255,7 +255,13 @@ const ProductPage = () => {
       sku: "",
     };
 
-    addToCart(cartProduct, cartVariant, quantity);
+    // Find image linked to the selected color
+    const selectedColorId = adminColorIdMap[selectedColor.toLowerCase()];
+    const colorSpecificImage = selectedColorId
+      ? sortedImages.find((img: any) => img.color_id === selectedColorId)?.url
+      : undefined;
+
+    addToCart(cartProduct, cartVariant, quantity, colorSpecificImage || sortedImages[0]?.url);
 
     if (selectedColor.toLowerCase() === "coffee") {
       setShowCoffeePromo(true);
