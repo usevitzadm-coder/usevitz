@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Coffee } from "lucide-react";
-import logoFeraCafe from "@/assets/logo-fera-cafe.png";
+import logoFeraCafe from "@/assets/logo-fera-cafe-white.png";
 
 interface CoffeePromoToastProps {
   visible: boolean;
