@@ -219,7 +219,7 @@ const MoreCoffeePleasePage = () => {
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 pt-1">
-              <span className="text-xs uppercase tracking-[0.15em] text-primary-foreground" style={{ color: "#a0693a" }}>
+              <span className="text-xs uppercase tracking-[0.15em]" style={{ color: "#f5ead6" }}>
                 Em parceria com
               </span>
               <img
