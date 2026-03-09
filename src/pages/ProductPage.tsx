@@ -25,6 +25,7 @@ const ProductPage = () => {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [galleryIndex, setGalleryIndex] = useState<number | undefined>(undefined);
+  const [showCoffeePromo, setShowCoffeePromo] = useState(false);
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
