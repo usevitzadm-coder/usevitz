@@ -1292,41 +1292,22 @@ const CheckoutPage = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {(() => {
-                      const hasCoffeeItem = items.some(item => item.variant.color?.toLowerCase() === "coffee");
-                      let coffeeBrindeShown = false;
-                      return items.map((item) => {
-                        const isCoffee = item.variant.color?.toLowerCase() === "coffee";
-                        const showBrinde = isCoffee && !coffeeBrindeShown;
-                        if (showBrinde) coffeeBrindeShown = true;
-                        return (
-                          <div key={`${item.product.id}-${item.variant.id}`}>
-                            <div className="flex gap-3">
-                              <img
-                                src={item.colorImage || item.product.images?.[0] || "/placeholder.svg"}
-                                alt={item.product.name}
-                                className="w-16 h-16 object-cover rounded"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{item.product.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {item.variant.size} {item.variant.color && `• ${item.variant.color}`} • Qtd: {item.quantity}
-                                </p>
-                                <p className="text-sm font-medium">{formatPrice(item.product.price * item.quantity)}</p>
-                              </div>
-                            </div>
-                            {showBrinde && (
-                              <div className="mt-2 flex items-center gap-2 bg-[hsl(25,80%,96%)] border border-[hsl(25,60%,85%)] rounded-md px-3 py-2">
-                                <Gift className="w-4 h-4 text-[hsl(25,60%,30%)] shrink-0" />
-                                <p className="text-xs text-[hsl(25,60%,30%)]">
-                                  <span className="font-semibold">Brinde!</span> Seu pedido Coffee acompanha 1 drip coffee exclusivo da Fera Café ☕
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      });
-                    })()}
+                    {items.map((item) => (
+                      <div key={`${item.product.id}-${item.variant.id}`} className="flex gap-3">
+                        <img
+                          src={item.colorImage || item.product.images?.[0] || "/placeholder.svg"}
+                          alt={item.product.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{item.product.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.variant.size} {item.variant.color && `• ${item.variant.color}`} • Qtd: {item.quantity}
+                          </p>
+                          <p className="text-sm font-medium">{formatPrice(item.product.price * item.quantity)}</p>
+                        </div>
+                      </div>
+                    ))}
 
                     <Separator />
 
@@ -1363,6 +1344,15 @@ const CheckoutPage = () => {
                       <span>Total</span>
                       <span className="text-primary">{formatPrice(finalTotal)}</span>
                     </div>
+
+                    {items.some(item => item.variant.color?.toLowerCase() === "coffee") && (
+                      <div className="flex items-center gap-2 bg-[hsl(25,80%,96%)] border border-[hsl(25,60%,85%)] rounded-md px-3 py-2">
+                        <Gift className="w-4 h-4 text-[hsl(25,60%,30%)] shrink-0" />
+                        <p className="text-xs text-[hsl(25,60%,30%)]">
+                          <span className="font-semibold">Brinde!</span> Seu pedido Coffee acompanha 1 drip coffee exclusivo da Fera Café ☕
+                        </p>
+                      </div>
+                    )}
 
                     <Button
                       onClick={handleCheckout}
