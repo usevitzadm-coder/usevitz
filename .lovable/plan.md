@@ -1,48 +1,46 @@
 
 
-## Problema Identificado
+# "More Coffee, Please" — Promotional Landing Page
 
-O hook `useEarlyAccess` tem dois problemas criticos:
+## Overview
 
-1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
+Create a new promotional page at `/more-coffee-please` that replicates the concept from the old Wix site with the Vitz design system. The page promotes the "Coffee" color collection — any purchase containing a Coffee-colored piece includes a free drip coffee from Fera Café.
 
-2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
+## What will be built
 
-3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
+### 1. New page: `src/pages/MoreCoffeePleasePage.tsx`
 
----
+A standalone landing page with the Vitz Layout (Header + Footer), containing:
 
-## Plano de Correcao
+- **Hero section** with warm coffee-toned background (`bg-[#f5ead6]` or similar earthy tone matching the old page's beige/brown aesthetic)
+- **Title**: "More Coffee, please!" in elegant italic serif (Cormorant Garamond)
+- **Model image** in a circular frame (will need an asset — can use a placeholder or an existing product image initially)
+- **Description text** explaining the promo: coffee-colored pieces come with a free drip coffee from Fera Café
+- **"Como funciona?"** section with 3 numbered steps
+- **CTA button** "Ver peças" linking to `/produtos?cor=Coffee` (filtered products page)
 
-### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
+### 2. Route registration in `App.tsx`
 
-- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
-- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
-- Simplificar a logica de inicializacao
+Add lazy-loaded route:
+```
+/more-coffee-please → MoreCoffeePleasePage
+```
 
-### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+### 3. Design approach
 
-- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
-  ```
-  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
-  ```
+- Warm earthy color palette (browns, beiges, golds) — aligned with the old page's `#f5ead6` background and coffee tones
+- Uses existing Vitz design tokens and components (Button, Layout)
+- Responsive layout: image + text side-by-side on desktop, stacked on mobile
+- The CTA "Ver peças" will link to the products page filtered by the Coffee color
 
-### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+### 4. Assets needed
 
-- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+- A hero/model image for the page. For now, we can use an existing product image or a placeholder. You can later replace it with the actual promotional photo.
 
-### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+## Files to create/modify
 
-- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
-
----
-
-## Resumo dos Arquivos Alterados
-
-| Arquivo | Alteracao |
-|---|---|
-| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
-| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
-
-Duas alteracoes simples que resolvem o problema de forma definitiva.
+| File | Action |
+|------|--------|
+| `src/pages/MoreCoffeePleasePage.tsx` | Create |
+| `src/App.tsx` | Add route |
 
