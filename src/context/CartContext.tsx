@@ -42,7 +42,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [items]);
 
-  const addToCart = useCallback((product: Product, variant: ProductVariant, quantity = 1) => {
+  const addToCart = useCallback((product: Product, variant: ProductVariant, quantity = 1, colorImage?: string) => {
     const maxStock = variant.stock;
     
     setItems((prev) => {
@@ -55,11 +55,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const currentQty = updated[existingIndex].quantity;
         const newQty = Math.min(currentQty + quantity, maxStock);
         updated[existingIndex].quantity = newQty;
+        if (colorImage) updated[existingIndex].colorImage = colorImage;
         return updated;
       }
 
       const cappedQuantity = Math.min(quantity, maxStock);
-      return [...prev, { product, variant, quantity: cappedQuantity }];
+      return [...prev, { product, variant, quantity: cappedQuantity, colorImage }];
     });
     setIsCartOpen(true);
   }, []);
