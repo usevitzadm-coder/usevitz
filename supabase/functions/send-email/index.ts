@@ -350,6 +350,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return paymentApprovedEmail(data as OrderData, founderName);
     case "order_confirmed":
       return orderConfirmedEmail(data as OrderData, founderName);
+    case "order_preparing":
+      return orderPreparingEmail(data as OrderData, founderName);
     case "payment_rejected":
       return paymentRejectedEmail(data as OrderData, founderName);
     case "order_shipped":
