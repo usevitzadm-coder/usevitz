@@ -17,7 +17,7 @@ const loadCartFromStorage = (): CartItem[] => {
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  addToCart: (product: Product, variant: ProductVariant, quantity?: number, colorImage?: string) => void;
   removeFromCart: (productId: string, variantId: string) => void;
   updateQuantity: (productId: string, variantId: string, quantity: number) => void;
   clearCart: () => void;
