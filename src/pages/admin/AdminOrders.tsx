@@ -134,7 +134,17 @@ const AdminOrders = () => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, field, value }: { orderId: string; field: string; value: string }) => {
+    mutationFn: async ({
+      orderId,
+      field,
+      value,
+      currentTrackingCode,
+    }: {
+      orderId: string;
+      field: string;
+      value: string;
+      currentTrackingCode?: string | null;
+    }) => {
       const { error } = await supabase
         .from("orders")
         .update({ [field]: value })
@@ -144,12 +154,19 @@ const AdminOrders = () => {
 
       // Send email based on status change
       if (field === "status") {
-        // "shipped" email is handled by database trigger (only fires when tracking_code is filled)
+        const shouldSendShippedEmail = value === "shipped" && !!currentTrackingCode?.trim();
+
+        if (shouldSendShippedEmail) {
+          await sendOrderEmail(orderId, "order_shipped");
+          return;
+        }
+
         const emailMap: Record<string, string> = {
           confirmed: "order_confirmed",
           delivered: "order_delivered",
           cancelled: "order_cancelled",
         };
+
         if (emailMap[value]) {
           await sendOrderEmail(orderId, emailMap[value]);
         }
@@ -165,13 +182,32 @@ const AdminOrders = () => {
   });
 
   const updateTrackingMutation = useMutation({
-    mutationFn: async ({ orderId, trackingCode }: { orderId: string; trackingCode: string }) => {
+    mutationFn: async ({
+      orderId,
+      trackingCode,
+      orderStatus,
+      previousTrackingCode,
+    }: {
+      orderId: string;
+      trackingCode: string;
+      orderStatus: string;
+      previousTrackingCode: string | null;
+    }) => {
       const { error } = await supabase
         .from("orders")
         .update({ tracking_code: trackingCode || null })
         .eq("id", orderId);
 
       if (error) throw error;
+
+      const normalizedNewTracking = trackingCode.trim();
+      const hadTrackingBefore = !!previousTrackingCode?.trim();
+      const shouldSendShippedEmail =
+        orderStatus === "shipped" && normalizedNewTracking !== "" && !hadTrackingBefore;
+
+      if (shouldSendShippedEmail) {
+        await sendOrderEmail(orderId, "order_shipped");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
@@ -236,8 +272,13 @@ const AdminOrders = () => {
     setTempTrackingCode(order.tracking_code || "");
   };
 
-  const handleSaveTracking = (orderId: string) => {
-    updateTrackingMutation.mutate({ orderId, trackingCode: tempTrackingCode });
+  const handleSaveTracking = (order: Order) => {
+    updateTrackingMutation.mutate({
+      orderId: order.id,
+      trackingCode: tempTrackingCode,
+      orderStatus: order.status,
+      previousTrackingCode: order.tracking_code,
+    });
   };
 
   const handleCancelTracking = () => {
@@ -354,12 +395,17 @@ const AdminOrders = () => {
                   </TableCell>
                   <TableCell className="font-medium">{formatPrice(order.total)}</TableCell>
                   <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) =>
-                        updateStatusMutation.mutate({ orderId: order.id, field: "status", value })
-                      }
-                    >
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({
+                            orderId: order.id,
+                            field: "status",
+                            value,
+                            currentTrackingCode: order.tracking_code,
+                          })
+                        }
+                      >
                       <SelectTrigger className="w-[140px] h-8">
                         <SelectValue>{getStatusBadge(order.status, statusOptions)}</SelectValue>
                       </SelectTrigger>
@@ -402,7 +448,7 @@ const AdminOrders = () => {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0"
-                          onClick={() => handleSaveTracking(order.id)}
+                          onClick={() => handleSaveTracking(order)}
                           disabled={updateTrackingMutation.isPending}
                         >
                           <Check className="h-3 w-3 text-green-600" />
