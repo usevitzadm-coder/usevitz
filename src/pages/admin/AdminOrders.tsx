@@ -182,13 +182,32 @@ const AdminOrders = () => {
   });
 
   const updateTrackingMutation = useMutation({
-    mutationFn: async ({ orderId, trackingCode }: { orderId: string; trackingCode: string }) => {
+    mutationFn: async ({
+      orderId,
+      trackingCode,
+      orderStatus,
+      previousTrackingCode,
+    }: {
+      orderId: string;
+      trackingCode: string;
+      orderStatus: string;
+      previousTrackingCode: string | null;
+    }) => {
       const { error } = await supabase
         .from("orders")
         .update({ tracking_code: trackingCode || null })
         .eq("id", orderId);
 
       if (error) throw error;
+
+      const normalizedNewTracking = trackingCode.trim();
+      const hadTrackingBefore = !!previousTrackingCode?.trim();
+      const shouldSendShippedEmail =
+        orderStatus === "shipped" && normalizedNewTracking !== "" && !hadTrackingBefore;
+
+      if (shouldSendShippedEmail) {
+        await sendOrderEmail(orderId, "order_shipped");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
