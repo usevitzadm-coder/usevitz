@@ -150,12 +150,24 @@ const MoreCoffeePleasePage = () => {
               ganhe um <strong style={{ color: "#e8d5b5" }}>drip coffee exclusivo</strong> da
               nossa parceira <strong style={{ color: "#e8d5b5" }}>Fera Café</strong>.
             </p>
-            <p
-              className="italic"
-              style={{ fontFamily: "var(--font-heading)", color: "#bfa275", fontSize: "1.1rem" }}
-            >
-              Porque quem veste bem, também merece um bom café.
-            </p>
+            <div className="flex items-center justify-center gap-3">
+              <p
+                className="italic"
+                style={{ fontFamily: "var(--font-heading)", color: "#bfa275", fontSize: "1.1rem" }}
+              >
+                Porque quem veste bem, também merece um bom café.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <span className="text-xs uppercase tracking-[0.15em]" style={{ color: "#a0693a" }}>
+                Em parceria com
+              </span>
+              <img
+                src={logoFeraCafe}
+                alt="Fera Café"
+                className="h-10 w-auto object-contain"
+              />
+            </div>
             <div className="pt-4">
               <Button
                 size="lg"
