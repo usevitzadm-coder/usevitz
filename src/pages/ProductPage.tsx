@@ -11,6 +11,7 @@ import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/product/ProductCard";
 import ProductGallery from "@/components/product/ProductGallery";
 import LaunchLeadForm from "@/components/product/LaunchLeadForm";
+import CoffeePromoToast from "@/components/product/CoffeePromoToast";
 import { useToast } from "@/hooks/use-toast";
 import { useEarlyAccess } from "@/hooks/useEarlyAccess";
 
@@ -24,6 +25,7 @@ const ProductPage = () => {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [galleryIndex, setGalleryIndex] = useState<number | undefined>(undefined);
+  const [showCoffeePromo, setShowCoffeePromo] = useState(false);
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
@@ -258,6 +260,11 @@ const ProductPage = () => {
       title: "Produto adicionado!",
       description: `${product.name} foi adicionado ao carrinho.`,
     });
+
+    // Check if the selected color is Coffee
+    if (selectedColor.toLowerCase() === "coffee") {
+      setShowCoffeePromo(true);
+    }
   };
 
   const categoryName = product.categories?.name || "Produtos";
@@ -561,6 +568,10 @@ const ProductPage = () => {
           </section>
         )}
       </Layout>
+      <CoffeePromoToast
+        visible={showCoffeePromo}
+        onClose={() => setShowCoffeePromo(false)}
+      />
     </>
   );
 };
