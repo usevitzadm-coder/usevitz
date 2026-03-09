@@ -52,49 +52,17 @@ const MoreCoffeePleasePage = () => {
     queryKey: ["coffee-products", coffeeColor?.id],
     enabled: !!coffeeColor?.id,
     queryFn: async () => {
-      // Get images explicitly linked to coffee color
-      const { data: linkedImages } = await supabase.
-      from("product_images").
-      select("url, product_id, products!inner(name, slug, is_active)").
-      eq("color_id", coffeeColor!.id).
-      eq("products.is_active", true);
+      const { data: linkedImages } = await supabase
+        .from("product_images")
+        .select("url, product_id, products!inner(name, slug, is_active)")
+        .eq("color_id", coffeeColor!.id)
+        .eq("products.is_active", true);
 
-      // Get products with coffee variants
-      const { data: coffeeVariants } = await supabase.
-      from("product_variants").
-      select("product_id").
-      ilike("color", "coffee").
-      eq("is_active", true);
-
-      const coffeeProductIds = [...new Set(coffeeVariants?.map((v) => v.product_id) || [])];
-      const linkedProductIds = linkedImages?.map((i) => i.product_id) || [];
-      const missingProductIds = coffeeProductIds.filter((id) => !linkedProductIds.includes(id));
-
-      const results: CoffeeProduct[] = (linkedImages || []).map((i) => ({
+      return (linkedImages || []).map((i) => ({
         url: i.url,
         productName: (i.products as any).name,
         productSlug: (i.products as any).slug
       }));
-
-      if (missingProductIds.length > 0) {
-        const { data: fallback } = await supabase.
-        from("product_images").
-        select("url, product_id, products!inner(name, slug)").
-        in("product_id", missingProductIds).
-        eq("is_primary", true);
-
-        if (fallback) {
-          results.push(
-            ...fallback.map((i) => ({
-              url: i.url,
-              productName: (i.products as any).name,
-              productSlug: (i.products as any).slug
-            }))
-          );
-        }
-      }
-
-      return results;
     }
   });
 
