@@ -305,7 +305,7 @@ const MoreCoffeePleasePage = () => {
             </h2>
             <p
             className="vitz-body text-center mb-12 max-w-lg mx-auto text-primary-foreground"
-            style={{ color: "#a0693a" }}>
+            style={{ color: "#f5ead6" }}>
             
               Qualquer uma dessas peças garante seu drip coffee da Fera Café.
             </p>
