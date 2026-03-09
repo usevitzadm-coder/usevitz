@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { X, Coffee } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
 import logoFeraCafe from "@/assets/logo-fera-cafe.png";
 
 interface CoffeePromoToastProps {
