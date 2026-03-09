@@ -134,7 +134,17 @@ const AdminOrders = () => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, field, value }: { orderId: string; field: string; value: string }) => {
+    mutationFn: async ({
+      orderId,
+      field,
+      value,
+      currentTrackingCode,
+    }: {
+      orderId: string;
+      field: string;
+      value: string;
+      currentTrackingCode?: string | null;
+    }) => {
       const { error } = await supabase
         .from("orders")
         .update({ [field]: value })
@@ -144,12 +154,19 @@ const AdminOrders = () => {
 
       // Send email based on status change
       if (field === "status") {
-        // "shipped" email is handled by database trigger (only fires when tracking_code is filled)
+        const shouldSendShippedEmail = value === "shipped" && !!currentTrackingCode?.trim();
+
+        if (shouldSendShippedEmail) {
+          await sendOrderEmail(orderId, "order_shipped");
+          return;
+        }
+
         const emailMap: Record<string, string> = {
           confirmed: "order_confirmed",
           delivered: "order_delivered",
           cancelled: "order_cancelled",
         };
+
         if (emailMap[value]) {
           await sendOrderEmail(orderId, emailMap[value]);
         }
