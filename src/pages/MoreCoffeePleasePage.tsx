@@ -332,7 +332,7 @@ const MoreCoffeePleasePage = () => {
         className="py-8">
         
         <div className="vitz-container text-center">
-          <p className="text-xs max-w-2xl mx-auto text-primary-foreground" style={{ color: "#a0693a" }}>
+          <p className="text-xs max-w-2xl mx-auto" style={{ color: "#d4c4a8" }}>
             *Promoção válida enquanto durarem os estoques. Limitado a 1 drip coffee por pedido
             que contenha pelo menos 1 peça na cor Coffee. O drip coffee será enviado junto
             com o pedido. Promoção em parceria com a Fera Café.
