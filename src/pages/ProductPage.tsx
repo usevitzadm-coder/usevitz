@@ -256,14 +256,14 @@ const ProductPage = () => {
     };
 
     addToCart(cartProduct, cartVariant, quantity);
-    toast({
-      title: "Produto adicionado!",
-      description: `${product.name} foi adicionado ao carrinho.`,
-    });
 
-    // Check if the selected color is Coffee
     if (selectedColor.toLowerCase() === "coffee") {
       setShowCoffeePromo(true);
+    } else {
+      toast({
+        title: "Produto adicionado!",
+        description: `${product.name} foi adicionado ao carrinho.`,
+      });
     }
   };
 

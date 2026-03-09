@@ -54,6 +54,12 @@ export default function CoffeePromoToast({ visible, onClose }: CoffeePromoToastP
 
         <div className="flex-1 min-w-0">
           <p
+            className="text-xs font-medium mb-0.5"
+            style={{ color: "#bfa275" }}
+          >
+            ✓ Produto adicionado ao carrinho
+          </p>
+          <p
             className="text-sm font-semibold leading-tight mb-1"
             style={{ color: "#f5ead6" }}
           >
@@ -63,7 +69,7 @@ export default function CoffeePromoToast({ visible, onClose }: CoffeePromoToastP
             className="text-xs leading-relaxed mb-2"
             style={{ color: "#d4c4a8" }}
           >
-            Você adicionou uma peça Coffee! Seu drip coffee exclusivo será enviado junto com seu pedido.
+            Sua peça Coffee garante um drip coffee exclusivo da Fera Café junto com seu pedido.
           </p>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] uppercase tracking-wider" style={{ color: "#a0693a" }}>
