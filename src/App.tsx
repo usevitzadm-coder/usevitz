@@ -29,6 +29,7 @@ const DeliveryPolicyPage = lazy(() => import("./pages/DeliveryPolicyPage"));
 const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
+const MoreCoffeePleasePage = lazy(() => import("./pages/MoreCoffeePleasePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminGiftCards = lazy(() => import("./pages/admin/AdminGiftCards"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -88,6 +89,7 @@ const App = () => {
                 <Route path="/checkout/pendente" element={<CheckoutPendingPage />} />
                 <Route path="/novidades" element={<NewArrivalsPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
+                <Route path="/more-coffee-please" element={<MoreCoffeePleasePage />} />
                 <Route path="/sobre" element={<AboutPage />} />
                 <Route path="/entrega" element={<DeliveryPolicyPage />} />
                 <Route path="/trocas" element={<ReturnsPage />} />
