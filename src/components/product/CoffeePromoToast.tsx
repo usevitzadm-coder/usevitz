@@ -72,7 +72,7 @@ export default function CoffeePromoToast({ visible, onClose }: CoffeePromoToastP
             Sua peça Coffee garante um drip coffee exclusivo da Fera Café junto com seu pedido.
           </p>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider" style={{ color: "#a0693a" }}>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: "#d4c4a8" }}>
               Em parceria com
             </span>
             <img src={logoFeraCafe} alt="Fera Café" className="h-5 w-auto object-contain" />
