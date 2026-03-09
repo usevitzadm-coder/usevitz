@@ -1,48 +1,33 @@
 
 
-## Problema Identificado
+## Plano: Controle inteligente de autoplay na galeria de produto
 
-O hook `useEarlyAccess` tem dois problemas criticos:
+### Problema
+O autoplay do carrossel roda continuamente. O usuário quer que ele pare permanentemente quando:
+1. Clicar em uma miniatura/dot específico
+2. Selecionar uma cor que tenha foto vinculada
 
-1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
+Após parado, o autoplay só retoma se o usuário usar as setas de navegação ou trocar a cor. Cada produto mantém seu estado independente.
 
-2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
+### Mudanças
 
-3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
+**`src/components/product/ProductGallery.tsx`**
+- Renomear `isPaused` para algo como `isAutoplayStopped` com semântica de "parada permanente"
+- Adicionar nova prop `autoPlayStopped?: boolean` para o parent (ProductPage) poder sinalizar que a cor foi selecionada
+- Nos cliques de thumbnail (desktop, mobile) e dots: setar `isAutoplayStopped = true`
+- Nos cliques das setas (prev/next): **não** parar o autoplay (manter comportamento normal)
+- Quando `activeIndex` muda via prop (seleção de cor): parar autoplay via `setIsAutoplayStopped(true)`
+- Remover o hover pause (`onMouseEnter`/`onMouseLeave`) ou mantê-lo como comportamento separado — a parada permanente tem prioridade
+- O autoplay só reinicia se o usuário usar as setas ou trocar de cor. Na troca de cor, resetar `isAutoplayStopped = false` para permitir que as setas reativem
 
----
+Lógica resumida:
+- Thumbnail/dot click → para autoplay permanentemente
+- Seleção de cor com foto → para autoplay permanentemente  
+- Setas → não afetam o estado de parada, funcionam como navegação manual
+- Troca de cor → para autoplay (já que `activeIndex` muda)
 
-## Plano de Correcao
+**`src/pages/ProductPage.tsx`**
+- Passar prop `autoPlayStopped` ao `ProductGallery` quando cor com imagem é selecionada (já seta `galleryIndex`, basta a gallery reagir internamente)
 
-### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
-
-- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
-- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
-- Simplificar a logica de inicializacao
-
-### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
-
-- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
-  ```
-  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
-  ```
-
-### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
-
-- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
-
-### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
-
-- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
-
----
-
-## Resumo dos Arquivos Alterados
-
-| Arquivo | Alteracao |
-|---|---|
-| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
-| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
-
-Duas alteracoes simples que resolvem o problema de forma definitiva.
+Na prática, a maior parte da lógica fica dentro do `ProductGallery` — basta ele detectar que `activeIndex` mudou para parar o autoplay, e detectar cliques em thumbnails/dots para parar também.
 
