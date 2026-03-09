@@ -97,8 +97,6 @@ export default function ProductGallery({
     <div className="space-y-3 w-full overflow-hidden box-border">
       <div
         className="flex gap-3 w-full overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
       >
         {/* Thumbnails - Vertical Column on Left (Desktop) */}
         {images.length > 1 && (
