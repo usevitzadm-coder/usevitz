@@ -23,16 +23,22 @@ export default function ProductGallery({
   activeIndex,
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isAutoplayStopped, setIsAutoplayStopped] = useState(false);
   const desktopThumbsRef = useRef<HTMLDivElement>(null);
   const mobileThumbsRef = useRef<HTMLDivElement>(null);
 
-  // Navigate to activeIndex when parent changes it (e.g. color selection)
+  // Navigate to activeIndex when parent changes it (e.g. color selection) — stops autoplay
   useEffect(() => {
     if (activeIndex !== undefined && activeIndex >= 0 && activeIndex < images.length) {
       setSelectedIndex(activeIndex);
+      setIsAutoplayStopped(true);
     }
   }, [activeIndex, images.length]);
+
+  const handleThumbnailClick = useCallback((index: number) => {
+    setSelectedIndex(index);
+    setIsAutoplayStopped(true);
+  }, []);
 
   const goToNext = useCallback(() => {
     setSelectedIndex((prev) => (prev + 1) % images.length);
@@ -42,13 +48,13 @@ export default function ProductGallery({
     setSelectedIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  // Autoplay
+  // Autoplay — stops permanently on thumbnail/dot click or color selection
   useEffect(() => {
-    if (images.length <= 1 || isPaused) return;
+    if (images.length <= 1 || isAutoplayStopped) return;
 
     const interval = setInterval(goToNext, autoPlayInterval);
     return () => clearInterval(interval);
-  }, [images.length, isPaused, autoPlayInterval, goToNext]);
+  }, [images.length, isAutoplayStopped, autoPlayInterval, goToNext]);
 
   // Auto-scroll thumbnails to center selected
   useEffect(() => {
