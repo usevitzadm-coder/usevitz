@@ -338,7 +338,7 @@ function adminOrderCancelledEmail(order: OrderData, reason: string): { subject: 
 
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_confirmed" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale" | "admin_order_cancelled";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_confirmed" | "order_preparing" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale" | "admin_order_cancelled";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
