@@ -297,7 +297,7 @@ const MoreCoffeePleasePage = () => {
 
       {/* Disclaimer */}
       <section
-        style={{ backgroundColor: coffeeProducts.length > 0 ? "#5B2F06" : "#3b1f04" }}
+        style={{ backgroundColor: "#3b1f04" }}
         className="py-8"
       >
         <div className="vitz-container text-center">
