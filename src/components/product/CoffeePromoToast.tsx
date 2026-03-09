@@ -75,7 +75,7 @@ export default function CoffeePromoToast({ visible, onClose }: CoffeePromoToastP
             <span className="text-[10px] uppercase tracking-wider" style={{ color: "#d4c4a8" }}>
               Em parceria com
             </span>
-            <img src={logoFeraCafe} alt="Fera Café" className="h-5 w-auto object-contain" />
+            <img src={logoFeraCafe} alt="Fera Café" className="h-[25px] w-auto object-contain" />
           </div>
         </div>
       </div>
