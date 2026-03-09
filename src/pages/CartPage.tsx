@@ -369,7 +369,7 @@ const CartPage = () => {
                       <div className="col-span-12 md:col-span-6 flex gap-4">
                         <Link to={`/produto/${item.product.slug}`}>
                           <img
-                            src={item.product.images[0]}
+                            src={item.colorImage || item.product.images[0]}
                             alt={item.product.name}
                             className="w-24 h-28 object-cover rounded"
                           />
