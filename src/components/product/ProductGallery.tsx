@@ -23,16 +23,22 @@ export default function ProductGallery({
   activeIndex,
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isAutoplayStopped, setIsAutoplayStopped] = useState(false);
   const desktopThumbsRef = useRef<HTMLDivElement>(null);
   const mobileThumbsRef = useRef<HTMLDivElement>(null);
 
-  // Navigate to activeIndex when parent changes it (e.g. color selection)
+  // Navigate to activeIndex when parent changes it (e.g. color selection) — stops autoplay
   useEffect(() => {
     if (activeIndex !== undefined && activeIndex >= 0 && activeIndex < images.length) {
       setSelectedIndex(activeIndex);
+      setIsAutoplayStopped(true);
     }
   }, [activeIndex, images.length]);
+
+  const handleThumbnailClick = useCallback((index: number) => {
+    setSelectedIndex(index);
+    setIsAutoplayStopped(true);
+  }, []);
 
   const goToNext = useCallback(() => {
     setSelectedIndex((prev) => (prev + 1) % images.length);
@@ -42,13 +48,13 @@ export default function ProductGallery({
     setSelectedIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  // Autoplay
+  // Autoplay — stops permanently on thumbnail/dot click or color selection
   useEffect(() => {
-    if (images.length <= 1 || isPaused) return;
+    if (images.length <= 1 || isAutoplayStopped) return;
 
     const interval = setInterval(goToNext, autoPlayInterval);
     return () => clearInterval(interval);
-  }, [images.length, isPaused, autoPlayInterval, goToNext]);
+  }, [images.length, isAutoplayStopped, autoPlayInterval, goToNext]);
 
   // Auto-scroll thumbnails to center selected
   useEffect(() => {
@@ -91,8 +97,6 @@ export default function ProductGallery({
     <div className="space-y-3 w-full overflow-hidden box-border">
       <div
         className="flex gap-3 w-full overflow-hidden"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
       >
         {/* Thumbnails - Vertical Column on Left (Desktop) */}
         {images.length > 1 && (
@@ -103,7 +107,7 @@ export default function ProductGallery({
             {images.map((image, index) => (
               <button
                 key={image.id}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => handleThumbnailClick(index)}
                 className={`w-10 rounded-sm overflow-hidden border-2 transition-all flex-shrink-0 ${
                   selectedIndex === index
                     ? "border-primary opacity-100 scale-105"
@@ -156,7 +160,7 @@ export default function ProductGallery({
               {images.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedIndex(index)}
+                  onClick={() => handleThumbnailClick(index)}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     selectedIndex === index ? "bg-foreground" : "bg-foreground/40"
                   }`}
@@ -177,7 +181,7 @@ export default function ProductGallery({
             {images.map((image, index) => (
               <button
                 key={image.id}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => handleThumbnailClick(index)}
                 className={`flex-shrink-0 w-12 h-14 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
                     ? "border-primary opacity-100"
