@@ -15,6 +15,7 @@ const Header = () => {
 
   const navLinks = [
     { name: "Produtos", href: "/produtos" },
+    { name: "More Coffee", href: "/more-coffee-please" },
     { name: "Cartão Presente", href: "/gift-card" },
     { name: "Novidades", href: "/novidades" },
   ];
