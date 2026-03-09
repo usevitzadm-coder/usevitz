@@ -52,6 +52,7 @@ interface Order {
   payment_status: string;
   payment_method: string | null;
   payment_id: string | null;
+  tracking_code: string | null;
   created_at: string;
 }
 
