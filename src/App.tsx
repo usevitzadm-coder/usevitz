@@ -89,6 +89,7 @@ const App = () => {
                 <Route path="/checkout/pendente" element={<CheckoutPendingPage />} />
                 <Route path="/novidades" element={<NewArrivalsPage />} />
                 <Route path="/sale" element={<CollectionPage />} />
+                <Route path="/more-coffee-please" element={<MoreCoffeePleasePage />} />
                 <Route path="/sobre" element={<AboutPage />} />
                 <Route path="/entrega" element={<DeliveryPolicyPage />} />
                 <Route path="/trocas" element={<ReturnsPage />} />
