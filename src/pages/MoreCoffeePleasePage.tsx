@@ -1,9 +1,10 @@
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Coffee, Gift, ShoppingBag } from "lucide-react";
+import { Coffee, Gift, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import coffeeBg from "@/assets/coffee-beans-bg.jpg";
 import logoFeraCafe from "@/assets/logo-fera-cafe-white.png";
@@ -24,6 +25,97 @@ const steps = [
   title: "Ganhe seu drip coffee",
   description: "Receba um drip coffee exclusivo da Fera Café junto com seu pedido!"
 }];
+function CoffeeCarousel({ products }: { products: CoffeeProduct[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [updateScrollState, products]);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.7;
+    el.scrollBy({ left: direction === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  return (
+    <div className="relative">
+      {/* Scroll container */}
+      <div
+        ref={scrollRef}
+        className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
+      >
+        {products.map((product, i) => (
+          <Link
+            key={i}
+            to={`/produto/${product.productSlug}`}
+            className="group relative aspect-[3/4] rounded-xl overflow-hidden flex-shrink-0 w-[65vw] sm:w-[45vw] md:w-[30vw] lg:w-[22vw] snap-start"
+            style={{ border: "1px solid rgba(191, 162, 117, 0.2)" }}
+          >
+            <img
+              src={product.url}
+              alt={product.productName}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end"
+              style={{
+                background: "linear-gradient(to top, rgba(59, 31, 4, 0.85) 0%, transparent 50%)",
+              }}
+            >
+              <span
+                className="p-4 text-sm font-medium"
+                style={{ color: "#f5ead6", fontFamily: "var(--font-body)" }}
+              >
+                {product.productName}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Navigation arrows */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors"
+          style={{ backgroundColor: "rgba(245, 234, 214, 0.9)", color: "#3b1f04" }}
+          aria-label="Anterior"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors"
+          style={{ backgroundColor: "rgba(245, 234, 214, 0.9)", color: "#3b1f04" }}
+          aria-label="Próximo"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 
 interface CoffeeProduct {
@@ -218,36 +310,7 @@ const MoreCoffeePleasePage = () => {
               Qualquer uma dessas peças garante seu drip coffee da Fera Café.
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {coffeeProducts.map((product, i) =>
-            <Link
-              key={i}
-              to={`/produto/${product.productSlug}`}
-              className="group relative aspect-[3/4] rounded-xl overflow-hidden"
-              style={{ border: "1px solid rgba(191, 162, 117, 0.2)" }}>
-              
-                  <img
-                src={product.url}
-                alt={product.productName}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              
-                  <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end"
-                style={{
-                  background:
-                  "linear-gradient(to top, rgba(59, 31, 4, 0.85) 0%, transparent 50%)"
-                }}>
-                
-                    <span
-                  className="p-4 text-sm font-medium"
-                  style={{ color: "#f5ead6", fontFamily: "var(--font-body)" }}>
-                  
-                      {product.productName}
-                    </span>
-                  </div>
-                </Link>
-            )}
-            </div>
+            <CoffeeCarousel products={coffeeProducts} />
 
             <div className="text-center mt-12">
               <Button
