@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Package, Loader2, RefreshCw } from "lucide-react";
+import { Search, Eye, Package, Loader2, RefreshCw, Truck, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -52,6 +52,7 @@ interface Order {
   payment_status: string;
   payment_method: string | null;
   payment_id: string | null;
+  tracking_code: string | null;
   created_at: string;
 }
 
@@ -87,6 +88,8 @@ const AdminOrders = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
+  const [editingTrackingId, setEditingTrackingId] = useState<string | null>(null);
+  const [tempTrackingCode, setTempTrackingCode] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -161,6 +164,26 @@ const AdminOrders = () => {
     },
   });
 
+  const updateTrackingMutation = useMutation({
+    mutationFn: async ({ orderId, trackingCode }: { orderId: string; trackingCode: string }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ tracking_code: trackingCode || null })
+        .eq("id", orderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      setEditingTrackingId(null);
+      setTempTrackingCode("");
+      toast({ title: "Código de rastreio atualizado!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao atualizar código de rastreio", variant: "destructive" });
+    },
+  });
+
   const handleSyncPaymentStatus = async (order: Order) => {
     if (!order.payment_id) {
       toast({ title: "Pedido sem ID de pagamento", variant: "destructive" });
@@ -206,6 +229,20 @@ const AdminOrders = () => {
     } finally {
       setIsLoadingItems(false);
     }
+  };
+
+  const handleEditTracking = (order: Order) => {
+    setEditingTrackingId(order.id);
+    setTempTrackingCode(order.tracking_code || "");
+  };
+
+  const handleSaveTracking = (orderId: string) => {
+    updateTrackingMutation.mutate({ orderId, trackingCode: tempTrackingCode });
+  };
+
+  const handleCancelTracking = () => {
+    setEditingTrackingId(null);
+    setTempTrackingCode("");
   };
 
   const formatPrice = (price: number) => {
@@ -298,6 +335,7 @@ const AdminOrders = () => {
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
+                <TableHead>Rastreio</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -350,6 +388,50 @@ const AdminOrders = () => {
                         </Button>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {editingTrackingId === order.id ? (
+                      <div className="flex items-center gap-1 max-w-[150px]">
+                        <Input
+                          value={tempTrackingCode}
+                          onChange={(e) => setTempTrackingCode(e.target.value)}
+                          placeholder="Código de rastreio"
+                          className="h-7 text-xs"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => handleSaveTracking(order.id)}
+                          disabled={updateTrackingMutation.isPending}
+                        >
+                          <Check className="h-3 w-3 text-green-600" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={handleCancelTracking}
+                        >
+                          <X className="h-3 w-3 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">
+                          {order.tracking_code || "N/A"}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditTracking(order)}
+                          title="Editar código de rastreio"
+                        >
+                          <Truck className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
