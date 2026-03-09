@@ -163,6 +163,7 @@ const AdminOrders = () => {
 
         const emailMap: Record<string, string> = {
           confirmed: "order_confirmed",
+          preparing: "order_preparing",
           delivered: "order_delivered",
           cancelled: "order_cancelled",
         };

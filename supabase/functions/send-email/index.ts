@@ -159,6 +159,22 @@ function paymentApprovedEmail(order: OrderData, founderName: string): { subject:
   };
 }
 
+function orderPreparingEmail(order: OrderData, founderName: string): { subject: string; html: string } {
+  return {
+    subject: `Pedido ${order.order_number} está sendo preparado! 📦`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px;font-size:22px;">Estamos Preparando Seu Pedido! ✂️📦</h2>
+      <p style="line-height:1.6;color:#444;">Oi, <strong>${order.customer_name}</strong>! Aqui é a <strong>${founderName}</strong> da Vitz.</p>
+      <p style="line-height:1.6;color:#444;">Seu pedido <strong>${order.order_number}</strong> já está sendo <strong>separado e embalado</strong> com todo o carinho!</p>
+      ${orderItemsTable(order.items)}
+      ${orderSummary(order)}
+      ${shippingBlock(order)}
+      <p style="line-height:1.6;color:#444;">Em breve ele será enviado e você receberá o código de rastreamento. Falta pouco! 🚀</p>
+      <p style="line-height:1.6;color:#444;">Com carinho,<br><strong>${founderName}</strong> 💛<br><em>Co-fundadora da Vitz</em></p>
+    `, `Pedido ${order.order_number} está sendo preparado!`),
+  };
+}
+
 function orderShippedEmail(order: OrderData, founderName: string): { subject: string; html: string } {
   return {
     subject: `Pedido ${order.order_number} enviado! 📦`,
@@ -322,7 +338,7 @@ function adminOrderCancelledEmail(order: OrderData, reason: string): { subject: 
 
 // ─── Email type mapping ─────────────────────────────────────────
 
-type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_confirmed" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale" | "admin_order_cancelled";
+type EmailType = "welcome" | "order_confirmation" | "payment_approved" | "payment_rejected" | "order_confirmed" | "order_preparing" | "order_shipped" | "order_delivered" | "order_cancelled" | "newsletter_coupon" | "launch_notify" | "admin_new_sale" | "admin_order_cancelled";
 
 function getEmailContent(type: EmailType, data: any, founderName: string): { subject: string; html: string } | null {
   switch (type) {
@@ -334,6 +350,8 @@ function getEmailContent(type: EmailType, data: any, founderName: string): { sub
       return paymentApprovedEmail(data as OrderData, founderName);
     case "order_confirmed":
       return orderConfirmedEmail(data as OrderData, founderName);
+    case "order_preparing":
+      return orderPreparingEmail(data as OrderData, founderName);
     case "payment_rejected":
       return paymentRejectedEmail(data as OrderData, founderName);
     case "order_shipped":
