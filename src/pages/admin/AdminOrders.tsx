@@ -272,8 +272,13 @@ const AdminOrders = () => {
     setTempTrackingCode(order.tracking_code || "");
   };
 
-  const handleSaveTracking = (orderId: string) => {
-    updateTrackingMutation.mutate({ orderId, trackingCode: tempTrackingCode });
+  const handleSaveTracking = (order: Order) => {
+    updateTrackingMutation.mutate({
+      orderId: order.id,
+      trackingCode: tempTrackingCode,
+      orderStatus: order.status,
+      previousTrackingCode: order.tracking_code,
+    });
   };
 
   const handleCancelTracking = () => {
