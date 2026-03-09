@@ -568,6 +568,10 @@ const ProductPage = () => {
           </section>
         )}
       </Layout>
+      <CoffeePromoToast
+        visible={showCoffeePromo}
+        onClose={() => setShowCoffeePromo(false)}
+      />
     </>
   );
 };
