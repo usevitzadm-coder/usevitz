@@ -52,11 +52,11 @@ const MoreCoffeePleasePage = () => {
     queryKey: ["coffee-products", coffeeColor?.id],
     enabled: !!coffeeColor?.id,
     queryFn: async () => {
-      const { data: linkedImages } = await supabase
-        .from("product_images")
-        .select("url, product_id, products!inner(name, slug, is_active)")
-        .eq("color_id", coffeeColor!.id)
-        .eq("products.is_active", true);
+      const { data: linkedImages } = await supabase.
+      from("product_images").
+      select("url, product_id, products!inner(name, slug, is_active)").
+      eq("color_id", coffeeColor!.id).
+      eq("products.is_active", true);
 
       return (linkedImages || []).map((i) => ({
         url: i.url,
@@ -111,7 +111,7 @@ const MoreCoffeePleasePage = () => {
               <span style={{ color: "#bfa275" }}>please!</span>
             </h1>
             <p
-              className="text-base md:text-lg font-light leading-relaxed max-w-lg mx-auto"
+              className="text-base md:text-lg leading-relaxed max-w-lg mx-auto font-normal text-primary"
               style={{ fontFamily: "var(--font-body)", color: "#d4c4a8" }}>
               
               Compre qualquer peça na cor <strong style={{ color: "#e8d5b5" }}>Coffee</strong> e
@@ -127,7 +127,7 @@ const MoreCoffeePleasePage = () => {
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 pt-1">
-              <span className="text-xs uppercase tracking-[0.15em]" style={{ color: "#a0693a" }}>
+              <span className="text-xs uppercase tracking-[0.15em] text-primary-foreground" style={{ color: "#a0693a" }}>
                 Em parceria com
               </span>
               <img
@@ -212,7 +212,7 @@ const MoreCoffeePleasePage = () => {
               Peças na cor Coffee
             </h2>
             <p
-            className="vitz-body text-center mb-12 max-w-lg mx-auto"
+            className="vitz-body text-center mb-12 max-w-lg mx-auto text-primary-foreground"
             style={{ color: "#a0693a" }}>
             
               Qualquer uma dessas peças garante seu drip coffee da Fera Café.
