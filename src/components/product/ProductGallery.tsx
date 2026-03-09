@@ -181,7 +181,7 @@ export default function ProductGallery({
             {images.map((image, index) => (
               <button
                 key={image.id}
-                onClick={() => setSelectedIndex(index)}
+                onClick={() => handleThumbnailClick(index)}
                 className={`flex-shrink-0 w-12 h-14 rounded-sm overflow-hidden border-2 transition-all ${
                   selectedIndex === index
                     ? "border-primary opacity-100"
