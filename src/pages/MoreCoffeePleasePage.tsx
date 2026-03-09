@@ -6,6 +6,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Coffee, Gift, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import coffeeBg from "@/assets/coffee-beans-bg.jpg";
 
 const steps = [
   {
