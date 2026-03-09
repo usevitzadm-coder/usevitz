@@ -159,6 +159,22 @@ function paymentApprovedEmail(order: OrderData, founderName: string): { subject:
   };
 }
 
+function orderPreparingEmail(order: OrderData, founderName: string): { subject: string; html: string } {
+  return {
+    subject: `Pedido ${order.order_number} está sendo preparado! 📦`,
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px;font-size:22px;">Estamos Preparando Seu Pedido! ✂️📦</h2>
+      <p style="line-height:1.6;color:#444;">Oi, <strong>${order.customer_name}</strong>! Aqui é a <strong>${founderName}</strong> da Vitz.</p>
+      <p style="line-height:1.6;color:#444;">Seu pedido <strong>${order.order_number}</strong> já está sendo <strong>separado e embalado</strong> com todo o carinho!</p>
+      ${orderItemsTable(order.items)}
+      ${orderSummary(order)}
+      ${shippingBlock(order)}
+      <p style="line-height:1.6;color:#444;">Em breve ele será enviado e você receberá o código de rastreamento. Falta pouco! 🚀</p>
+      <p style="line-height:1.6;color:#444;">Com carinho,<br><strong>${founderName}</strong> 💛<br><em>Co-fundadora da Vitz</em></p>
+    `, `Pedido ${order.order_number} está sendo preparado!`),
+  };
+}
+
 function orderShippedEmail(order: OrderData, founderName: string): { subject: string; html: string } {
   return {
     subject: `Pedido ${order.order_number} enviado! 📦`,
