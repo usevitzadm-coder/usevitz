@@ -160,7 +160,7 @@ export default function ProductGallery({
               {images.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedIndex(index)}
+                  onClick={() => handleThumbnailClick(index)}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     selectedIndex === index ? "bg-foreground" : "bg-foreground/40"
                   }`}
