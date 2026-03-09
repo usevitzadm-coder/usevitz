@@ -32,6 +32,7 @@ export interface CartItem {
   product: Product;
   variant: ProductVariant;
   quantity: number;
+  colorImage?: string;
 }
 
 export interface Collection {
