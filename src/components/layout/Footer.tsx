@@ -118,7 +118,7 @@ const Footer = () => {
               <a href="https://wa.me/5511915204545" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="WhatsApp">
                 <Phone size={20} />
               </a>
-              <a href="https://instagram.com/usevitz" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="Instagram">
+              <a href="https://www.instagram.com/use_vitz" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
               <a href="mailto:suporte@usevitz.com" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors" aria-label="E-mail">
