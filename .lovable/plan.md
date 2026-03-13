@@ -1,48 +1,68 @@
 
 
-## Problema Identificado
+## Diagnóstico: Por que o estoque não esgota corretamente
 
-O hook `useEarlyAccess` tem dois problemas criticos:
+### Problemas identificados
 
-1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
+**1. Sem validação de estoque no checkout (servidor)**
+A função `create-pagarme-checkout` valida preço, cupom e gift card, mas **nunca verifica se há estoque disponível** antes de criar o pedido. Um produto com 0 unidades pode ser comprado.
 
-2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
+**2. Pedidos pendentes (PIX/boleto) não reservam estoque**
+O trigger `decrease_stock_on_payment_confirmed` só decrementa estoque quando `payment_status = 'approved'`. Pedidos PIX e boleto ficam como `pending` até o webhook confirmar pagamento. Nesse intervalo:
+- Cliente A compra via PIX → estoque NÃO decrementado (pending)
+- Cliente B compra o mesmo item via PIX → estoque NÃO decrementado (ainda aparece disponível)
+- Ambos pagam → estoque deveria ter esgotado após o primeiro, mas permitiu oversell
 
-3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
+**3. Frontend confia apenas no `product_variants.stock`**
+O frontend verifica `selectedVariant.stock === 0` para mostrar "Esgotado", mas esse valor não considera pedidos pendentes.
 
----
+### Solução proposta
 
-## Plano de Correcao
+**A. Validação de estoque no checkout (servidor) — `create-pagarme-checkout/index.ts`**
+Após validar preços, buscar as variantes e verificar se `stock >= quantity` para cada item. Rejeitar o pedido com erro claro se algum item está esgotado. Isso previne compras de itens com estoque zero.
 
-### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
+**B. Reserva de estoque para pedidos pendentes — nova migration SQL**
+Alterar o trigger `decrease_stock_on_payment_confirmed` para **também decrementar estoque quando o pedido é criado** (INSERT com qualquer status), não apenas quando aprovado. A lógica de restauração já existe para `refunded`/`rejected`, então:
 
-- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
-- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
-- Simplificar a logica de inicializacao
+- INSERT (qualquer status) → decrementa estoque imediatamente
+- UPDATE para `approved` → nenhuma ação adicional (já foi decrementado)
+- UPDATE para `refunded`/`rejected` → restaura estoque (já funciona)
 
-### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+Isso garante que pedidos PIX/boleto pendentes reservam o estoque.
 
-- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
-  ```
-  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
-  ```
+Ajuste necessário na lógica do trigger:
+- No INSERT: decrementar estoque (para qualquer `payment_status`)
+- No UPDATE para `approved`: NÃO decrementar de novo (já foi feito no INSERT)
+- No UPDATE para `refunded`/`rejected` a partir de qualquer status: restaurar estoque
 
-### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+**C. Expirar pedidos pendentes antigos — nova edge function `expire-pending-orders`**
+Pedidos PIX/boleto que nunca foram pagos precisam ter o estoque devolvido. Criar uma função que:
+- Busca pedidos com `payment_status = 'pending'` criados há mais de 48h
+- Atualiza `payment_status` para `rejected` (o trigger existente restaura o estoque)
+- Pode ser chamada manualmente pelo admin ou via cron
 
-- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+**D. Considerar pedidos pendentes no frontend (opcional)**
+Adicionar uma função SQL `get_available_stock(variant_id)` que calcula: `stock` da variante menos a soma de quantidades em `order_items` de pedidos com `payment_status = 'pending'`. O frontend usaria essa função em vez do `stock` direto. Porém, com a solução B, isso não é necessário pois o stock já será decrementado no momento do pedido.
 
-### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+### Arquivos alterados
 
-- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
+1. **`supabase/functions/create-pagarme-checkout/index.ts`** — Adicionar validação de estoque após validação de preços
+2. **Migration SQL** — Reescrever trigger `decrease_stock_on_payment_confirmed` para decrementar no INSERT (qualquer status) e não duplicar no UPDATE para approved
+3. **`supabase/functions/expire-pending-orders/index.ts`** — Nova função para expirar pedidos pendentes antigos
+4. **`supabase/config.toml`** — Registrar nova edge function (se necessário)
 
----
+### Resumo da mudança no trigger
 
-## Resumo dos Arquivos Alterados
+```text
+ANTES:
+  INSERT (approved)  → decrementa
+  INSERT (pending)   → nada          ← BUG: oversell
+  UPDATE → approved  → decrementa
+  UPDATE → refunded  → restaura
 
-| Arquivo | Alteracao |
-|---|---|
-| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
-| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
-
-Duas alteracoes simples que resolvem o problema de forma definitiva.
+DEPOIS:
+  INSERT (qualquer)  → decrementa    ← CORRIGIDO
+  UPDATE → approved  → nada (já decrementou)
+  UPDATE → refunded/rejected → restaura
+```
 
