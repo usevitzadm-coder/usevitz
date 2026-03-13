@@ -448,6 +448,36 @@ serve(async (req: Request) => {
         console.error("Error creating order items:", itemsError);
       }
 
+      // ===== STOCK DEDUCTION (after order_items exist) =====
+      // Deduct stock immediately for all orders (pending or approved)
+      for (const item of validatedItems) {
+        if (!item.variant_id) continue;
+
+        // Deduct variant stock
+        await supabase.rpc("sync_linked_stock", {
+          p_variant_id: item.variant_id,
+          p_quantity: item.quantity,
+        });
+
+        await supabase
+          .from("product_variants")
+          .update({ stock: Math.max(0, (await supabase.from("product_variants").select("stock").eq("id", item.variant_id).single()).data!.stock - item.quantity) })
+          .eq("id", item.variant_id);
+
+        const movementType = paymentStatus === "approved" ? "venda" : "reserva";
+        const movementReason = paymentStatus === "approved"
+          ? `Venda confirmada - Pedido #${orderNumber}`
+          : `Estoque reservado - Pedido #${orderNumber}`;
+
+        await supabase.from("stock_movements").insert({
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+          type: movementType,
+          reason: movementReason,
+        });
+      }
+      console.log("Stock deducted for all items");
+
       responseData.internalOrderId = orderRecord.id;
       responseData.orderNumber = orderNumber;
     }
