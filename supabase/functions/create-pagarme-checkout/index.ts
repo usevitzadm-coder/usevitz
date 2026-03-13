@@ -449,6 +449,7 @@ serve(async (req: Request) => {
       }
 
       responseData.internalOrderId = orderRecord.id;
+      responseData.orderNumber = orderNumber;
     }
 
     // Handle gift card discount if applied
