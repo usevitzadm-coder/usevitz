@@ -174,7 +174,15 @@ const ProductPage = () => {
   // Get active variants only
   const activeVariants = product.product_variants?.filter((v) => v.is_active) || [];
 
-  const sizes = [...new Set(activeVariants.map((v) => v.size))];
+  const sizeOrder = ["PP", "P", "M", "G", "GG", "XG", "XXG", "Tam. Único"];
+  const sizes = [...new Set(activeVariants.map((v) => v.size))].sort((a, b) => {
+    const idxA = sizeOrder.indexOf(a);
+    const idxB = sizeOrder.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
   const colors = [...new Set(activeVariants.map((v) => v.color))];
   
   // Use admin colors for accurate hex values
