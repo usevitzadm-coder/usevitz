@@ -449,20 +449,28 @@ serve(async (req: Request) => {
       }
 
       // ===== STOCK DEDUCTION (after order_items exist) =====
-      // Deduct stock immediately for all orders (pending or approved)
       for (const item of validatedItems) {
         if (!item.variant_id) continue;
 
-        // Deduct variant stock
+        // Fetch current stock then decrement
+        const { data: currentVariant } = await supabase
+          .from("product_variants")
+          .select("stock")
+          .eq("id", item.variant_id)
+          .single();
+
+        if (currentVariant) {
+          await supabase
+            .from("product_variants")
+            .update({ stock: Math.max(0, currentVariant.stock - item.quantity) })
+            .eq("id", item.variant_id);
+        }
+
+        // Sync linked bundle/component stocks
         await supabase.rpc("sync_linked_stock", {
           p_variant_id: item.variant_id,
           p_quantity: item.quantity,
         });
-
-        await supabase
-          .from("product_variants")
-          .update({ stock: Math.max(0, (await supabase.from("product_variants").select("stock").eq("id", item.variant_id).single()).data!.stock - item.quantity) })
-          .eq("id", item.variant_id);
 
         const movementType = paymentStatus === "approved" ? "venda" : "reserva";
         const movementReason = paymentStatus === "approved"
