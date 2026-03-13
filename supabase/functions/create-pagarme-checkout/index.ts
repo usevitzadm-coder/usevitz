@@ -143,6 +143,33 @@ serve(async (req: Request) => {
 
     console.log("Server-validated subtotal:", subtotal);
 
+    // ===== SERVER-SIDE STOCK VALIDATION =====
+    // Fetch variant stock and validate availability
+    const variantIdsForStock = validatedItems.map(item => item.variant_id).filter(Boolean);
+    if (variantIdsForStock.length > 0) {
+      const { data: dbVariants, error: variantsError } = await supabase
+        .from("product_variants")
+        .select("id, stock, product_id, size, color")
+        .in("id", variantIdsForStock);
+
+      if (variantsError || !dbVariants) {
+        throw new Error("Failed to fetch variant stock from database");
+      }
+
+      for (const item of validatedItems) {
+        if (!item.variant_id) continue;
+        const dbVariant = dbVariants.find(v => v.id === item.variant_id);
+        if (!dbVariant) {
+          throw new Error(`Variant ${item.variant_id} not found for product ${item.name}`);
+        }
+        if (dbVariant.stock < item.quantity) {
+          const availableMsg = dbVariant.stock === 0 ? "esgotado" : `apenas ${dbVariant.stock} disponível(is)`;
+          throw new Error(`Produto "${item.name}" (${dbVariant.color} / ${dbVariant.size}) ${availableMsg}. Ajuste seu carrinho.`);
+        }
+      }
+      console.log("Stock validation passed for all items");
+    }
+
     // ===== SERVER-SIDE COUPON VALIDATION =====
     let couponDiscount = 0;
     if (couponCode) {
@@ -422,6 +449,7 @@ serve(async (req: Request) => {
       }
 
       responseData.internalOrderId = orderRecord.id;
+      responseData.orderNumber = orderNumber;
     }
 
     // Handle gift card discount if applied
@@ -493,12 +521,12 @@ serve(async (req: Request) => {
             data: {
               order_number: orderNumber,
               customer_name: customer.name,
-              subtotal: serverSubtotal,
+              subtotal: subtotal,
               shipping_cost: shippingCost,
               discount: couponDiscount,
               gift_card_amount: giftCardDiscount,
-              total: serverTotal,
-              shipping_method: shippingMethod || null,
+              total: total,
+              shipping_method: shippingOption?.name || null,
               shipping_address: `${shipping.street}, ${shipping.number}${shipping.complement ? ` - ${shipping.complement}` : ""}`,
               shipping_city: shipping.city,
               shipping_state: shipping.state,
