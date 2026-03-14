@@ -55,7 +55,7 @@ const ValueProps = () => {
     <section className="py-10 md:py-16 border-y border-border">
       <div className="vitz-container">
         {/* Desktop: Grid */}
-        <div className="hidden md:grid md:grid-cols-4 gap-4">
+        <div className="hidden md:grid md:grid-cols-5 gap-4">
           {benefits.map((benefit, index) => (
             <BenefitItem key={index} {...benefit} />
           ))}
