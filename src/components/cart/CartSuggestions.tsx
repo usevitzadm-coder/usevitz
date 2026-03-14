@@ -189,7 +189,7 @@ const CartSuggestions = () => {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <Link to={`/produto/${current.slug}`} className="text-sm font-medium leading-tight truncate block hover:underline">{current.name}</Link>
+            <Link to={`/produto/${current.slug}`} onClick={() => setIsCartOpen(false)} className="text-sm font-medium leading-tight truncate block hover:underline">{current.name}</Link>
             <p className="text-xs text-muted-foreground">{formatPrice(current.price)}</p>
 
             {/* Variant selector */}
