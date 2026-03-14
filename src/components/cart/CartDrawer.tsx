@@ -159,7 +159,7 @@ const CartDrawer = () => {
                 onClick={() => setIsCartOpen(false)}
                 asChild
               >
-                <Link to="/checkout">Finalizar Compra</Link>
+                <Link to="/carrinho">Ver Carrinho</Link>
               </Button>
               <Button
                 variant="outline"
