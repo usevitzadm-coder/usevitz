@@ -1,29 +1,48 @@
 
 
-## Régua de Benefícios no Carrinho Lateral
+## Problema Identificado
 
-### O que será criado
+O hook `useEarlyAccess` tem dois problemas criticos:
 
-Uma barra de progresso com os benefícios desbloqueáveis, exibida no carrinho lateral (CartDrawer) acima da lista de itens quando há produtos. Dois marcos:
+1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
 
-1. **R$ 180,00** — Parcele em até 3x sem juros
-2. **R$ 239,90** — Frete grátis para o Sudeste
+2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
 
-A régua mostra:
-- Uma barra de progresso visual indicando quanto falta para o próximo benefício
-- Ícones/texto dos benefícios com estado ativo (desbloqueado) ou inativo (falta X reais)
-- Mensagem dinâmica: "Faltam R$ XX para frete grátis!" ou "Você desbloqueou todos os benefícios!"
+3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
 
-### Arquivos
+---
 
-1. **`src/components/cart/CartBenefitsBar.tsx`** (novo) — Componente da régua com lógica de thresholds e barra de progresso
-2. **`src/components/cart/CartDrawer.tsx`** — Importar e renderizar o `CartBenefitsBar` entre o header e a lista de itens, passando `cartTotal`
+## Plano de Correcao
 
-### Detalhes técnicos
+### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
 
-- Thresholds fixos: `INSTALLMENT_THRESHOLD = 180` e `FREE_SHIPPING_THRESHOLD = 239.90` (consistente com os valores já usados no checkout e no cálculo de frete)
-- Barra de progresso com `max = FREE_SHIPPING_THRESHOLD` (o maior valor)
-- Dois marcadores na barra nas posições proporcionais (180/239.90 ≈ 75% e 100%)
-- Cores: benefício desbloqueado em verde/primary, pendente em muted
-- Ícones: `CreditCard` para parcelamento, `Truck` para frete grátis (lucide-react)
+- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
+- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
+- Simplificar a logica de inicializacao
+
+### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+
+- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
+  ```
+  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
+  ```
+
+### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+
+- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+
+### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+
+- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
+
+---
+
+## Resumo dos Arquivos Alterados
+
+| Arquivo | Alteracao |
+|---|---|
+| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
+| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
+
+Duas alteracoes simples que resolvem o problema de forma definitiva.
 
