@@ -136,6 +136,7 @@ const CartDrawer = () => {
               ))}
             </ul>
           )}
+          {items.length > 0 && <CartSuggestions />}
         </div>
 
         {/* Footer */}
