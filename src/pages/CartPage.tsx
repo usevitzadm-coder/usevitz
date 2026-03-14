@@ -443,6 +443,11 @@ const CartPage = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* Suggestions */}
+                <div className="mt-8 border-t border-border pt-6">
+                  <CartSuggestions />
+                </div>
               </div>
 
               {/* Summary */}
