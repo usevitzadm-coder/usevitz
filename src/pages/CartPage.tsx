@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import CartSuggestions from "@/components/cart/CartSuggestions";
 import { Helmet } from "react-helmet-async";
 import { Minus, Plus, X, ArrowRight, Truck, Loader2, Package, Tag } from "lucide-react";
 import Layout from "@/components/layout/Layout";
@@ -442,6 +443,11 @@ const CartPage = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* Suggestions */}
+                <div className="mt-8 border-t border-border pt-6">
+                  <CartSuggestions />
+                </div>
               </div>
 
               {/* Summary */}
