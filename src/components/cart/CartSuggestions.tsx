@@ -150,106 +150,114 @@ const CartSuggestions = () => {
 
   return (
     <div className="px-4 py-3 border-t border-border">
-      <div className="flex items-center justify-between mb-2">
+      <button
+        onClick={() => setCollapsed((c) => !c)}
+        className="flex items-center justify-between w-full mb-2"
+      >
         <h4 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">
           ✨ Combina com seu look
         </h4>
-        {filtered.length > 1 && (
-          <div className="flex items-center gap-1">
-            {filtered.map((_, i) => (
-              <span
-                key={i}
-                className={`block w-1.5 h-1.5 rounded-full transition-colors ${
-                  i === safeIndex ? "bg-primary" : "bg-border"
-                }`}
-              />
-            ))}
+        <div className="flex items-center gap-2">
+          {!collapsed && filtered.length > 1 && (
+            <div className="flex items-center gap-1">
+              {filtered.map((_, i) => (
+                <span
+                  key={i}
+                  className={`block w-1.5 h-1.5 rounded-full transition-colors ${
+                    i === safeIndex ? "bg-primary" : "bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+          {collapsed ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
+        </div>
+      </button>
+
+      {!collapsed && (
+        <div className="flex items-center gap-3">
+          {/* Image */}
+          <div className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
+            <img
+              src={getOptimizedImageUrl(current.image, 128, 128)}
+              alt={current.name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           </div>
-        )}
-      </div>
 
-      <div className="flex items-center gap-3">
-        {/* Image */}
-        <div className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
-          <img
-            src={getOptimizedImageUrl(current.image, 128, 128)}
-            alt={current.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-tight truncate">{current.name}</p>
+            <p className="text-xs text-muted-foreground">{formatPrice(current.price)}</p>
+
+            {/* Variant selector */}
+            {hasMultipleVariants && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {variesByColor &&
+                  current.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() =>
+                        setSelectedVariants((prev) => ({ ...prev, [current.id]: v.id }))
+                      }
+                      title={`${v.color}${variesBySize ? ` / ${v.size}` : ""}`}
+                      className={`w-5 h-5 rounded-full border-2 transition-colors ${
+                        v.id === currentVariantId
+                          ? "border-primary ring-1 ring-primary/30"
+                          : "border-border hover:border-muted-foreground"
+                      }`}
+                      style={{ backgroundColor: v.colorHex || undefined }}
+                    />
+                  ))}
+                {!variesByColor &&
+                  variesBySize &&
+                  current.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() =>
+                        setSelectedVariants((prev) => ({ ...prev, [current.id]: v.id }))
+                      }
+                      className={`text-[10px] px-1.5 py-0.5 rounded-sm border transition-colors ${
+                        v.id === currentVariantId
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground hover:border-muted-foreground"
+                      }`}
+                    >
+                      {v.size}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Navigation + Add */}
+          <div className="flex flex-col items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => addToCart(current.fullProduct, currentVariant, 1, current.image)}
+              className="flex items-center justify-center w-8 h-8 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+            {filtered.length > 1 && (
+              <div className="flex gap-0.5">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => navigate(1)}
+                  className="p-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight truncate">{current.name}</p>
-          <p className="text-xs text-muted-foreground">{formatPrice(current.price)}</p>
-
-          {/* Variant selector */}
-          {hasMultipleVariants && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {variesByColor &&
-                current.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() =>
-                      setSelectedVariants((prev) => ({ ...prev, [current.id]: v.id }))
-                    }
-                    title={`${v.color}${variesBySize ? ` / ${v.size}` : ""}`}
-                    className={`w-5 h-5 rounded-full border-2 transition-colors ${
-                      v.id === currentVariantId
-                        ? "border-primary ring-1 ring-primary/30"
-                        : "border-border hover:border-muted-foreground"
-                    }`}
-                    style={{ backgroundColor: v.colorHex || undefined }}
-                  />
-                ))}
-              {!variesByColor &&
-                variesBySize &&
-                current.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() =>
-                      setSelectedVariants((prev) => ({ ...prev, [current.id]: v.id }))
-                    }
-                    className={`text-[10px] px-1.5 py-0.5 rounded-sm border transition-colors ${
-                      v.id === currentVariantId
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-muted-foreground"
-                    }`}
-                  >
-                    {v.size}
-                  </button>
-                ))}
-            </div>
-          )}
-        </div>
-
-        {/* Navigation + Add */}
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
-          <button
-            onClick={() => addToCart(current.fullProduct, currentVariant, 1, current.image)}
-            className="flex items-center justify-center w-8 h-8 rounded-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus size={16} />
-          </button>
-          {filtered.length > 1 && (
-            <div className="flex gap-0.5">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-0.5 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={() => navigate(1)}
-                className="p-0.5 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
