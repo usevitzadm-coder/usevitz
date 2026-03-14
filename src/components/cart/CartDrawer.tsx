@@ -35,7 +35,7 @@ const CartDrawer = () => {
       {/* Drawer */}
       <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background shadow-2xl z-50 flex flex-col animate-slide-in-right">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 sm:p-6 border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h2 className="font-heading text-xl">Seu Carrinho</h2>
           <button
             onClick={() => setIsCartOpen(false)}
@@ -142,10 +142,10 @@ const CartDrawer = () => {
         {items.length > 0 && (
           <div className="border-t border-border">
             <CartSuggestions />
-            <div className="p-4 sm:p-6 border-t border-border space-y-3 sm:space-y-4">
+            <div className="p-4 border-t border-border space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground text-sm">Subtotal</span>
-                <span className="font-heading text-lg sm:text-xl">
+                <span className="font-heading text-lg">
                   {formatPrice(getCartTotal())}
                 </span>
               </div>
@@ -155,7 +155,7 @@ const CartDrawer = () => {
               <Button
                 variant="hero"
                 size="default"
-                className="w-full h-10 sm:h-11 text-sm"
+                className="w-full h-10 text-sm"
                 onClick={() => setIsCartOpen(false)}
                 asChild
               >
@@ -164,7 +164,7 @@ const CartDrawer = () => {
               <Button
                 variant="outline"
                 size="default"
-                className="w-full h-9 sm:h-11 text-sm"
+                className="w-full h-9 text-sm"
                 onClick={() => setIsCartOpen(false)}
               >
                 Continuar Comprando
