@@ -21,7 +21,7 @@ interface SuggestionProduct {
 
 const CartSuggestions = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { items, addToCart } = useCart();
+  const { items, addToCart, setIsCartOpen } = useCart();
   const [suggestions, setSuggestions] = useState<SuggestionProduct[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
