@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { Truck, CreditCard, Shield, Sparkles } from "lucide-react";
+import { Truck, CreditCard, Shield, Sparkles, Sun } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -13,6 +13,11 @@ const benefits = [
     icon: CreditCard,
     title: "Parcele em até 3x s/ juros",
     description: "No cartão de crédito",
+  },
+  {
+    icon: Sun,
+    title: "Peças com proteção UV",
+    description: "Linhas Daily e Essential com UV 50+",
   },
   {
     icon: Shield,
@@ -50,7 +55,7 @@ const ValueProps = () => {
     <section className="py-10 md:py-16 border-y border-border">
       <div className="vitz-container">
         {/* Desktop: Grid */}
-        <div className="hidden md:grid md:grid-cols-4 gap-4">
+        <div className="hidden md:grid md:grid-cols-5 gap-4">
           {benefits.map((benefit, index) => (
             <BenefitItem key={index} {...benefit} />
           ))}
