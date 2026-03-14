@@ -1,31 +1,48 @@
 
 
-## "Leve também" — Carrossel de Acessórios no Carrinho Lateral
+## Problema Identificado
 
-### O que será criado
+O hook `useEarlyAccess` tem dois problemas criticos:
 
-Uma seção "Leve também" no `CartDrawer`, exibida abaixo da lista de itens do carrinho (e acima do footer), com os produtos da categoria **Acessórios** em formato de carrossel horizontal. Cada card mostra imagem, nome e preço, com botão para adicionar ao carrinho diretamente.
+1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
 
-### Dados
+2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
 
-A categoria "Acessórios" já existe no banco (`id: 1bb234a0-...`) com 3 produtos ativos: Boné Vitz (R$49,90), Headband (R$24,90) e Ecobag (R$39,90). A query buscará produtos + primeira imagem + primeira variante ativa dessa categoria.
+3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
 
-### Arquivos
+---
 
-1. **`src/components/cart/CartSuggestions.tsx`** (novo)
-   - Componente que busca acessórios do banco via Supabase (products + product_images + product_variants, filtrados por `category_id` de Acessórios)
-   - Exclui produtos que já estão no carrinho
-   - Renderiza carrossel horizontal com scroll nativo (CSS `overflow-x-auto`, snap scroll)
-   - Cada card: imagem (80x80), nome, preço e botão "+" para adicionar ao carrinho (usa `addToCart` do contexto, adicionando a primeira variante com estoque)
-   - Se não houver sugestões (todos já no carrinho ou sem dados), retorna null
+## Plano de Correcao
 
-2. **`src/components/cart/CartDrawer.tsx`** (edição)
-   - Importar e renderizar `<CartSuggestions />` dentro da área scrollável, logo após a `<ul>` de itens
+### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
 
-### Detalhes técnicos
+- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
+- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
+- Simplificar a logica de inicializacao
 
-- Query: `supabase.from('products').select('id, name, slug, price, product_images(url), product_variants(id, size, color, color_hex, stock, sku)').eq('category_id', ACESSORIOS_CATEGORY_ID).eq('is_active', true).eq('product_variants.is_active', true)`
-- Carrossel usa scroll nativo com `snap-x` do Tailwind (leve, sem dependência extra)
-- Ao clicar "+", chama `addToCart` com o produto formatado e a primeira variante disponível, sem precisar selecionar tamanho/cor (acessórios geralmente têm "Tam. Único")
-- Filtra itens já presentes no carrinho pelo `product.id`
+### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+
+- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
+  ```
+  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
+  ```
+
+### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+
+- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+
+### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+
+- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
+
+---
+
+## Resumo dos Arquivos Alterados
+
+| Arquivo | Alteracao |
+|---|---|
+| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
+| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
+
+Duas alteracoes simples que resolvem o problema de forma definitiva.
 

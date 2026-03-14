@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import CartBenefitsBar from "./CartBenefitsBar";
+import CartSuggestions from "./CartSuggestions";
 
 const CartDrawer = () => {
   const {
@@ -135,6 +136,7 @@ const CartDrawer = () => {
               ))}
             </ul>
           )}
+          {items.length > 0 && <CartSuggestions />}
         </div>
 
         {/* Footer */}
