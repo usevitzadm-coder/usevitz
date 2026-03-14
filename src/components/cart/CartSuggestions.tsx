@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
 import { Product, ProductVariant } from "@/types/product";
@@ -177,18 +178,18 @@ const CartSuggestions = () => {
       {!collapsed && (
         <div className="flex items-center gap-3">
           {/* Image */}
-          <div className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
+          <Link to={`/produto/${current.slug}`} className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
             <img
               src={getOptimizedImageUrl(current.image, 128, 128)}
               alt={current.name}
               className="w-full h-full object-cover"
               loading="lazy"
             />
-          </div>
+          </Link>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium leading-tight truncate">{current.name}</p>
+            <Link to={`/produto/${current.slug}`} className="text-sm font-medium leading-tight truncate block hover:underline">{current.name}</Link>
             <p className="text-xs text-muted-foreground">{formatPrice(current.price)}</p>
 
             {/* Variant selector */}
