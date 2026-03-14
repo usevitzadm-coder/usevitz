@@ -510,41 +510,12 @@ const ProductPage = () => {
           </div>
         </section>
 
-        {/* Related Products */}
-        {relatedProducts && relatedProducts.length > 0 && (
-          <section className="py-16 bg-vitz-cream-dark">
-            <div className="vitz-container">
-              <h2 className="vitz-heading-md text-foreground mb-8">
-                Você também pode gostar
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {relatedProducts.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={{
-                      id: p.id,
-                      name: p.name,
-                      slug: p.slug,
-                      price: p.price,
-                      originalPrice: p.original_price ?? undefined,
-                      images: [p.image_url],
-                      badge: p.badge as 'novo' | 'mais-vendido' | 'promo' | undefined,
-                      description: "",
-                      shortDescription: p.short_description ?? "",
-                      category: "",
-                      variants: [],
-                      benefits: [],
-                      rating: 0,
-                      reviewCount: 0,
-                      createdAt: p.created_at,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
+        {product.category_id && (
+          <SimilarProducts
+            categoryId={product.category_id}
+            currentProductId={product.id}
+          />
         )}
-      </Layout>
       <CoffeePromoToast
         visible={showCoffeePromo}
         onClose={() => setShowCoffeePromo(false)}
