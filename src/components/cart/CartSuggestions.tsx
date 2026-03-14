@@ -19,6 +19,7 @@ interface SuggestionProduct {
 }
 
 const CartSuggestions = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const { items, addToCart } = useCart();
   const [suggestions, setSuggestions] = useState<SuggestionProduct[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
