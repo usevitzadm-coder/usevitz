@@ -12,9 +12,33 @@ import Autoplay from "embla-carousel-autoplay";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface SimilarProductsProps {
-  categoryId: string;
+  categoryId?: string | null;
   currentProductId: string;
 }
+
+const formatProducts = (data: any[]) =>
+  data.map((p) => {
+    const primaryImage = p.product_images?.find((img: any) => img.is_primary);
+    const firstImage = p.product_images?.[0];
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      originalPrice: p.original_price ?? undefined,
+      images: [primaryImage?.url || firstImage?.url || "/placeholder.svg"],
+      badge: p.badge as "novo" | "mais-vendido" | "promo" | undefined,
+      description: "",
+      shortDescription: p.short_description ?? "",
+      category: "",
+      variants: [],
+      benefits: [],
+      rating: 0,
+      reviewCount: 0,
+      createdAt: p.created_at,
+      isComingSoon: p.is_coming_soon,
+    };
+  });
 
 const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps) => {
   const { data: products, isLoading } = useQuery({
