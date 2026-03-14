@@ -121,9 +121,11 @@ const CartSuggestions = () => {
     if (currentIndex >= filtered.length) setCurrentIndex(0);
   }, [filtered.length, currentIndex]);
 
-  if (filtered.length === 0) return null;
+  const safeIndex = filtered.length > 0 ? currentIndex % filtered.length : 0;
+  const current = filtered[safeIndex];
 
-  const current = filtered[currentIndex];
+  if (!current) return null;
+
   const currentVariantId = selectedVariants[current.id] || current.variants[0].id;
   const currentVariant = current.variants.find((v) => v.id === currentVariantId) || current.variants[0];
 
