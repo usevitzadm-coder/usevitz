@@ -81,7 +81,7 @@ const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps)
     <section className="py-16 bg-vitz-cream-dark">
       <div className="vitz-container">
         <h2 className="vitz-heading-md text-foreground mb-8">
-          ✨ Complete seu look
+          Você também pode gostar
         </h2>
         <Carousel
           opts={{
