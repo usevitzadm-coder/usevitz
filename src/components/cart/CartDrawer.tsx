@@ -2,6 +2,7 @@ import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
+import CartBenefitsBar from "./CartBenefitsBar";
 
 const CartDrawer = () => {
   const {
