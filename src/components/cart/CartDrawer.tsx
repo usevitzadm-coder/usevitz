@@ -44,6 +44,9 @@ const CartDrawer = () => {
           </button>
         </div>
 
+        {/* Benefits bar */}
+        {items.length > 0 && <CartBenefitsBar cartTotal={getCartTotal()} />}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {items.length === 0 ? (
