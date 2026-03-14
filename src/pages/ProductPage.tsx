@@ -510,12 +510,10 @@ const ProductPage = () => {
           </div>
         </section>
 
-        {product.category_id && (
-          <SimilarProducts
-            categoryId={product.category_id}
-            currentProductId={product.id}
-          />
-        )}
+        <SimilarProducts
+          categoryId={product.category_id}
+          currentProductId={product.id}
+        />
       </Layout>
       <CoffeePromoToast
         visible={showCoffeePromo}
