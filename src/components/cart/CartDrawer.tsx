@@ -142,10 +142,10 @@ const CartDrawer = () => {
         {items.length > 0 && (
           <div className="border-t border-border">
             <CartSuggestions />
-            <div className="p-4 sm:p-6 border-t border-border space-y-3 sm:space-y-4">
+            <div className="p-4 border-t border-border space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground text-sm">Subtotal</span>
-                <span className="font-heading text-lg sm:text-xl">
+                <span className="font-heading text-lg">
                   {formatPrice(getCartTotal())}
                 </span>
               </div>
@@ -155,7 +155,7 @@ const CartDrawer = () => {
               <Button
                 variant="hero"
                 size="default"
-                className="w-full h-10 sm:h-11 text-sm"
+                className="w-full h-10 text-sm"
                 onClick={() => setIsCartOpen(false)}
                 asChild
               >
@@ -164,7 +164,7 @@ const CartDrawer = () => {
               <Button
                 variant="outline"
                 size="default"
-                className="w-full h-9 sm:h-11 text-sm"
+                className="w-full h-9 text-sm"
                 onClick={() => setIsCartOpen(false)}
               >
                 Continuar Comprando
