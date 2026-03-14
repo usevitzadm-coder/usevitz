@@ -159,7 +159,7 @@ const CartSuggestions = () => {
               <span
                 key={i}
                 className={`block w-1.5 h-1.5 rounded-full transition-colors ${
-                  i === currentIndex ? "bg-primary" : "bg-border"
+                  i === safeIndex ? "bg-primary" : "bg-border"
                 }`}
               />
             ))}
