@@ -150,8 +150,8 @@ const CartSuggestions = () => {
   return (
     <div className="px-4 py-3 border-t border-border">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="font-heading text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Leve também
+        <h4 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">
+          ✨ Combina com seu look
         </h4>
         {filtered.length > 1 && (
           <div className="flex items-center gap-1">
