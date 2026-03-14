@@ -136,38 +136,40 @@ const CartDrawer = () => {
               ))}
             </ul>
           )}
-          {items.length > 0 && <CartSuggestions />}
         </div>
 
-        {/* Footer */}
+        {/* Suggestions + Footer fixed at bottom */}
         {items.length > 0 && (
-          <div className="p-6 border-t border-border space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-heading text-xl">
-                {formatPrice(getCartTotal())}
-              </span>
+          <div className="border-t border-border">
+            <CartSuggestions />
+            <div className="p-6 border-t border-border space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-heading text-xl">
+                  {formatPrice(getCartTotal())}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Frete calculado no checkout
+              </p>
+              <Button
+                variant="hero"
+                size="lg"
+                className="w-full"
+                onClick={() => setIsCartOpen(false)}
+                asChild
+              >
+                <Link to="/checkout">Finalizar Compra</Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={() => setIsCartOpen(false)}
+              >
+                Continuar Comprando
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Frete calculado no checkout
-            </p>
-            <Button
-              variant="hero"
-              size="lg"
-              className="w-full"
-              onClick={() => setIsCartOpen(false)}
-              asChild
-            >
-              <Link to="/checkout">Finalizar Compra</Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full"
-              onClick={() => setIsCartOpen(false)}
-            >
-              Continuar Comprando
-            </Button>
           </div>
         )}
       </div>
