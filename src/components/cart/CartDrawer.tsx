@@ -35,7 +35,7 @@ const CartDrawer = () => {
       {/* Drawer */}
       <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background shadow-2xl z-50 flex flex-col animate-slide-in-right">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 sm:p-6 border-b border-border">
           <h2 className="font-heading text-xl">Seu Carrinho</h2>
           <button
             onClick={() => setIsCartOpen(false)}

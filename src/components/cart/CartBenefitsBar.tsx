@@ -26,7 +26,7 @@ const CartBenefitsBar = ({ cartTotal }: CartBenefitsBarProps) => {
   const remaining = Math.max(nextThreshold - cartTotal, 0);
 
   return (
-    <div className="px-4 py-3 border-b border-border space-y-3">
+    <div className="px-4 py-2 sm:py-3 border-b border-border space-y-2 sm:space-y-3">
       {/* Progress message */}
       <p className="text-xs text-center font-medium">
         {allUnlocked ? (
