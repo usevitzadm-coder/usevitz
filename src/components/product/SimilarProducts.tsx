@@ -12,15 +12,57 @@ import Autoplay from "embla-carousel-autoplay";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface SimilarProductsProps {
-  categoryId: string;
+  categoryId?: string | null;
   currentProductId: string;
 }
+
+const formatProducts = (data: any[]) =>
+  data.map((p) => {
+    const primaryImage = p.product_images?.find((img: any) => img.is_primary);
+    const firstImage = p.product_images?.[0];
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      originalPrice: p.original_price ?? undefined,
+      images: [primaryImage?.url || firstImage?.url || "/placeholder.svg"],
+      badge: p.badge as "novo" | "mais-vendido" | "promo" | undefined,
+      description: "",
+      shortDescription: p.short_description ?? "",
+      category: "",
+      variants: [],
+      benefits: [],
+      rating: 0,
+      reviewCount: 0,
+      createdAt: p.created_at,
+      isComingSoon: p.is_coming_soon,
+    };
+  });
 
 const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps) => {
   const { data: products, isLoading } = useQuery({
     queryKey: ["similar-products", categoryId, currentProductId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try same category first
+      if (categoryId) {
+        const { data } = await supabase
+          .from("products")
+          .select(`
+            id, name, slug, price, original_price, badge,
+            short_description, created_at, is_coming_soon,
+            product_images(url, is_primary)
+          `)
+          .eq("is_active", true)
+          .eq("category_id", categoryId)
+          .neq("id", currentProductId)
+          .limit(8);
+
+        if (data && data.length > 0) return formatProducts(data);
+      }
+
+      // Fallback: random mix of products
+      const { data } = await supabase
         .from("products")
         .select(`
           id, name, slug, price, original_price, badge,
@@ -28,36 +70,11 @@ const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps)
           product_images(url, is_primary)
         `)
         .eq("is_active", true)
-        .eq("category_id", categoryId)
         .neq("id", currentProductId)
         .limit(8);
 
-      if (error) throw error;
-
-      return data?.map((p) => {
-        const primaryImage = p.product_images?.find((img) => img.is_primary);
-        const firstImage = p.product_images?.[0];
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          price: p.price,
-          originalPrice: p.original_price ?? undefined,
-          images: [primaryImage?.url || firstImage?.url || "/placeholder.svg"],
-          badge: p.badge as "novo" | "mais-vendido" | "promo" | undefined,
-          description: "",
-          shortDescription: p.short_description ?? "",
-          category: "",
-          variants: [],
-          benefits: [],
-          rating: 0,
-          reviewCount: 0,
-          createdAt: p.created_at,
-          isComingSoon: p.is_coming_soon,
-        };
-      });
+      return formatProducts(data || []);
     },
-    enabled: !!categoryId,
   });
 
   if (isLoading) {
