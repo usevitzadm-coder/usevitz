@@ -94,43 +94,6 @@ const ProductPage = () => {
     },
   });
 
-  // Fetch related products
-  const { data: relatedProducts } = useQuery({
-    queryKey: ["related-products", product?.category_id],
-    queryFn: async () => {
-      if (!product?.category_id) return [];
-      
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          id,
-          name,
-          slug,
-          price,
-          original_price,
-          badge,
-          short_description,
-          created_at,
-          product_images(url, is_primary)
-        `)
-        .eq("is_active", true)
-        .eq("category_id", product.category_id)
-        .neq("id", product.id)
-        .limit(4);
-
-      if (error) throw error;
-
-      return data?.map((p) => {
-        const primaryImage = p.product_images?.find((img) => img.is_primary);
-        const firstImage = p.product_images?.[0];
-        return {
-          ...p,
-          image_url: primaryImage?.url || firstImage?.url || "/placeholder.svg",
-        };
-      });
-    },
-    enabled: !!product?.category_id,
-  });
 
   if (isLoading) {
     return (
