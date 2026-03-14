@@ -178,7 +178,7 @@ const CartSuggestions = () => {
       {!collapsed && (
         <div className="flex items-center gap-3">
           {/* Image */}
-          <Link to={`/produto/${current.slug}`} className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
+          <Link to={`/produto/${current.slug}`} onClick={() => setIsCartOpen(false)} className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
             <img
               src={getOptimizedImageUrl(current.image, 128, 128)}
               alt={current.name}
