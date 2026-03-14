@@ -21,7 +21,7 @@ interface SuggestionProduct {
 
 const CartSuggestions = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { items, addToCart } = useCart();
+  const { items, addToCart, setIsCartOpen } = useCart();
   const [suggestions, setSuggestions] = useState<SuggestionProduct[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -178,7 +178,7 @@ const CartSuggestions = () => {
       {!collapsed && (
         <div className="flex items-center gap-3">
           {/* Image */}
-          <Link to={`/produto/${current.slug}`} className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
+          <Link to={`/produto/${current.slug}`} onClick={() => setIsCartOpen(false)} className="w-16 h-16 flex-shrink-0 rounded-sm bg-muted overflow-hidden">
             <img
               src={getOptimizedImageUrl(current.image, 128, 128)}
               alt={current.name}
@@ -189,7 +189,7 @@ const CartSuggestions = () => {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <Link to={`/produto/${current.slug}`} className="text-sm font-medium leading-tight truncate block hover:underline">{current.name}</Link>
+            <Link to={`/produto/${current.slug}`} onClick={() => setIsCartOpen(false)} className="text-sm font-medium leading-tight truncate block hover:underline">{current.name}</Link>
             <p className="text-xs text-muted-foreground">{formatPrice(current.price)}</p>
 
             {/* Variant selector */}
