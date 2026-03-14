@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
-import ProductCard from "@/components/product/ProductCard";
+import SimilarProducts from "@/components/product/SimilarProducts";
 import ProductGallery from "@/components/product/ProductGallery";
 import LaunchLeadForm from "@/components/product/LaunchLeadForm";
 import CoffeePromoToast from "@/components/product/CoffeePromoToast";
