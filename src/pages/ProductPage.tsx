@@ -516,6 +516,7 @@ const ProductPage = () => {
             currentProductId={product.id}
           />
         )}
+      </Layout>
       <CoffeePromoToast
         visible={showCoffeePromo}
         onClose={() => setShowCoffeePromo(false)}
