@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/context/CartContext";
-import ProductCard from "@/components/product/ProductCard";
+import SimilarProducts from "@/components/product/SimilarProducts";
 import ProductGallery from "@/components/product/ProductGallery";
 import LaunchLeadForm from "@/components/product/LaunchLeadForm";
 import CoffeePromoToast from "@/components/product/CoffeePromoToast";
@@ -94,43 +94,6 @@ const ProductPage = () => {
     },
   });
 
-  // Fetch related products
-  const { data: relatedProducts } = useQuery({
-    queryKey: ["related-products", product?.category_id],
-    queryFn: async () => {
-      if (!product?.category_id) return [];
-      
-      const { data, error } = await supabase
-        .from("products")
-        .select(`
-          id,
-          name,
-          slug,
-          price,
-          original_price,
-          badge,
-          short_description,
-          created_at,
-          product_images(url, is_primary)
-        `)
-        .eq("is_active", true)
-        .eq("category_id", product.category_id)
-        .neq("id", product.id)
-        .limit(4);
-
-      if (error) throw error;
-
-      return data?.map((p) => {
-        const primaryImage = p.product_images?.find((img) => img.is_primary);
-        const firstImage = p.product_images?.[0];
-        return {
-          ...p,
-          image_url: primaryImage?.url || firstImage?.url || "/placeholder.svg",
-        };
-      });
-    },
-    enabled: !!product?.category_id,
-  });
 
   if (isLoading) {
     return (
@@ -547,39 +510,11 @@ const ProductPage = () => {
           </div>
         </section>
 
-        {/* Related Products */}
-        {relatedProducts && relatedProducts.length > 0 && (
-          <section className="py-16 bg-vitz-cream-dark">
-            <div className="vitz-container">
-              <h2 className="vitz-heading-md text-foreground mb-8">
-                Você também pode gostar
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {relatedProducts.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={{
-                      id: p.id,
-                      name: p.name,
-                      slug: p.slug,
-                      price: p.price,
-                      originalPrice: p.original_price ?? undefined,
-                      images: [p.image_url],
-                      badge: p.badge as 'novo' | 'mais-vendido' | 'promo' | undefined,
-                      description: "",
-                      shortDescription: p.short_description ?? "",
-                      category: "",
-                      variants: [],
-                      benefits: [],
-                      rating: 0,
-                      reviewCount: 0,
-                      createdAt: p.created_at,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
+        {product.category_id && (
+          <SimilarProducts
+            categoryId={product.category_id}
+            currentProductId={product.id}
+          />
         )}
       </Layout>
       <CoffeePromoToast

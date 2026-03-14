@@ -1,32 +1,48 @@
 
 
-## Seção "Complete seu look" na PDP — Peças Similares
+## Problema Identificado
 
-### Situação atual
-A PDP já tem uma seção "Você também pode gostar" que busca produtos da **mesma categoria**. A ideia é melhorar essa seção existente, transformando-a em um carrossel mais compacto e engajante no estilo do `CartSuggestions`, ou adicionar uma nova seção complementar.
+O hook `useEarlyAccess` tem dois problemas criticos:
 
-### Plano
+1. **`ProductsPage` nao usa o `earlyAccessValid`**: A pagina `/produtos` importa o hook e guarda o valor em `earlyAccessValid`, mas na hora de montar o `ProductCard` passa `isComingSoon: product.is_coming_soon ?? false` sem considerar o early access. O override nunca chega ao card.
 
-**Melhorar a seção "Você também pode gostar" existente** (linhas 550-582 do `ProductPage.tsx`), transformando-a em um carrossel horizontal com auto-rotação e visual mais atrativo, similar ao que fizemos no carrinho.
+2. **`sessionStorage` se perde com reload**: Se a cliente compartilha o link `/?ea=VITZ2026` e depois navega para `/produtos`, o parametro `?ea=` some da URL. O `sessionStorage` deveria manter, mas pode falhar em cenarios de reload ou abas novas. Trocar para `localStorage` garante persistencia entre abas e reloads.
 
-#### Alterações:
+3. **Flickering durante loading da query**: Enquanto a validacao do codigo no banco carrega, `isEarlyAccess` e `undefined`, e `undefined || false` retorna `false` -- mostrando blur por um instante.
 
-1. **`src/components/product/SimilarProducts.tsx`** (novo)
-   - Componente reutilizável que recebe `categoryId` e `currentProductId` como props
-   - Busca produtos da mesma categoria (excluindo o atual), limitado a 8
-   - Renderiza em carrossel horizontal usando Embla Carousel (já disponível no projeto)
-   - Cards compactos com imagem, nome, preço, badge — reutilizando `ProductCard` existente
-   - Título chamativo: "Complete seu look" ou "Peças que combinam"
-   - Setas de navegação + dots indicadores
-   - Auto-play com pausa ao interagir
+---
 
-2. **`src/pages/ProductPage.tsx`** (edição)
-   - Substituir a seção estática "Você também pode gostar" (grid 4 colunas) pelo novo componente `<SimilarProducts categoryId={product.category_id} currentProductId={product.id} />`
-   - Remover a query `relatedProducts` do ProductPage (movida para o componente)
+## Plano de Correcao
 
-#### Visual
-- Desktop: carrossel mostrando 4 cards lado a lado com setas
-- Mobile: carrossel mostrando 1.5 cards com scroll snap
-- Background `bg-vitz-cream-dark` mantido
-- Título "✨ Complete seu look" com estilo heading
+### 1. Tornar o hook mais robusto (`src/hooks/useEarlyAccess.ts`)
+
+- Trocar `sessionStorage` por `localStorage` para persistir entre abas e reloads
+- Adicionar `placeholderData: false` para evitar flickering, mas tambem cachear o resultado com chave fixa para que, uma vez validado, nao pisque novamente
+- Simplificar a logica de inicializacao
+
+### 2. Corrigir `ProductsPage` (`src/pages/ProductsPage.tsx`)
+
+- Na montagem do `ProductCard`, usar o valor de `earlyAccessValid` para sobrescrever `isComingSoon`:
+  ```
+  isComingSoon: earlyAccessValid ? false : (product.is_coming_soon ?? false)
+  ```
+
+### 3. Confirmar `ProductCard` (`src/components/product/ProductCard.tsx`)
+
+- O card nao precisa do hook -- ele recebe `isComingSoon` ja resolvido via prop. Nenhuma alteracao necessaria aqui.
+
+### 4. Confirmar `ProductPage` (detalhe) e `NewArrivalsPage`
+
+- Ja usam o hook corretamente. Nenhuma alteracao necessaria.
+
+---
+
+## Resumo dos Arquivos Alterados
+
+| Arquivo | Alteracao |
+|---|---|
+| `src/hooks/useEarlyAccess.ts` | Trocar sessionStorage por localStorage; melhorar inicializacao |
+| `src/pages/ProductsPage.tsx` | Usar `earlyAccessValid` no `isComingSoon` do ProductCard |
+
+Duas alteracoes simples que resolvem o problema de forma definitiva.
 
