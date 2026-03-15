@@ -1266,9 +1266,10 @@ const CheckoutPage = () => {
                     )}
 
                     {paymentMethod === "pix" && (
-                      <div className="pt-4 border-t text-center text-sm text-muted-foreground">
+                      <div className="pt-4 border-t text-center text-sm text-muted-foreground space-y-1">
                         <p>Após finalizar, você receberá um QR Code para pagamento.</p>
                         <p>O pagamento deve ser feito em até 1 hora.</p>
+                        <p className="font-medium text-foreground">Recebedor: 65.551.397 NATALIA BARRETO RIOS</p>
                       </div>
                     )}
 
