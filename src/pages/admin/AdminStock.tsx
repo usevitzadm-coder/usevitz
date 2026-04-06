@@ -217,6 +217,46 @@ export default function AdminStock() {
 
       if (movementError) throw movementError;
 
+      // Sync linked stock (bundles <-> components)
+      if (adjustType === 'saida' || (adjustType === 'ajuste' && movementQuantity < 0)) {
+        const syncQty = adjustType === 'saida' ? quantity : Math.abs(movementQuantity);
+        await supabase.rpc('sync_linked_stock', {
+          p_variant_id: adjustVariant.id,
+          p_quantity: syncQty,
+        });
+      } else if (adjustType === 'entrada' || (adjustType === 'ajuste' && movementQuantity > 0)) {
+        // For stock increases, recalculate bundle stock based on min component stock
+        const { data: bundleLinks } = await supabase
+          .from('bundle_variant_links')
+          .select('bundle_variant_id')
+          .eq('component_variant_id', adjustVariant.id);
+
+        if (bundleLinks && bundleLinks.length > 0) {
+          for (const link of bundleLinks) {
+            const { data: allComponents } = await supabase
+              .from('bundle_variant_links')
+              .select('component_variant_id')
+              .eq('bundle_variant_id', link.bundle_variant_id);
+
+            if (allComponents) {
+              const componentIds = allComponents.map(c => c.component_variant_id);
+              const { data: componentVariants } = await supabase
+                .from('product_variants')
+                .select('stock')
+                .in('id', componentIds);
+
+              if (componentVariants) {
+                const minStock = Math.min(...componentVariants.map(v => v.stock));
+                await supabase
+                  .from('product_variants')
+                  .update({ stock: minStock })
+                  .eq('id', link.bundle_variant_id);
+              }
+            }
+          }
+        }
+      }
+
       toast({
         title: 'Estoque atualizado',
         description: `Novo estoque: ${newStock} unidades`,
