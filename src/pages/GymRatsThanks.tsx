@@ -15,7 +15,7 @@ const steps = [
 ];
 
 const GymRatsThanks = () => (
-  <div className="min-h-screen bg-background overflow-hidden flex flex-col">
+  <div className="min-h-screen font-albert bg-background overflow-hidden flex flex-col">
     <header className="container flex items-center justify-between py-5">
       <Link to="/"><img src={logoVitz} alt="Vitz" className="h-24 md:h-32 w-auto scale-[2] origin-left" /></Link>
     </header>
