@@ -30,6 +30,8 @@ const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 const MoreCoffeePleasePage = lazy(() => import("./pages/MoreCoffeePleasePage"));
+const GymRats = lazy(() => import("./pages/GymRats"));
+const GymRatsThanks = lazy(() => import("./pages/GymRatsThanks"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminGiftCards = lazy(() => import("./pages/admin/AdminGiftCards"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -95,6 +97,8 @@ const App = () => {
                 <Route path="/trocas" element={<ReturnsPage />} />
                 <Route path="/privacidade" element={<PrivacyPolicyPage />} />
                 <Route path="/conta" element={<AccountPage />} />
+                <Route path="/gymrats" element={<GymRats />} />
+                <Route path="/gymrats/obrigada" element={<GymRatsThanks />} />
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route

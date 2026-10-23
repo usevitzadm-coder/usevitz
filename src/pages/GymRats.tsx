@@ -102,7 +102,7 @@ const GymRats = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background overflow-hidden font-albert">
       <header className="container flex items-center justify-between py-5">
         <Link to="/"><img src={logoVitz} alt="Vitz" className="h-24 md:h-32 w-auto scale-[2] origin-left" /></Link>
         <a href="#inscricao">
