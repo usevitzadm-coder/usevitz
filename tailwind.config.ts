@@ -57,6 +57,8 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        mint: "hsl(var(--vitz-mint))",
+        gold: "hsl(var(--vitz-gold))",
         vitz: {
           gold: "hsl(var(--vitz-gold))",
           "gold-hover": "hsl(var(--vitz-gold-hover))",
@@ -71,6 +73,8 @@ export default {
       fontFamily: {
         heading: ["Cormorant Garamond", "serif"],
         body: ["Outfit", "sans-serif"],
+        serif: ["DejaVu Serif", "Georgia", "serif"],
+        albert: ["Albert Sans", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -81,6 +85,7 @@ export default {
         soft: "var(--shadow-soft)",
         medium: "var(--shadow-medium)",
         product: "var(--shadow-product)",
+        elegant: "0 10px 30px -10px hsl(var(--primary) / 0.35)",
       },
       transitionDuration: {
         fast: "150ms",
@@ -108,6 +113,8 @@ export default {
           from: { opacity: "0", transform: "translateX(20px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        marquee: { from: { transform: "translateX(0)" }, to: { transform: "translateX(-50%)" } },
+        "pulse-ring": { "0%": { transform: "scale(1)", opacity: "0.6" }, "100%": { transform: "scale(1.6)", opacity: "0" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -115,6 +122,8 @@ export default {
         "fade-in": "fade-in 0.5s ease-out forwards",
         "slide-up": "slide-up 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
+        marquee: "marquee 25s linear infinite",
+        "pulse-ring": "pulse-ring 1.8s ease-out infinite",
       },
     },
   },
