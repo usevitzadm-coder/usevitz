@@ -330,6 +330,36 @@ export type Database = {
         }
         Relationships: []
       }
+      gymrats_signups: {
+        Row: {
+          accepted_terms_at: string
+          created_at: string
+          email: string
+          id: string
+          marketing_opt_in: boolean
+          name: string
+          phone: string
+        }
+        Insert: {
+          accepted_terms_at?: string
+          created_at?: string
+          email: string
+          id?: string
+          marketing_opt_in?: boolean
+          name: string
+          phone: string
+        }
+        Update: {
+          accepted_terms_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          marketing_opt_in?: boolean
+          name?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       launch_leads: {
         Row: {
           created_at: string
