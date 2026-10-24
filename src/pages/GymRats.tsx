@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getGymratsCountdown, gymratsCompetition } from "@/data/gymrats";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Informe seu nome").max(100),
@@ -20,17 +21,13 @@ const schema = z.object({
     .refine((v) => v.length >= 10 && v.length <= 13, "Telefone inválido"),
 });
 
-const START = new Date("2026-11-01T00:00:00-03:00").getTime();
-const END = new Date("2026-11-30T23:59:59-03:00").getTime();
-
 const useCountdown = () => {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const started = now >= START;
-  const diff = Math.max(0, (started ? END : START) - now);
+  const { started, remaining: diff } = getGymratsCountdown(now);
   return {
     started,
     parts: [
@@ -43,21 +40,21 @@ const useCountdown = () => {
 };
 
 const podium = [
-  { place: "2º", prize: "20% OFF", h: "h-28 md:h-36" },
-  { place: "1º", prize: "Conjunto Vitz + 20% OFF", h: "h-40 md:h-52", top: true },
-  { place: "3º", prize: "20% OFF", h: "h-20 md:h-28" },
-];
+  { ...gymratsCompetition.prizes[1], h: "h-28 md:h-36", top: false },
+  { ...gymratsCompetition.prizes[0], h: "h-40 md:h-52", top: true },
+  { ...gymratsCompetition.prizes[2], h: "h-20 md:h-28", top: false },
+].map((prize) => ({ ...prize, label: `${prize.gift} + ${prize.discount}% OFF` }));
 
 const ticker = ["Treine", "Registre", "Suba no ranking", "Conquiste", "#GymRatsDaGabi"];
 
 const terms = [
   {
     t: "1. A competição",
-    d: "O GymRats da Gabi by Vitz é uma competição de constância em treinos realizada durante o mês de novembro. O ranking e a pontuação são apurados pela plataforma do aplicativo terceiro GymRats, responsável pelo registro e pela classificação das participantes.",
+    d: "O GymRats da Gabi by Vitz é uma competição de constância em treinos realizada de 15 a 30 de novembro de 2026, no horário de Brasília. O ranking e a pontuação são apurados pela plataforma do aplicativo terceiro GymRats, responsável pelo registro e pela classificação das participantes.",
   },
   {
     t: "2. Comunicações",
-    d: "O grupo oficial no WhatsApp é o canal de comunicação entre as participantes, a Gabi e a Vitz. Nele serão compartilhados avisos da competição, ideias de treino e conteúdos de saúde e bem-estar.",
+    d: "O grupo oficial no WhatsApp é o canal de comunicação entre as participantes, a Gabi e a Vitz. Nele serão compartilhados avisos e ideias de treino durante a competição.",
   },
   {
     t: "3. Seus dados (LGPD)",
@@ -65,7 +62,11 @@ const terms = [
   },
   {
     t: "4. Premiação",
-    d: "Os prêmios são disponibilizados pelo WhatsApp da Vitz por meio da geração de cupons. Cada cupom é válido por 30 dias a partir da data de disponibilização. A Vitz não se responsabiliza por cupons não utilizados após o prazo de validade.",
+    d: `As cinco primeiras colocadas ganham ${gymratsCompetition.prizes[0].discount}% OFF. A primeira também ganha um conjunto Vitz, a segunda uma ecobag e a terceira uma headband. A disponibilização dos prêmios é organizada pelo WhatsApp da Vitz. Cada cupom é válido por 30 dias a partir da data de disponibilização. A Vitz não se responsabiliza por cupons não utilizados após o prazo de validade.`,
+  },
+  {
+    t: "5. Cupom de participação",
+    d: `Todas as participantes inscritas desbloqueiam um cupom de ${gymratsCompetition.signupDiscount}% OFF no grupo oficial do WhatsApp. Os descontos não são acumulativos.`,
   },
 ];
 
@@ -103,7 +104,7 @@ const GymRats = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden font-albert">
-      <header className="container flex items-center justify-between py-5">
+      <header className="container hidden md:flex items-center justify-between py-5">
         <Link to="/"><img src={logoVitz} alt="Vitz" className="h-24 md:h-32 w-auto scale-[2] origin-left" /></Link>
         <a href="#inscricao">
           <Button size="sm" className="rounded-full">Participar</Button>
@@ -121,7 +122,7 @@ const GymRats = () => {
               <span className="absolute inline-flex h-full w-full rounded-full bg-primary animate-pulse-ring" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
-            Competição · Novembro
+            Competição · 15 a 30/11
           </span>
 
           <h1 className="font-serif leading-[0.85] mt-8">
@@ -135,7 +136,7 @@ const GymRats = () => {
           <p className="text-xs tracking-[0.4em] uppercase text-muted-foreground mt-4">by Vitz</p>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mt-8">
-            30 dias. Um ranking. Muita constância. Treine com a Gabi durante todo o mês de novembro e dispute prêmios exclusivos.
+            De 15 a 30 de novembro. Um ranking. Muita constância. Treine com a Gabi durante a competição e dispute prêmios exclusivos.
           </p>
 
           {/* Countdown */}
@@ -185,24 +186,28 @@ const GymRats = () => {
           {podium.map((p) => (
             <div key={p.place} className="flex-1 flex flex-col items-center">
               {p.top && <Trophy className="text-primary mb-3 animate-bounce" size={40} />}
-              <p className="text-center text-sm md:text-base font-medium mb-3 px-1">{p.prize}</p>
+              <p className="text-center text-sm md:text-base font-medium mb-3 px-1">{p.label}</p>
               <div className={`w-full ${p.h} rounded-t-2xl flex items-start justify-center pt-4 ${p.top ? "bg-primary text-primary-foreground" : "bg-mint text-foreground"}`}>
-                <span className="font-serif text-4xl md:text-6xl">{p.place}</span>
+                <span className="font-serif text-4xl md:text-6xl">{p.place}º</span>
               </div>
             </div>
           ))}
         </div>
         <p className="text-center text-muted-foreground mt-8">
-          4º e 5º lugares também ganham <strong className="text-foreground">20% OFF</strong>
+          4º e 5º lugares também ganham <strong className="text-foreground">{gymratsCompetition.prizes[3].discount}% OFF</strong>
         </p>
+        <p className="text-center text-muted-foreground mt-3">
+          Todas as inscritas desbloqueiam um cupom de <strong className="text-foreground">{gymratsCompetition.signupDiscount}% OFF</strong> no grupo.
+        </p>
+        <p className="text-center text-sm text-muted-foreground mt-3">Os descontos não são acumulativos.</p>
       </section>
 
       {/* How it works */}
       <section className="bg-foreground text-background py-20 md:py-28">
         <div className="container grid md:grid-cols-3 gap-10">
           {[
-            { n: "01", icon: Users, t: "Inscreva-se", d: "Preencha seus dados e entre no grupo oficial no WhatsApp." },
-            { n: "02", icon: Dumbbell, t: "Treine com a Gabi", d: "Receba ideias de treino e dicas de saúde durante todo o mês." },
+            { n: "01", icon: Users, t: "Inscreva-se", d: `Preencha seus dados, entre no grupo oficial no WhatsApp e desbloqueie seu cupom de ${gymratsCompetition.signupDiscount}% OFF.` },
+            { n: "02", icon: Dumbbell, t: "Treine com a Gabi", d: "Receba ideias de treino durante a competição." },
             { n: "03", icon: Trophy, t: "Conquiste", d: "Registre sua constância, suba no ranking e garanta seu prêmio." },
           ].map(({ n, icon: Icon, t, d }) => (
             <div key={n} className="group border-t border-background/20 pt-6 hover:border-primary transition-colors">
@@ -224,7 +229,8 @@ const GymRats = () => {
             Vagas abertas
           </span>
           <h2 className="font-serif text-4xl text-center">Bora pro desafio?</h2>
-          <p className="text-center text-muted-foreground">Inscreva-se e receba o link do grupo da Gabi no WhatsApp.</p>
+          <p className="text-center text-muted-foreground">Inscreva-se, entre no grupo da Gabi no WhatsApp e desbloqueie seu cupom de {gymratsCompetition.signupDiscount}% OFF.</p>
+          <p className="text-center text-sm text-muted-foreground">Os descontos não são acumulativos.</p>
           <Input className="h-12" placeholder="Seu nome" maxLength={100} value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input className="h-12" type="email" placeholder="Seu melhor e-mail" maxLength={255} value={form.email}
