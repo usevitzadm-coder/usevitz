@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { getGymratsCountdown, gymratsCompetition } from "./gymrats";
+import { getGymratsCountdown, gymratsCompetition } from "../src/data/gymrats";
 
 describe("GymRats competition rules", () => {
   test("starts on November 15 at midnight Brasília time", () => {
