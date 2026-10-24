@@ -2,21 +2,22 @@ import { Link } from "react-router-dom";
 import { MessageCircle, Dumbbell, Flame, Trophy, ArrowRight } from "lucide-react";
 import logoVitz from "@/assets/logo-vitz.png";
 import { Button } from "@/components/ui/button";
+import { gymratsCompetition } from "@/data/gymrats";
 
 // TODO: substituir pelo link real do grupo
 const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/SEU-LINK-AQUI";
 
-const ticker = ["Você está dentro", "#GymRatsDaGabi", "30 dias", "Constância", "Treina"];
+const ticker = ["Você está dentro", "#GymRatsDaGabi", "15 a 30/11", "Constância", "Treina"];
 
 const steps = [
-  { n: "01", icon: MessageCircle, t: "Entra no grupo", d: "É lá que rola tudo: comunicações, ranking e o suporte da Gabi." },
-  { n: "02", icon: Dumbbell, t: "Espera a largada", d: "A competição começa em 1º de novembro. Prepare o corpo." },
-  { n: "03", icon: Trophy, t: "Disputa o prêmio", d: "Constância até o fim: conjunto Vitz e 20% OFF no pódio." },
+  { n: "01", icon: MessageCircle, t: "Entra no grupo", d: `Desbloqueie seu cupom de ${gymratsCompetition.signupDiscount}% OFF e acompanhe as comunicações e ideias de treino da Gabi.` },
+  { n: "02", icon: Dumbbell, t: "Espera a largada", d: "A competição começa em 15 de novembro e termina em 30 de novembro." },
+  { n: "03", icon: Trophy, t: "Disputa o prêmio", d: `Top 5 ganha ${gymratsCompetition.prizes[0].discount}% OFF. A primeira também leva um conjunto Vitz, a segunda uma ecobag e a terceira uma headband. Os descontos não são acumulativos.` },
 ];
 
 const GymRatsThanks = () => (
   <div className="min-h-screen font-albert bg-background overflow-hidden flex flex-col">
-    <header className="container flex items-center justify-between py-5">
+    <header className="container hidden md:flex items-center justify-between py-5">
       <Link to="/"><img src={logoVitz} alt="Vitz" className="h-24 md:h-32 w-auto scale-[2] origin-left" /></Link>
     </header>
 
@@ -47,6 +48,9 @@ const GymRatsThanks = () => (
         <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mt-8">
           Falta um passo: entra no grupo oficial no WhatsApp. É lá que vão rolar as comunicações da
           competição, o ranking e as ideias de treino da Gabi.
+        </p>
+        <p className="text-base text-muted-foreground max-w-xl mx-auto mt-4">
+          Seu cupom de {gymratsCompetition.signupDiscount}% OFF está desbloqueado no grupo. Os descontos não são acumulativos.
         </p>
 
         <a href={WHATSAPP_GROUP_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-10">
