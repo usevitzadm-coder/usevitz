@@ -129,9 +129,21 @@ const AdminContacts = () => {
     l.email.toLowerCase().includes(leadSearch.toLowerCase())
   );
 
-  const exportCSV = (type: "contacts" | "leads") => {
+  const filteredGymrats = gymratsSignups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(gymratsSearch.toLowerCase()) ||
+      g.email.toLowerCase().includes(gymratsSearch.toLowerCase()) ||
+      g.phone.includes(gymratsSearch)
+  );
+
+  const exportCSV = (type: "contacts" | "leads" | "gymrats") => {
     let csv = "";
-    if (type === "contacts") {
+    if (type === "gymrats") {
+      csv = "Nome,Email,Telefone,Aceita Marketing,Data de Inscrição\n";
+      filteredGymrats.forEach((g) => {
+        csv += `"${g.name}","${g.email}","${g.phone}","${g.marketing_opt_in ? "Sim" : "Não"}","${format(new Date(g.created_at), "dd/MM/yyyy HH:mm")}"\n`;
+      });
+    } else if (type === "contacts") {
       csv = "Nome,Email,Data de Cadastro\n";
       filteredContacts.forEach((c) => {
         csv += `"${c.full_name || ""}","${c.email || ""}","${format(new Date(c.created_at), "dd/MM/yyyy")}"\n`;
