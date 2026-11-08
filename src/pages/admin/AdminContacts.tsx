@@ -41,6 +41,7 @@ const sourceLabels: Record<string, string> = {
 const AdminContacts = () => {
   const [contactSearch, setContactSearch] = useState("");
   const [leadSearch, setLeadSearch] = useState("");
+  const [gymratsSearch, setGymratsSearch] = useState("");
 
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ["admin-contacts"],
@@ -103,6 +104,18 @@ const AdminContacts = () => {
 
       // Sort by date desc
       return allLeads.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    },
+  });
+
+  const { data: gymratsSignups = [], isLoading: loadingGymrats } = useQuery({
+    queryKey: ["admin-gymrats-signups"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("gymrats_signups")
+        .select("id, name, email, phone, marketing_opt_in, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as GymRatsSignup[];
     },
   });
 
