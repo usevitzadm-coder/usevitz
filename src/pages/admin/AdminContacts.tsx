@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Megaphone, Download } from "lucide-react";
+import { Search, Users, Megaphone, Download, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -24,6 +24,15 @@ interface Lead {
   product_name?: string;
 }
 
+interface GymRatsSignup {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  marketing_opt_in: boolean;
+  created_at: string;
+}
+
 const sourceLabels: Record<string, string> = {
   footer_cupom_primeira_compra: "Cupom 1ª Compra",
   launch_lead: "Lançamento",
@@ -32,6 +41,7 @@ const sourceLabels: Record<string, string> = {
 const AdminContacts = () => {
   const [contactSearch, setContactSearch] = useState("");
   const [leadSearch, setLeadSearch] = useState("");
+  const [gymratsSearch, setGymratsSearch] = useState("");
 
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ["admin-contacts"],
@@ -97,6 +107,18 @@ const AdminContacts = () => {
     },
   });
 
+  const { data: gymratsSignups = [], isLoading: loadingGymrats } = useQuery({
+    queryKey: ["admin-gymrats-signups"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("gymrats_signups")
+        .select("id, name, email, phone, marketing_opt_in, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as GymRatsSignup[];
+    },
+  });
+
   const filteredContacts = contacts.filter(
     (c) =>
       (c.email?.toLowerCase() || "").includes(contactSearch.toLowerCase()) ||
@@ -107,9 +129,21 @@ const AdminContacts = () => {
     l.email.toLowerCase().includes(leadSearch.toLowerCase())
   );
 
-  const exportCSV = (type: "contacts" | "leads") => {
+  const filteredGymrats = gymratsSignups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(gymratsSearch.toLowerCase()) ||
+      g.email.toLowerCase().includes(gymratsSearch.toLowerCase()) ||
+      g.phone.includes(gymratsSearch)
+  );
+
+  const exportCSV = (type: "contacts" | "leads" | "gymrats") => {
     let csv = "";
-    if (type === "contacts") {
+    if (type === "gymrats") {
+      csv = "Nome,Email,Telefone,Aceita Marketing,Data de Inscrição\n";
+      filteredGymrats.forEach((g) => {
+        csv += `"${g.name}","${g.email}","${g.phone}","${g.marketing_opt_in ? "Sim" : "Não"}","${format(new Date(g.created_at), "dd/MM/yyyy HH:mm")}"\n`;
+      });
+    } else if (type === "contacts") {
       csv = "Nome,Email,Data de Cadastro\n";
       filteredContacts.forEach((c) => {
         csv += `"${c.full_name || ""}","${c.email || ""}","${format(new Date(c.created_at), "dd/MM/yyyy")}"\n`;
@@ -145,6 +179,10 @@ const AdminContacts = () => {
           <TabsTrigger value="leads" className="gap-2">
             <Megaphone className="h-4 w-4" />
             Leads ({leads.length})
+          </TabsTrigger>
+          <TabsTrigger value="gymrats" className="gap-2">
+            <Dumbbell className="h-4 w-4" />
+            GymRats ({gymratsSignups.length})
           </TabsTrigger>
         </TabsList>
 
@@ -249,6 +287,65 @@ const AdminContacts = () => {
                           {lead.product_name || "—"}
                         </TableCell>
                         <TableCell>{format(new Date(lead.created_at), "dd/MM/yyyy")}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="gymrats" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, e-mail ou telefone..."
+                value={gymratsSearch}
+                onChange={(e) => setGymratsSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => exportCSV("gymrats")}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
+
+          {loadingGymrats ? (
+            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+          ) : (
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Aceita Marketing</TableHead>
+                    <TableHead>Data de Inscrição</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredGymrats.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhuma inscrição encontrada
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredGymrats.map((signup) => (
+                      <TableRow key={signup.id}>
+                        <TableCell className="font-medium">{signup.name}</TableCell>
+                        <TableCell>{signup.email}</TableCell>
+                        <TableCell>{signup.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant={signup.marketing_opt_in ? "default" : "secondary"}>
+                            {signup.marketing_opt_in ? "Sim" : "Não"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(signup.created_at), "dd/MM/yyyy HH:mm")}</TableCell>
                       </TableRow>
                     ))
                   )}
