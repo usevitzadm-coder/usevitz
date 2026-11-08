@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Users, Megaphone, Download } from "lucide-react";
+import { Search, Users, Megaphone, Download, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
@@ -22,6 +22,15 @@ interface Lead {
   source_label: string;
   created_at: string;
   product_name?: string;
+}
+
+interface GymRatsSignup {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  marketing_opt_in: boolean;
+  created_at: string;
 }
 
 const sourceLabels: Record<string, string> = {
