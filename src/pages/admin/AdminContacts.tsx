@@ -180,6 +180,10 @@ const AdminContacts = () => {
             <Megaphone className="h-4 w-4" />
             Leads ({leads.length})
           </TabsTrigger>
+          <TabsTrigger value="gymrats" className="gap-2">
+            <Dumbbell className="h-4 w-4" />
+            GymRats ({gymratsSignups.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="contacts" className="space-y-4">
@@ -283,6 +287,65 @@ const AdminContacts = () => {
                           {lead.product_name || "—"}
                         </TableCell>
                         <TableCell>{format(new Date(lead.created_at), "dd/MM/yyyy")}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="gymrats" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, e-mail ou telefone..."
+                value={gymratsSearch}
+                onChange={(e) => setGymratsSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => exportCSV("gymrats")}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
+
+          {loadingGymrats ? (
+            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+          ) : (
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Aceita Marketing</TableHead>
+                    <TableHead>Data de Inscrição</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredGymrats.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhuma inscrição encontrada
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredGymrats.map((signup) => (
+                      <TableRow key={signup.id}>
+                        <TableCell className="font-medium">{signup.name}</TableCell>
+                        <TableCell>{signup.email}</TableCell>
+                        <TableCell>{signup.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant={signup.marketing_opt_in ? "default" : "secondary"}>
+                            {signup.marketing_opt_in ? "Sim" : "Não"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(signup.created_at), "dd/MM/yyyy HH:mm")}</TableCell>
                       </TableRow>
                     ))
                   )}
