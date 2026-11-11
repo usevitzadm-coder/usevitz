@@ -4,8 +4,7 @@ import logoVitz from "@/assets/logo-vitz.png";
 import { Button } from "@/components/ui/button";
 import { gymratsCompetition } from "@/data/gymrats";
 
-// TODO: substituir pelo link real do grupo
-const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/SEU-LINK-AQUI";
+const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/EGnePL3Ja2Q3F2wJPHhuNG?s=sw&p=i&iam=2";
 
 const ticker = ["Você está dentro", "#GymRatsDaGabi", "15 a 30/11", "Constância", "Treina"];
 
