@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MessageCircle, Dumbbell, Flame, Trophy, ArrowRight } from "lucide-react";
+import { MessageCircle, Dumbbell, Flame, Trophy, ArrowRight, Instagram } from "lucide-react";
 import logoVitz from "@/assets/logo-vitz.png";
 import { Button } from "@/components/ui/button";
 import { gymratsCompetition } from "@/data/gymrats";
@@ -52,13 +52,21 @@ const GymRatsThanks = () => (
           Seu cupom de {gymratsCompetition.signupDiscount}% OFF está desbloqueado no grupo. Os descontos não são acumulativos.
         </p>
 
-        <a href={WHATSAPP_GROUP_URL} target="_blank" rel="noopener noreferrer" className="inline-block mt-10">
-          <Button size="lg" className="rounded-full px-10 h-14 text-base group">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button asChild size="lg" className="rounded-full px-10 h-14 text-base group">
+            <a href={WHATSAPP_GROUP_URL} target="_blank" rel="noopener noreferrer">
             <MessageCircle className="mr-2 h-5 w-5" />
             Entrar no grupo
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </a>
           </Button>
-        </a>
+          <Button asChild variant="outline" size="lg" className="rounded-full px-6 h-14 text-base">
+            <a href="https://www.instagram.com/use_vitz" target="_blank" rel="noopener noreferrer">
+              <Instagram className="mr-2 h-5 w-5" />
+              Seguir a Vitz no Instagram
+            </a>
+          </Button>
+        </div>
       </div>
     </section>
 
