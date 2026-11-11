@@ -28,7 +28,7 @@ describe("telefone do formulário GymRats", () => {
 
   it("normaliza mantendo o código do país quando informado", () => {
     expect(normalizePhone("+55 (11) 99999-9999")).toBe("+5511999999999");
-    expect(normalizePhone("11 99999-9999")).toBe("1199999999");
+    expect(normalizePhone("11 99999-9999")).toBe("11999999999");
   });
 });
 
