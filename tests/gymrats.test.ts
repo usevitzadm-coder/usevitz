@@ -29,6 +29,9 @@ describe("GymRats country telephone rules", () => {
 });
 
 describe("GymRats competition rules", () => {
+  test("marketing starts selected by default", () => {
+    expect(gymratsCompetition.marketingOptInDefault).toBe(true);
+  });
   test("starts on November 15 at midnight Brasília time", () => {
     expect(gymratsCompetition.start).toBe(Date.parse("2026-11-15T03:00:00Z"));
     expect(getGymratsCountdown(Date.parse("2026-11-15T02:59:59Z"))).toEqual({ started: false, remaining: 1000 });

@@ -78,7 +78,7 @@ const GymRats = () => {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [country, setCountry] = useState<CountryCode>("BR");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState<boolean>(gymratsCompetition.marketingOptInDefault);
   const [loading, setLoading] = useState(false);
   const { started, parts } = useCountdown();
 
