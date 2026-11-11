@@ -6,6 +6,9 @@ import logoVitz from "@/assets/logo-vitz.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatNationalPhone, internationalPhone, phoneCountries, phonePlaceholder } from "@/lib/gymrats-phone";
+import type { CountryCode } from "libphonenumber-js";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -73,6 +76,7 @@ const terms = [
 const GymRats = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [country, setCountry] = useState<CountryCode>("BR");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -80,7 +84,12 @@ const GymRats = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse(form);
+    const phone = internationalPhone(form.phone, country);
+    if (!phone) {
+      toast.error("Informe um telefone válido para o país selecionado.");
+      return;
+    }
+    const parsed = schema.safeParse({ ...form, phone });
     if (!parsed.success) {
       toast.error(parsed.error.errors[0].message);
       return;
@@ -235,11 +244,35 @@ const GymRats = () => {
             onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input className="h-12" type="email" placeholder="Seu melhor e-mail" maxLength={255} value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          <Input className="h-12" type="tel" placeholder="WhatsApp com DDD ou código do país (+55 11 99999-9999)" maxLength={25} value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-          <p className="-mt-2 text-center text-xs text-muted-foreground">
-            Aceitamos números do Brasil e de outros países.
-          </p>
+          <div className="space-y-2">
+            <label htmlFor="gymrats-country" className="text-sm font-medium">País</label>
+            <Select value={country} onValueChange={(value) => {
+              const selected = phoneCountries.find((item) => item.code === value);
+              if (!selected) return;
+              setCountry(selected.code);
+              setForm((current) => ({ ...current, phone: "" }));
+            }}>
+              <SelectTrigger id="gymrats-country" className="h-12" aria-label="País">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {phoneCountries.map((item) => (
+                  <SelectItem key={item.code} value={item.code}>{item.name} ({item.ddi})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="gymrats-phone" className="text-sm font-medium">WhatsApp</label>
+            <div className="flex items-center gap-2">
+              <span className="flex h-12 shrink-0 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                {phoneCountries.find((item) => item.code === country)?.ddi}
+              </span>
+              <Input id="gymrats-phone" className="h-12 min-w-0" type="tel" autoComplete="tel-national"
+                placeholder={phonePlaceholder(country)} maxLength={25} value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: formatNationalPhone(e.target.value, country) })} required />
+            </div>
+          </div>
 
           <div className="space-y-3 pt-1">
             <label className="flex items-start gap-3 cursor-pointer text-sm text-muted-foreground">
