@@ -235,8 +235,11 @@ const GymRats = () => {
             onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input className="h-12" type="email" placeholder="Seu melhor e-mail" maxLength={255} value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          <Input className="h-12" type="tel" placeholder="WhatsApp com DDD" maxLength={20} value={form.phone}
+          <Input className="h-12" type="tel" placeholder="WhatsApp com DDD ou código do país (+55 11 99999-9999)" maxLength={25} value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+          <p className="-mt-2 text-center text-xs text-muted-foreground">
+            Aceitamos números do Brasil e de outros países.
+          </p>
 
           <div className="space-y-3 pt-1">
             <label className="flex items-start gap-3 cursor-pointer text-sm text-muted-foreground">
