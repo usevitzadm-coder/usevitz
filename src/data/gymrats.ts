@@ -12,6 +12,26 @@ export const gymratsCompetition = {
   ],
 } as const;
 
+// Telefone: aceita número brasileiro (com DDD) ou de qualquer outro país
+// (com código do país, no formato +XX). Limites seguem o padrão E.164.
+export const PHONE_MIN_DIGITS = 8;
+export const PHONE_MAX_DIGITS = 15;
+
+const PHONE_ALLOWED_CHARS = /^[0-9()+\-\s.]+$/;
+
+export function normalizePhone(raw: string) {
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  return trimmed.startsWith("+") ? `+${digits}` : digits;
+}
+
+export function isValidPhone(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed || !PHONE_ALLOWED_CHARS.test(trimmed)) return false;
+  const digits = trimmed.replace(/\D/g, "");
+  return digits.length >= PHONE_MIN_DIGITS && digits.length <= PHONE_MAX_DIGITS;
+}
+
 export function getGymratsCountdown(now: number) {
   const started = now >= gymratsCompetition.start;
   return {
