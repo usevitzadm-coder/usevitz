@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { getGymratsCountdown, gymratsCompetition } from "@/data/gymrats";
+import { getGymratsCountdown, gymratsCompetition, isValidPhone, normalizePhone } from "@/data/gymrats";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Informe seu nome").max(100),
@@ -17,8 +17,8 @@ const schema = z.object({
   phone: z
     .string()
     .trim()
-    .transform((v) => v.replace(/\D/g, ""))
-    .refine((v) => v.length >= 10 && v.length <= 13, "Telefone inválido"),
+    .transform((v) => normalizePhone(v))
+    .refine((v) => isValidPhone(v), "Informe um telefone válido, com DDD ou código do país"),
 });
 
 const useCountdown = () => {
