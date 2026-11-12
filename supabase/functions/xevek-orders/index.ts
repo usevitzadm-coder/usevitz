@@ -2,6 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { handleRequest, type OrderReader } from "./handler.ts";
 import { phoneIdentity, phonesMatch, type OrderRow, type ItemRow } from "./logic.ts";
+import type { ConsentStore } from "./consent.ts";
+import { consentPhoneAliases, optOutFields } from "../_shared/marketing-rules.ts";
 
 const fields = "id,order_number,customer_name,customer_email,customer_phone,created_at,status,payment_status,total,shipping_cost,payment_method,shipping_method,tracking_code,shipping_city,shipping_state";
 
@@ -54,4 +56,43 @@ function reader(): OrderReader {
   };
 }
 
-Deno.serve(req => handleRequest(req, { authorized, reader, headers: corsHeaders }));
+function consentStore(): ConsentStore {
+  const url = Deno.env.get("SUPABASE_URL"), key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) throw new Error("Unavailable configuration");
+  const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const columns = "phone,name,whatsapp_opt_in,opted_in_at,opted_out_at,source,updated_at";
+  return {
+    async lookup(phone) {
+      const { data, error } = await db.from("marketing_consents").select(columns)
+        .in("phone", consentPhoneAliases(phone)).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    async changes(query) {
+      let select = db.from("marketing_consents").select(columns).order("updated_at", { ascending: true })
+        .order("phone", { ascending: true }).limit(query.limit + 1);
+      if (query.since) select = select.gt("updated_at", query.since);
+      if (query.cursor) {
+        const { at, phone } = query.cursor;
+        // Cursor fields are strictly validated before entering filter syntax.
+        select = select.or(`updated_at.gt.${at},and(updated_at.eq.${at},phone.gt.${phone})`);
+      }
+      const { data, error } = await select;
+      if (error) throw error;
+      return data || [];
+    },
+    async optOut(phone) {
+      const { data, error: readError } = await db.from("marketing_consents").select("phone").in("phone", consentPhoneAliases(phone));
+      if (readError) throw readError;
+      const change = optOutFields("whatsapp", new Date().toISOString());
+      if (data?.length) {
+        const { error } = await db.from("marketing_consents").update(change).in("phone", data.map(row => row.phone));
+        if (error) throw error;
+      } else {
+        const { error } = await db.from("marketing_consents").upsert({ phone, ...change });
+        if (error) throw error;
+      }
+    },
+  };
+}
+Deno.serve(req => handleRequest(req, { authorized, reader, consentStore, headers: corsHeaders }));

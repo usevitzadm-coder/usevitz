@@ -389,6 +389,42 @@ export type Database = {
           },
         ]
       }
+      marketing_consents: {
+        Row: {
+          consent_text: string | null
+          email: string | null
+          name: string | null
+          opted_in_at: string | null
+          opted_out_at: string | null
+          phone: string
+          source: string
+          updated_at: string
+          whatsapp_opt_in: boolean
+        }
+        Insert: {
+          consent_text?: string | null
+          email?: string | null
+          name?: string | null
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone: string
+          source: string
+          updated_at?: string
+          whatsapp_opt_in?: boolean
+        }
+        Update: {
+          consent_text?: string | null
+          email?: string | null
+          name?: string | null
+          opted_in_at?: string | null
+          opted_out_at?: string | null
+          phone?: string
+          source?: string
+          updated_at?: string
+          whatsapp_opt_in?: boolean
+        }
+        Relationships: []
+      }
       newsletter_leads: {
         Row: {
           created_at: string
@@ -953,6 +989,17 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_admin: { Args: never; Returns: boolean }
+      submit_whatsapp_consent: {
+        Args: {
+          _consent_text: string
+          _email: string
+          _name: string
+          _opt_in: boolean
+          _phone: string
+          _source: string
+        }
+        Returns: undefined
+      }
       sync_bundle_stock_on_component_sale: {
         Args: { p_component_variant_id: string; p_quantity: number }
         Returns: undefined

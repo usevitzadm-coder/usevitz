@@ -6,9 +6,52 @@ A função `xevek-orders` está publicada no Lovable Cloud. Copie sua URL comple
 
 A chave `XEVEK_API_KEY` foi cadastrada com segurança. Configure o mesmo valor no Xevek no cabeçalho `x-api-key`. O valor não aparece neste documento e não deve ser inserido no código da loja.
 
-A função não depende do login do cliente. Faz apenas consultas SELECT em `orders` e `order_items`; não cria, altera nem apaga registros.
+A função não depende do login do cliente. As rotas de pedidos fazem apenas SELECT em `orders` e `order_items`; nunca alteram pedidos. As rotas de consentimento acessam exclusivamente `marketing_consents`, e somente a retirada de aceite altera essa tabela.
 
 ## Exemplos de curl
+
+## Consentimento de WhatsApp
+
+`marketing_consents` é a fonte única e privada: `phone` (E.164 único), `name`, `email`, `whatsapp_opt_in`, `opted_in_at`, `opted_out_at`, `updated_at`, `source`, `consent_text`. Só funções com acesso de serviço leem/escrevem; não há acesso público nem leitura direta pela conta da cliente.
+
+Origens: `gymrats`, `cadastro`, `checkout`, `newsletter`, `minha_conta`, `whatsapp`. Os aceites existentes do GymRats foram importados com a data de inscrição e o texto antigo exato. Novas caixas começam desmarcadas. Não marcar uma caixa de inscrição não concede nem cancela um aceite anterior; a retirada explícita acontece em Minha conta ou via Xevek.
+
+### Consultar um telefone
+
+```bash
+curl --request POST "${XEVEK_ORDERS_URL}/customers/consent" \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: ${XEVEK_API_KEY}" \
+  --data '{"phone":"+5511999998888"}'
+```
+
+Resposta 200: `{"phone":"+5511999998888","name":"Exemplo","whatsapp_opt_in":true,"opted_in_at":"2026-11-12T00:00:00Z","opted_out_at":null,"source":"gymrats"}`. Não encontrado: 404 `{"error":"customer_not_found"}`. Nome e datas podem ser `null`.
+
+### Sincronizar alterações (inclui retiradas)
+
+```bash
+curl --request POST "${XEVEK_ORDERS_URL}/customers/opted-in" \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: ${XEVEK_API_KEY}" \
+  --data '{"since":"2026-11-01T00:00:00Z","limit":500}'
+```
+
+Resposta 200: `{"customers":[...],"next_cursor":"..."}`. Apesar do nome da rota, inclui TODOS os consentimentos alterados, inclusive `whatsapp_opt_in:false`. `since` é opcional e filtra `updated_at > since`; omitir retorna todos. `limit` é inteiro de 1 a 500, padrão 500. Ordenação crescente por `updated_at`, com telefone como desempate. Para a próxima página, envie o `next_cursor` opaco como `cursor`, mantendo o mesmo `since`; `null` encerra. Guarde o instante de início da sincronização como próximo `since`, para não perder mudanças concorrentes. O cursor preserva a precisão da data, não deve ser decodificado/alterado pelo integrador.
+
+### Retirar aceite
+
+```bash
+curl --request POST "${XEVEK_ORDERS_URL}/customers/opt-out" \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: ${XEVEK_API_KEY}" \
+  --data '{"phone":"+5511999998888"}'
+```
+
+Sempre 200 `{"ok":true}` para telefone válido. Atualiza apenas `whatsapp_opt_in=false`, `opted_out_at=agora`, `source=whatsapp`; `updated_at` é atualizado automaticamente. Preserva nome, e-mail, data/texto do aceite anterior. Se não existir, cria um registro já retirado.
+
+Os telefones ficam em E.164 com os dígitos reais; números brasileiros locais recebem +55. A comparação aceita a mesma equivalência brasileira do nono dígito usada em pedidos, sem remover esse dígito do número armazenado. Telefones internacionais exigem +DDI. As respostas de consentimento contêm somente os seis campos mostrados, nunca e-mail, CPF, endereço ou dados de pagamento. Autenticação por `x-api-key`, rejeição de `Origin`, limite de corpo e erros 400/401/500 são iguais às rotas de pedidos.
+
+## Exemplos de consulta de pedidos
 
 Os exemplos pressupõem `XEVEK_ORDERS_URL` e `XEVEK_API_KEY` configurados no ambiente do servidor que executa a integração. Não use saída detalhada (`curl -v`) porque ela pode revelar a chave.
 
@@ -103,8 +146,8 @@ Reembolso tem prioridade sobre os demais estados. Não se inventa status para va
 
 ## Verificação realizada
 
-- 23 testes passaram, incluindo os testes existentes do GymRats e nove testes da integração Xevek.
+- 37 testes passaram, cobrindo GymRats, pedidos e regras de consentimento, incluindo paginação, datas, autenticação, retirada e proteção contra acesso a consentimentos de outra cliente.
 - Função publicada: autorização ausente bloqueada com 401, entrada inválida com 400 e pedido inexistente com 404.
 - Consulta real por número/e-mail e por telefone retornou 200; contato incorreto para pedido existente retornou o mesmo 404 de pedido inexistente.
 - Requisição com `Origin` foi bloqueada.
-- Nenhum pedido ou cadastro foi alterado durante os testes.
+- As novas rotas foram verificadas com inscrições fictícias: consulta do aceite salvo, retirada com leitura posterior, criação de retirada para telefone desconhecido e paginação real. A preferência em Minha conta foi autorizada, retirada e conferida após recarregar. Os registros fictícios foram removidos; nenhum pedido real foi alterado.

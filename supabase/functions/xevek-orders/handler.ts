@@ -1,4 +1,5 @@
 import { identityMatches, parseLookup, phonesMatch, responsePayload, type OrderRow, type ItemRow } from "./logic.ts";
+import { parseConsentQuery, consentPage, consentPayload, type ConsentStore } from "./consent.ts";
 
 export interface OrderReader {
   byNumber(number: string): Promise<OrderRow | null>;
@@ -9,6 +10,7 @@ export interface OrderReader {
 export async function handleRequest(req: Request, options: {
   authorized: (key: string | null) => Promise<boolean>;
   reader: () => OrderReader;
+  consentStore?: () => ConsentStore;
   headers: Record<string, string>;
 }): Promise<Response> {
   const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), {
@@ -24,6 +26,21 @@ export async function handleRequest(req: Request, options: {
     let body: unknown;
     try { body = JSON.parse(text); } catch { return json({ error: "invalid_request" }, 400); }
     const path = new URL(req.url).pathname.replace(/^.*\/xevek-orders(?=\/|$)/, "");
+    if (path.startsWith("/customers/")) {
+      const query = parseConsentQuery(path, body);
+      if (!query) return json({ error: "invalid_request" }, 400);
+      if (!options.consentStore) throw new Error("Unavailable consent store");
+      const store = options.consentStore();
+      if (query.kind === "out") {
+        await store.optOut(query.phone);
+        return json({ ok: true });
+      }
+      if (query.kind === "lookup") {
+        const row = await store.lookup(query.phone);
+        return row ? json(consentPayload(row)) : json({ error: "customer_not_found" }, 404);
+      }
+      return json(consentPage(await store.changes(query), query.limit));
+    }
     const lookup = parseLookup(path, body);
     if (!lookup) return json({ error: "invalid_request" }, 400);
     const reader = options.reader();

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Instagram, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { submitMarketingConsent, WHATSAPP_CONSENT_TEXT, WHATSAPP_DEFAULT } from "@/lib/marketing-consent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +18,8 @@ import logoVitz from "@/assets/logo-vitz.png";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [whatsappOptIn, setWhatsappOptIn] = useState<boolean>(WHATSAPP_DEFAULT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -34,22 +38,16 @@ const Footer = () => {
     }
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("newsletter_leads").insert({ email, source: "footer_cupom_primeira_compra" });
-      if (error) {
-        if (error.code === "23505") {
-          toast({ title: "Você já está inscrito!", description: "Esse e-mail já está cadastrado." });
-        } else {
-          throw error;
-        }
-      } else {
+      await submitMarketingConsent({ source: "newsletter", email, phone: whatsapp || undefined, opt_in: Boolean(whatsapp.trim()) && whatsappOptIn });
         const subscribedEmail = email;
         toast({ title: "Inscrição confirmada! 🎉", description: "Você receberá novidades e seu cupom de 5% off." });
         setEmail("");
+        setWhatsapp("");
+        setWhatsappOptIn(false);
         // Send coupon email in background
         supabase.functions.invoke("send-email", {
           body: { type: "newsletter_coupon", to: subscribedEmail },
         }).catch(() => {});
-      }
     } catch {
       toast({ title: "Erro", description: "Não foi possível realizar a inscrição.", variant: "destructive" });
     } finally {
@@ -69,13 +67,21 @@ const Footer = () => {
             <p className="text-sm text-primary-foreground/80 mb-6">
               Receba novidades, lançamentos exclusivos e 5% off na primeira compra
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col gap-3 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder="Seu e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 h-11 bg-white/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60" />
+
+              <Input type="tel" aria-label="WhatsApp opcional" placeholder="WhatsApp (opcional, com DDD ou +DDI)" value={whatsapp}
+                onChange={e => { setWhatsapp(e.target.value); if (!e.target.value.trim()) setWhatsappOptIn(false); }}
+                className="h-11 bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60" />
+              {whatsapp.trim() && <label className="flex items-start gap-2 text-left text-sm text-primary-foreground">
+                <Checkbox checked={whatsappOptIn} onCheckedChange={v => setWhatsappOptIn(v === true)} className="border-primary-foreground" />
+                <span>{WHATSAPP_CONSENT_TEXT}</span>
+              </label>}
 
               <Button
                 type="submit"

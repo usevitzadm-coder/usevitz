@@ -3,7 +3,7 @@ export const gymratsCompetition = {
   end: new Date("2026-11-30T23:59:59-03:00").getTime(),
   signupDiscount: 15,
   discountsCumulative: false,
-  marketingOptInDefault: true,
+  marketingOptInDefault: false,
   prizes: [
     { place: 1, discount: 30, gift: "Conjunto Vitz" },
     { place: 2, discount: 30, gift: "Ecobag" },

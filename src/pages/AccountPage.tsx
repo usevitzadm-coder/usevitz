@@ -18,6 +18,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import PasswordStrengthMeter, { getPasswordStrength } from "@/components/account/PasswordStrengthMeter";
+import WhatsAppPreferences from "@/components/account/WhatsAppPreferences";
+import { Checkbox } from "@/components/ui/checkbox";
+import { submitMarketingConsent, WHATSAPP_CONSENT_TEXT, WHATSAPP_DEFAULT } from "@/lib/marketing-consent";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -56,6 +59,7 @@ const AccountPage = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [signupName, setSignupName] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
+  const [signupOptIn, setSignupOptIn] = useState<boolean>(WHATSAPP_DEFAULT);
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirm, setSignupConfirm] = useState("");
@@ -197,6 +201,13 @@ const AccountPage = () => {
 
     setSubmitting(true);
     const { error } = await signUp(signupEmail, signupPassword, signupName, signupPhone);
+    if (!error && signupOptIn) {
+      try {
+        await submitMarketingConsent({ source: "cadastro", phone: signupPhone, name: signupName, email: signupEmail, opt_in: true });
+      } catch {
+        toast({ title: "Conta criada, mas o aceite de WhatsApp não foi salvo", description: "Você pode autorizar em Minha conta.", variant: "destructive" });
+      }
+    }
     setSubmitting(false);
 
     if (error) {
@@ -318,6 +329,7 @@ const AccountPage = () => {
                     </div>
                   </div>
 
+                  <WhatsAppPreferences />
                   <Button
                     variant="outline"
                     className="w-full"
@@ -734,6 +746,10 @@ const AccountPage = () => {
                         />
                       </div>
 
+                      <label className="flex items-start gap-2 text-sm">
+                        <Checkbox checked={signupOptIn} onCheckedChange={v => setSignupOptIn(v === true)} />
+                        <span>{WHATSAPP_CONSENT_TEXT}</span>
+                      </label>
                       <Button type="submit" className="w-full" disabled={submitting}>
                         {submitting ? "Criando conta..." : "Criar conta"}
                       </Button>

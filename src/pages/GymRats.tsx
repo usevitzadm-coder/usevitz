@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { Trophy, Users, Dumbbell, Flame, ArrowRight } from "lucide-react";
 import logoVitz from "@/assets/logo-vitz.png";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getGymratsCountdown, gymratsCompetition, isValidPhone, normalizePhone } from "@/data/gymrats";
+import { submitMarketingConsent } from "@/lib/marketing-consent";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Informe seu nome").max(100),
@@ -99,15 +99,14 @@ const GymRats = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("gymrats_signups").insert({
-      ...parsed.data,
-      marketing_opt_in: marketingOptIn,
-    } as any);
-    setLoading(false);
-    if (error) {
+    try {
+      await submitMarketingConsent({ phone, name: form.name.trim(), email: form.email.trim(), source: "gymrats", opt_in: marketingOptIn, accepted_terms: true });
+    } catch {
+      setLoading(false);
       toast.error("Não foi possível concluir sua inscrição. Tente novamente.");
       return;
     }
+    setLoading(false);
     navigate("/gymrats/obrigada");
   };
 

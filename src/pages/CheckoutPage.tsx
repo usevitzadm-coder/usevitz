@@ -7,6 +7,8 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { submitMarketingConsent, WHATSAPP_CONSENT_TEXT, WHATSAPP_DEFAULT } from "@/lib/marketing-consent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -69,6 +71,7 @@ const CheckoutPage = () => {
   }, [user, authLoading, navigate]);
   const totalPrice = getCartTotal();
   const [isLoading, setIsLoading] = useState(false);
+  const [whatsappOptIn, setWhatsappOptIn] = useState<boolean>(WHATSAPP_DEFAULT);
   const [giftCardCode, setGiftCardCode] = useState("");
   const [giftCardDiscount, setGiftCardDiscount] = useState(0);
   const [giftCardApplied, setGiftCardApplied] = useState(false);
@@ -563,6 +566,9 @@ const CheckoutPage = () => {
     setIsLoading(true);
 
     try {
+      if (whatsappOptIn) {
+        await submitMarketingConsent({ source: "checkout", phone: customer.phone, name: customer.name, email: customer.email, opt_in: true });
+      }
       const checkoutItems = items.map((item) => ({
         id: item.product.id,
         name: item.product.name,
@@ -925,6 +931,10 @@ const CheckoutPage = () => {
                         placeholder="000.000.000-00"
                       />
                     </div>
+                    <label className="md:col-span-2 flex items-start gap-2 text-sm">
+                      <Checkbox checked={whatsappOptIn} onCheckedChange={v => setWhatsappOptIn(v === true)} />
+                      <span>{WHATSAPP_CONSENT_TEXT}</span>
+                    </label>
                   </CardContent>
                 </Card>
 
