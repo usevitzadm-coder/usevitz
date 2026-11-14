@@ -22,6 +22,13 @@
       "when": 1794447193573,
       "tag": "0002_restrict_marketing_consent_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794616827142,
+      "tag": "0003_allow_external_whatsapp_consent_source",
+      "breakpoints": true
     }
   ]
 }

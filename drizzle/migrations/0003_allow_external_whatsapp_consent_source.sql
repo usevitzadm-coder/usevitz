@@ -1,0 +1,2 @@
+ALTER TABLE public.marketing_consents DROP CONSTRAINT marketing_consents_source_check;
+ALTER TABLE public.marketing_consents ADD CONSTRAINT marketing_consents_source_check CHECK (source IN ('gymrats', 'cadastro', 'checkout', 'newsletter', 'minha_conta', 'whatsapp', 'external_form_spreadsheet'));
