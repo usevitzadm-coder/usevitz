@@ -29,6 +29,13 @@
       "when": 1794616827142,
       "tag": "0003_allow_external_whatsapp_consent_source",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794670806393,
+      "tag": "0004_drop_open_order_insert_policies",
+      "breakpoints": true
     }
   ]
 }
