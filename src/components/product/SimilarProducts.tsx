@@ -30,7 +30,7 @@ const formatProducts = (data: any[]) =>
       badge: p.badge as "novo" | "mais-vendido" | "promo" | undefined,
       description: "",
       shortDescription: p.short_description ?? "",
-      category: "",
+      category: p.categories?.slug || "",
       variants: [],
       benefits: [],
       rating: 0,
@@ -51,7 +51,7 @@ const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps)
           .select(`
             id, name, slug, price, original_price, badge,
             short_description, created_at, is_coming_soon,
-            product_images(url, is_primary)
+            categories(slug), product_images(url, is_primary)
           `)
           .eq("is_active", true)
           .eq("category_id", categoryId)
@@ -67,7 +67,7 @@ const SimilarProducts = ({ categoryId, currentProductId }: SimilarProductsProps)
         .select(`
           id, name, slug, price, original_price, badge,
           short_description, created_at, is_coming_soon,
-          product_images(url, is_primary)
+          categories(slug), product_images(url, is_primary)
         `)
         .eq("is_active", true)
         .neq("id", currentProductId)

@@ -1,5 +1,9 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { Product, ProductVariant, CartItem } from "@/types/product";
+
+import { useBlackWeek } from './BlackWeekContext';
+import { isSet, setPairDiscount, needsCouponConfirmation } from '../../supabase/functions/_shared/blackweek';
+export interface AppliedCoupon { code: string; discount_type: 'percentage' | 'fixed'; discount_value: number }
 
 const CART_STORAGE_KEY = "vitz-cart";
 
@@ -16,6 +20,12 @@ const loadCartFromStorage = (): CartItem[] => {
 };
 
 interface CartContextType {
+  appliedCoupon: AppliedCoupon | null;
+  setAppliedCoupon: (coupon: AppliedCoupon | null) => void;
+  pendingCoupon: AppliedCoupon | null;
+  confirmCoupon: () => void;
+  cancelCoupon: () => void;
+  blackWeekDiscount: number;
   items: CartItem[];
   addToCart: (product: Product, variant: ProductVariant, quantity?: number, colorImage?: string) => void;
   removeFromCart: (productId: string, variantId: string) => void;
@@ -32,6 +42,27 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => loadCartFromStorage());
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const { active, preview } = useBlackWeek();
+  const [appliedCoupon, saveCoupon] = useState<AppliedCoupon | null>(null);
+  const [pendingCoupon, setPendingCoupon] = useState<AppliedCoupon | null>(null);
+  const campaignItems = items.map(item => ({ price: item.product.price, quantity: item.quantity, eligible: isSet(item.product.category, item.product.name) }));
+  const requiresChoice = needsCouponConfirmation(campaignItems, active || preview);
+  const previouslyRequired = useRef(requiresChoice);
+  useEffect(() => {
+    if (requiresChoice && !previouslyRequired.current && appliedCoupon) {
+      setPendingCoupon(appliedCoupon);
+      saveCoupon(null);
+    }
+    previouslyRequired.current = requiresChoice;
+  }, [requiresChoice, appliedCoupon]);
+  const setAppliedCoupon = (coupon: AppliedCoupon | null) => {
+    if (coupon && requiresChoice && coupon.code !== appliedCoupon?.code) setPendingCoupon(coupon);
+    else { saveCoupon(coupon); setPendingCoupon(null); }
+  };
+  const confirmCoupon = () => { saveCoupon(pendingCoupon); setPendingCoupon(null); };
+  const cancelCoupon = () => { saveCoupon(null); setPendingCoupon(null); };
+  const blackWeekDiscount = setPairDiscount(campaignItems, active || preview, Boolean(appliedCoupon));
 
   // Persist cart to localStorage whenever items change
   useEffect(() => {
@@ -106,6 +137,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <CartContext.Provider
       value={{
+        appliedCoupon, setAppliedCoupon, pendingCoupon, confirmCoupon, cancelCoupon, blackWeekDiscount,
         items,
         addToCart,
         removeFromCart,

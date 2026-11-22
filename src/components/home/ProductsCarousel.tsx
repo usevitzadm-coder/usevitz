@@ -1,3 +1,5 @@
+import { useBlackWeek } from "@/context/BlackWeekContext";
+import { isSet } from "../../../supabase/functions/_shared/blackweek";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,9 +19,11 @@ interface CarouselProduct {
   short_description: string | null;
   image_url: string | null;
   is_coming_soon: boolean;
+  category: string;
 }
 
 const ProductsCarousel = () => {
+  const { theme } = useBlackWeek();
   const [products, setProducts] = useState<CarouselProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const earlyAccessValid = useEarlyAccess();
@@ -63,6 +67,7 @@ const ProductsCarousel = () => {
             badge,
             short_description,
             is_coming_soon,
+            categories(slug),
             images:product_images(url, is_primary)
           `)
           .eq("is_active", true)
@@ -71,6 +76,7 @@ const ProductsCarousel = () => {
         if (error) throw error;
 
         const formattedProducts: CarouselProduct[] = (data || []).map((product) => ({
+          category: product.categories?.slug || "",
           id: product.id,
           name: product.name,
           slug: product.slug,
@@ -207,6 +213,7 @@ const ProductsCarousel = () => {
                           Sem imagem
                         </div>
                       )}
+                      {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium">1+1</span>}
                       {isComingSoon && (
                         <span className="absolute top-3 left-3 bg-foreground text-background text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
                           Em Breve
@@ -241,6 +248,7 @@ const ProductsCarousel = () => {
                           </div>
                         </>
                       )}
+                      {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium">1+1</span>}
                       {isComingSoon && (
                         <p className="text-xs text-muted-foreground italic">Lançamento em breve</p>
                       )}

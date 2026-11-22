@@ -1,3 +1,4 @@
+import BlackWeekSummary from "@/components/blackweek/BlackWeekSummary";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -15,6 +16,8 @@ const CartDrawer = () => {
     getCartTotal,
   } = useCart();
 
+  const { blackWeekDiscount, appliedCoupon } = useCart();
+  const couponDiscount = appliedCoupon ? (appliedCoupon.discount_type === "percentage" ? getCartTotal() * appliedCoupon.discount_value / 100 : Math.min(appliedCoupon.discount_value, getCartTotal())) : 0;
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -149,6 +152,9 @@ const CartDrawer = () => {
                   {formatPrice(getCartTotal())}
                 </span>
               </div>
+              <BlackWeekSummary />
+              {couponDiscount > 0 && <div className="flex justify-between text-sm text-primary"><span>Cupom ({appliedCoupon?.code})</span><span>−{formatPrice(couponDiscount)}</span></div>}
+              {(blackWeekDiscount > 0 || couponDiscount > 0) && <div className="flex justify-between font-medium"><span>Total</span><span>{formatPrice(getCartTotal() - blackWeekDiscount - couponDiscount)}</span></div>}
               <p className="text-xs text-muted-foreground">
                 Frete calculado no checkout
               </p>

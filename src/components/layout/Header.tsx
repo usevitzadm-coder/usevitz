@@ -4,9 +4,13 @@ import { ShoppingBag, Menu, X, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SearchBar, MobileSearchPanel } from "./SearchBar";
+import BlackWeekBanner from "@/components/blackweek/BlackWeekBanner";
+import { useBlackWeek } from "@/context/BlackWeekContext";
+import whiteLogo from "@/assets/logo-vitz-white.png";
 import logoVitz from "@/assets/logo-vitz.png";
 
 const Header = () => {
+  const { theme } = useBlackWeek();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { getCartCount, setIsCartOpen } = useCart();
@@ -22,6 +26,7 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <BlackWeekBanner />
       <div className="vitz-container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Mobile Left Icons - Menu + Search */}
@@ -44,7 +49,7 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="flex items-center flex-shrink-0">
                <img 
-                src={logoVitz} 
+                src={theme ? whiteLogo : logoVitz} 
                 alt="Vitz" 
                 className="h-[7.5rem]"
                 width={120}
@@ -70,7 +75,7 @@ const Header = () => {
           <div className="md:hidden absolute left-1/2 -translate-x-1/2">
             <Link to="/" className="flex items-center">
                <img 
-                src={logoVitz} 
+                src={theme ? whiteLogo : logoVitz} 
                 alt="Vitz" 
                 className="h-[7.5rem]"
                 width={120}

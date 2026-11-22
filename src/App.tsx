@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { BlackWeekProvider } from "@/context/BlackWeekContext";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -67,11 +68,11 @@ const App = () => {
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
+        <BrowserRouter><BlackWeekProvider><CartProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+
               
               <ScrollToTop />
               <Suspense fallback={null}>
@@ -225,9 +226,9 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </Suspense>
-            </BrowserRouter>
+
           </TooltipProvider>
-        </CartProvider>
+        </CartProvider></BlackWeekProvider></BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>

@@ -24,7 +24,7 @@ const CollectionPage = () => {
 
       let query = supabase
         .from("products")
-        .select("id, name, slug, price, original_price, badge, short_description, created_at, is_coming_soon, product_images(url, is_primary, display_order)")
+        .select("id, name, slug, price, original_price, badge, short_description, created_at, is_coming_soon, categories(slug), product_images(url, is_primary, display_order)")
         .eq("is_active", true)
         .order("display_order", { ascending: true });
       if (category) query = query.eq("category_id", category.id);
@@ -77,7 +77,7 @@ const CollectionPage = () => {
                         originalPrice: p.original_price ?? undefined, images: [img],
                         badge: p.badge as "novo" | "mais-vendido" | "promo" | undefined,
                         description: "", shortDescription: p.short_description ?? "",
-                        category: slug || "", variants: [], benefits: [], rating: 0, reviewCount: 0,
+                        category: p.categories?.slug || "", variants: [], benefits: [], rating: 0, reviewCount: 0,
                         createdAt: p.created_at,
                         isComingSoon: earlyAccessValid ? false : (p.is_coming_soon ?? false),
                       }}

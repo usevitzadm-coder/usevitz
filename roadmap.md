@@ -11,6 +11,6 @@
 - [x] Centralize WhatsApp consent privately and import existing GymRats opt-ins.
 - [x] Connect optional unchecked consent on signup, checkout, newsletter and GymRats; add authenticated account preferences.
 - [x] Add Xevek consent lookup, change pagination and opt-out; update integration guide and verify flows.
-- [ ] Implement Black Week dates, early access, temporary theme and previews — awaiting plan approval.
-- [ ] Apply automatic set-pair discount through cart and payment, exclusive of coupons, with confirmation popup — awaiting plan approval.
-- [ ] Verify campaign rules, mobile layouts and a safe test payment — awaiting plan approval.
+- [x] Implement Black Week dates, early access, temporary theme and previews.
+- [x] Apply automatic set-pair discount through cart and payment, exclusive of coupons, with confirmation popup.
+- [x] Verify campaign rules, mobile layouts and signed-in checkout; simulated handler tests verify saved totals and provider payload without live charges.

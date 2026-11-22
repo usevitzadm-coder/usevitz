@@ -183,3 +183,35 @@
     }
   }
 }
+
+/* Temporary campaign theme; removing the class restores all existing tokens. */
+@layer base {
+  .blackweek {
+    --background: 20.000 12.000% 4.902%;
+    --foreground: 40.000 50.000% 92.941%;
+    --card: 20 10% 8%;
+    --card-foreground: 40.000 50.000% 92.941%;
+    --popover: 20 10% 8%;
+    --popover-foreground: 40.000 50.000% 92.941%;
+    --primary: 33.077 39.000% 60.784%;
+    --primary-foreground: 20.000 12.000% 4.902%;
+    --secondary: 156 24% 22%;
+    --secondary-foreground: 40.000 50.000% 92.941%;
+    --muted: 20 8% 15%;
+    --muted-foreground: 40 16% 72%;
+    --accent: 33 22% 20%;
+    --accent-foreground: 40.000 50.000% 92.941%;
+    --border: 33 12% 23%;
+    --input: 33 12% 23%;
+    --ring: 33.077 39.000% 60.784%;
+    --vitz-cream: 20.000 12.000% 4.902%;
+    --vitz-cream-dark: 20 10% 8%;
+    --vitz-charcoal: 40.000 50.000% 92.941%;
+    --vitz-charcoal-light: 40 16% 72%;
+  }
+}
+.blackweek-banner { min-height: 48px; letter-spacing: 0; }
+.blackweek h1, .blackweek h2, .blackweek h3 { letter-spacing: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .blackweek *, .blackweek *::before, .blackweek *::after { animation: none !important; transition: none !important; }
+}

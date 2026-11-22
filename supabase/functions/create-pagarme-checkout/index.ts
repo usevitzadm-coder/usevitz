@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+import { campaignPhase, isSet, setPairDiscount, paymentTotal, interestFree } from '../_shared/blackweek.ts';
+import { verifyEarlyToken } from '../_shared/blackweek-token.ts';
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -60,6 +63,8 @@ interface CheckoutRequest {
   giftCardDiscount?: number;
   couponCode?: string;
   couponDiscount?: number;
+  blackWeekAccessToken?: string;
+  expectedTotal?: number;
 }
 
 serve(async (req: Request) => {
@@ -73,15 +78,15 @@ serve(async (req: Request) => {
       throw new Error("PAGARME_API_KEY not configured");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Extract user from auth header
     const authHeader = req.headers.get("authorization");
     let userId: string | null = null;
     if (authHeader) {
-      const supabaseAnon = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
+      const supabaseAnon = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") || "");
       const token = authHeader.replace("Bearer ", "");
       const { data: { user } } = await supabaseAnon.auth.getUser(token);
       userId = user?.id || null;
@@ -97,8 +102,15 @@ serve(async (req: Request) => {
       giftCardCode,
       giftCardDiscount: clientGiftCardDiscount = 0,
       couponCode,
-      couponDiscount: clientCouponDiscount = 0,
+      blackWeekAccessToken,
+      expectedTotal,
     }: CheckoutRequest = await req.json();
+
+    if (!Array.isArray(items) || items.length === 0 || items.length > 100 || items.some(item => !item.id || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000)) throw new Error('Carrinho inválido');
+    const now = Date.now();
+    const earlyAccess = await verifyEarlyToken(blackWeekAccessToken, supabaseServiceKey, now);
+    const phase = campaignPhase(now, earlyAccess);
+    const campaignActive = phase === 'early' || phase === 'public';
 
     console.log("Processing Pagar.me checkout:", { paymentMethod, itemsCount: items.length, userId });
 
@@ -110,7 +122,7 @@ serve(async (req: Request) => {
     // Fetch products with their prices
     const { data: dbProducts, error: productsError } = await supabase
       .from("products")
-      .select("id, price, is_active")
+      .select("id, name, price, is_active, categories(slug)")
       .in("id", productIds);
 
     if (productsError || !dbProducts) {
@@ -197,6 +209,15 @@ serve(async (req: Request) => {
       }
     }
 
+    if (couponCode && couponDiscount <= 0) throw new Error('Cupom inválido ou indisponível. Remova o cupom e confira o total.');
+    const blackWeekDiscount = setPairDiscount(validatedItems.map(item => {
+      const product = dbProducts.find(product => product.id === item.id);
+      const category = product?.categories;
+      const slug = Array.isArray(category) ? category[0]?.slug : category?.slug;
+      return { price: item.price, quantity: item.quantity, eligible: isSet(slug, product?.name) };
+    }), campaignActive, couponDiscount > 0);
+    const merchandiseDiscount = couponDiscount + blackWeekDiscount;
+
     // ===== SERVER-SIDE GIFT CARD VALIDATION =====
     let giftCardDiscount = 0;
     if (giftCardCode && clientGiftCardDiscount > 0) {
@@ -210,20 +231,23 @@ serve(async (req: Request) => {
         .single();
 
       if (giftCard && giftCard.is_active && new Date(giftCard.expires_at) > new Date()) {
-        giftCardDiscount = Math.min(giftCard.current_balance, subtotal - couponDiscount);
+        giftCardDiscount = Math.min(giftCard.current_balance, Math.max(0, subtotal - merchandiseDiscount));
       }
     }
 
     const shippingCost = shippingOption?.price || 0;
-    const totalDiscounts = giftCardDiscount + couponDiscount;
+    const totalDiscounts = giftCardDiscount + merchandiseDiscount;
 
     // For credit card with interest, use the totalWithInterest from cardData
-    const hasInterest = paymentMethod === "credit_card" && cardData?.hasInterest;
-    const baseTotal = Math.max(0, subtotal - totalDiscounts + shippingCost);
+    const installments = cardData?.installments || 1;
+    if (!Number.isInteger(installments) || installments < 1 || installments > 12) throw new Error("Parcelamento inválido");
+    const hasInterest = paymentMethod === "credit_card" && !interestFree(Math.max(0, subtotal - totalDiscounts + shippingCost), installments, campaignActive);
+    const baseTotal = paymentTotal(subtotal, shippingCost, blackWeekDiscount, couponDiscount, giftCardDiscount).total;
+    if (typeof expectedTotal === 'number' && Math.abs(expectedTotal - baseTotal) > 0.01) throw new Error('A promoção ou o total mudou. Atualize seu carrinho antes de pagar.');
     
     // Validate interest calculation server-side
     let total = baseTotal;
-    if (hasInterest && cardData?.totalWithInterest && cardData.installments > 1) {
+    if (hasInterest && cardData && cardData.installments > 1) {
       // Recalculate interest server-side
       const INTEREST_RATE = 0.0299;
       const n = cardData.installments;
@@ -232,7 +256,7 @@ serve(async (req: Request) => {
       const serverTotalWithInterest = serverInstallmentValue * n;
       
       // Allow small rounding difference (max R$0.10)
-      if (Math.abs(serverTotalWithInterest - cardData.totalWithInterest) > 0.10) {
+      if (Math.abs(serverTotalWithInterest - (cardData.totalWithInterest || serverTotalWithInterest)) > 0.10) {
         console.warn(`Interest total mismatch: client=${cardData.totalWithInterest}, server=${serverTotalWithInterest}`);
       }
       total = serverTotalWithInterest;
@@ -244,12 +268,21 @@ serve(async (req: Request) => {
 
     // Prepare items for Pagar.me (using validated server prices)
     // NOTE: Do NOT add shipping here - it goes in the shipping.amount field
-    const orderItems = validatedItems.map((item) => ({
+    let orderItems = validatedItems.map((item) => ({
       code: item.id,
       description: `${item.name}${item.size ? ` - ${item.size}` : ""}${item.color ? ` - ${item.color}` : ""}`,
       amount: Math.round(item.price * 100),
       quantity: item.quantity,
     }));
+
+    // Provider item sum must match payment amount after discounts/interest.
+    // Original product-level values remain in our order_items for stock and history.
+    if (totalDiscounts > 0 || hasInterest) orderItems = [{
+      code: 'vitz-order',
+      description: validatedItems.map(item => `${item.quantity}x ${item.name}`).join(' · ').slice(0, 250),
+      amount: totalInCents - Math.round(shippingCost * 100),
+      quantity: 1,
+    }];
 
     // Parse phone
     const phoneDigits = customer.phone.replace(/\D/g, "");
@@ -407,7 +440,7 @@ serve(async (req: Request) => {
       shipping_method: shippingOption?.name || null,
       shipping_cost: shippingCost,
       subtotal: subtotal,
-      discount: couponDiscount,
+      discount: merchandiseDiscount,
       gift_card_amount: giftCardDiscount,
       total: total,
       status: orderStatus,
@@ -561,7 +594,7 @@ serve(async (req: Request) => {
               customer_name: customer.name,
               subtotal: subtotal,
               shipping_cost: shippingCost,
-              discount: couponDiscount,
+              discount: merchandiseDiscount,
               gift_card_amount: giftCardDiscount,
               total: total,
               shipping_method: shippingOption?.name || null,

@@ -1,3 +1,5 @@
+import BlackWeekSummary from "@/components/blackweek/BlackWeekSummary";
+import { useBlackWeek } from "@/context/BlackWeekContext";
 import { Link } from "react-router-dom";
 import CartSuggestions from "@/components/cart/CartSuggestions";
 import { Helmet } from "react-helmet-async";
@@ -34,7 +36,8 @@ const FREE_SHIPPING_MIN = 239.90;
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const { appliedCoupon, setAppliedCoupon, blackWeekDiscount, pendingCoupon } = useCart();
+  const { active: campaignActive, preview: campaignPreview, token: blackWeekAccessToken } = useBlackWeek();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const { toast } = useToast();
 
@@ -137,7 +140,7 @@ const CartPage = () => {
         discount_value: coupon.discount_value,
       });
       setCouponCode("");
-      toast({
+      if (!((campaignActive || campaignPreview) && blackWeekDiscount > 0)) toast({
         title: "Cupom aplicado!",
         description: `Desconto de ${coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatPrice(coupon.discount_value)} aplicado.`,
       });
@@ -325,7 +328,7 @@ const CartPage = () => {
   const subtotal = getCartTotal();
   const discount = calculateDiscount();
   const shippingCost = selectedShipping?.price || 0;
-  const total = subtotal - discount + shippingCost;
+  const total = subtotal - discount - blackWeekDiscount + shippingCost;
 
   // Check if user qualifies for free shipping promotion
   const isSoutheast = SOUTHEAST_STATES.includes(destinationState);
@@ -572,6 +575,7 @@ const CartPage = () => {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatPrice(subtotal)}</span>
                     </div>
+                    <BlackWeekSummary />
                     {discount > 0 && (
                       <div className="flex justify-between text-sm text-primary">
                         <span>Desconto ({appliedCoupon?.code})</span>
@@ -609,6 +613,7 @@ const CartPage = () => {
                     variant="hero"
                     size="lg"
                     className="w-full"
+                    disabled={Boolean(pendingCoupon)}
                     asChild
                   >
                     <Link to={appliedCoupon ? `/checkout?coupon=${appliedCoupon.code}` : "/checkout"}>

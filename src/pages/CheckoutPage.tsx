@@ -1,3 +1,5 @@
+import BlackWeekSummary from "@/components/blackweek/BlackWeekSummary";
+import { useBlackWeek } from "@/context/BlackWeekContext";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -78,7 +80,8 @@ const CheckoutPage = () => {
 
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const { appliedCoupon, setAppliedCoupon, blackWeekDiscount, pendingCoupon } = useCart();
+  const { active: campaignActive, preview: campaignPreview, token: blackWeekAccessToken } = useBlackWeek();
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // Shipping states
@@ -492,7 +495,7 @@ const CheckoutPage = () => {
         discount_value: coupon.discount_value,
       });
       setCouponCode("");
-      toast({
+      if (!((campaignActive || campaignPreview) && blackWeekDiscount > 0)) toast({
         title: "Cupom aplicado!",
         description: `Desconto de ${coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatPrice(coupon.discount_value)} aplicado.`,
       });
@@ -557,6 +560,7 @@ const CheckoutPage = () => {
   };
 
   const handleCheckout = async () => {
+    if (pendingCoupon) return;
     if (!validateForm()) return;
     if (items.length === 0) {
       toast({ title: "Carrinho vazio", variant: "destructive" });
@@ -609,6 +613,8 @@ const CheckoutPage = () => {
         giftCardDiscount: giftCardApplied ? giftCardDiscount : 0,
         couponCode: appliedCoupon?.code,
         couponDiscount,
+        blackWeekAccessToken,
+        expectedTotal: finalTotal,
       };
 
       if (paymentMethod === "credit_card") {
@@ -671,7 +677,8 @@ const CheckoutPage = () => {
 
   const shippingCost = selectedShipping?.price || 0;
   const couponDiscount = calculateCouponDiscount();
-  const finalTotal = Math.max(0, totalPrice - giftCardDiscount - couponDiscount + shippingCost);
+  const effectiveGiftCardDiscount = Math.min(giftCardDiscount, Math.max(0, totalPrice - couponDiscount - blackWeekDiscount));
+  const finalTotal = Math.max(0, totalPrice - effectiveGiftCardDiscount - couponDiscount - blackWeekDiscount + shippingCost);
 
   // Calculate installments with interest
   // Only purchases above R$180 can have up to 3x interest-free
@@ -689,7 +696,7 @@ const CheckoutPage = () => {
 
   const getInstallmentOptions = () => {
     const options = [];
-    const qualifiesForInterestFree = finalTotal >= INTEREST_FREE_MIN_VALUE;
+    const qualifiesForInterestFree = campaignActive || finalTotal >= INTEREST_FREE_MIN_VALUE;
 
     for (let i = 1; i <= 12; i++) {
       const isInterestFree = qualifiesForInterestFree && i <= INTEREST_FREE_MAX_INSTALLMENTS;
@@ -1327,6 +1334,7 @@ const CheckoutPage = () => {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>{formatPrice(totalPrice)}</span>
                       </div>
+                      <BlackWeekSummary />
                       {appliedCoupon && couponDiscount > 0 && (
                         <div className="flex justify-between text-primary">
                           <span>Cupom ({appliedCoupon.code})</span>
@@ -1336,7 +1344,7 @@ const CheckoutPage = () => {
                       {giftCardApplied && (
                         <div className="flex justify-between text-green-600">
                           <span>Gift Card</span>
-                          <span>-{formatPrice(giftCardDiscount)}</span>
+                          <span>-{formatPrice(effectiveGiftCardDiscount)}</span>
                         </div>
                       )}
                       <div className="flex justify-between">
@@ -1367,7 +1375,7 @@ const CheckoutPage = () => {
 
                     <Button
                       onClick={handleCheckout}
-                      disabled={isLoading}
+                      disabled={isLoading || Boolean(pendingCoupon)}
                       className="w-full"
                       size="lg"
                     >

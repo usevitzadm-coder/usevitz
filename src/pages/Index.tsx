@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Helmet } from "react-helmet-async";
 import Layout from "@/components/layout/Layout";
+import BlackWeekMath from "@/components/blackweek/BlackWeekMath";
 import HeroSection from "@/components/home/HeroSection";
 import ValueProps from "@/components/home/ValueProps";
 import ProductsCarousel from "@/components/home/ProductsCarousel";
@@ -25,6 +26,7 @@ const Index = () => {
       </Helmet>
       <Layout>
         <HeroSection />
+        <BlackWeekMath />
         <ValueProps />
         
         <ProductsCarousel />
