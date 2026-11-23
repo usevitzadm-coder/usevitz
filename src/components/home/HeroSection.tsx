@@ -26,7 +26,6 @@ const HeroSection = () => {
       {/* Content */}
       <div className="vitz-container relative z-10">
         <div className="max-w-xl space-y-6 animate-slide-up [text-shadow:_0_2px_12px_rgb(0_0_0_/_20%)]">
-          <span className="vitz-label text-primary bg-secondary-foreground">Nova Coleção 2026</span>
           <h1 className="vitz-heading-xl text-foreground">
             Movimento é Vida.   <br />
             <span className="text-primary bg-secondary-foreground">Movimento é Vitz.</span>

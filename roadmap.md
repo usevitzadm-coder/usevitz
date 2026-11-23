@@ -2,3 +2,5 @@
 - [x] Extend Black Week eligibility to clothing only and group sets before individual garments; update storefront and checkout.
 - [x] Verify grouped discounts, coupon exclusivity and clothing/accessory labels.
 - [x] Activate the group link for prelaunch testing and request publication; public opening stays November 24.
+- [x] Remove the dated new-collection label from the homepage.
+- [ ] Resolve the typography mismatch — awaiting confirmation of the brand font pair.
