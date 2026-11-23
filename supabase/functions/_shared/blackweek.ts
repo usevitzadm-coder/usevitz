@@ -1,6 +1,6 @@
 export const BLACK_WEEK = {
-  earlyStart: Date.parse('2026-11-26T00:00:00-03:00'),
-  publicStart: Date.parse('2026-11-27T00:00:00-03:00'),
+  earlyStart: Date.parse('2026-11-23T20:00:00-03:00'),
+  publicStart: Date.parse('2026-11-24T00:00:00-03:00'),
   lastDay: Date.parse('2026-11-30T00:00:00-03:00'),
   end: Date.parse('2026-12-01T00:00:00-03:00'),
 };

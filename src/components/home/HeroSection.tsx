@@ -8,7 +8,7 @@ const HeroSection = () => {
     <img src={heroImage} alt="Duas modelos com conjuntos Vitz" className="absolute inset-0 w-full h-full object-cover object-center" fetchPriority="high" />
     <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/20" />
     <div className="vitz-container relative py-12"><div className="max-w-xl space-y-5">
-      <p className="text-sm text-primary">VITZ · 26—30 NOVEMBRO</p>
+      <p className="text-sm text-primary">VITZ · ATÉ 30 NOVEMBRO</p>
       <h1 className="text-6xl md:text-8xl font-heading">Black <em className="text-primary">Week</em></h1>
       <p className="text-xl md:text-2xl">Compre 1 peça, leve 2.</p>
       <p className="text-muted-foreground">A cada par de roupas, a peça de menor valor sai grátis. Conjuntos formam pares entre si primeiro; depois, as peças avulsas. Acessórios não participam.</p>
