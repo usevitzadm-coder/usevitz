@@ -5,6 +5,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Albert+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 /* Vitz Design System - Premium Fitness Brand */
+@font-face {
+  font-family: 'DejaVu Serif';
+  src: url('/__l5e/assets-v1/6678437a-7666-4440-9228-b3bc7aa03f7e/DejaVuSerif.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 100 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DejaVu Serif';
+  src: url('/__l5e/assets-v1/135556fc-ea1f-488c-a84f-82adc8e27e2a/DejaVuSerif-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 100 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DejaVu Serif';
+  src: url('/__l5e/assets-v1/e258b9d7-9585-4457-9370-975c8e423abb/DejaVuSerif-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DejaVu Serif';
+  src: url('/__l5e/assets-v1/13aa06fd-47b6-41ca-93a4-e1cd7d2a975b/DejaVuSerif-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 600 900;
+  font-display: swap;
+}
 
 @layer base {
   :root {
@@ -50,7 +78,7 @@
     --vitz-charcoal-light: 30 10% 35%;
 
     /* Typography */
-    --font-heading: 'Cormorant Garamond', serif;
+    --font-heading: 'DejaVu Serif', serif;
     --font-body: 'Outfit', sans-serif;
 
     /* Shadows */

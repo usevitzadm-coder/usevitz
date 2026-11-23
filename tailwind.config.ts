@@ -71,8 +71,8 @@ export default {
         },
       },
       fontFamily: {
-        heading: ["Cormorant Garamond", "serif"],
-        body: ["Outfit", "sans-serif"],
+        heading: ["var(--font-heading)"],
+        body: ["var(--font-body)"],
         serif: ["DejaVu Serif", "Georgia", "serif"],
         albert: ["Albert Sans", "sans-serif"],
       },

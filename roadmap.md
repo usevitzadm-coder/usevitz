@@ -3,4 +3,5 @@
 - [x] Verify grouped discounts, coupon exclusivity and clothing/accessory labels.
 - [x] Activate the group link for prelaunch testing and request publication; public opening stays November 24.
 - [x] Remove the dated new-collection label from the homepage.
-- [ ] Resolve the typography mismatch — awaiting confirmation of the brand font pair.
+- [x] Restore original DejaVu Serif heading assets and share global typography tokens with heading/body utilities.
+- [ ] Restore FS Albert interface text — awaiting the user's licensed font files; retain existing body font until supplied.

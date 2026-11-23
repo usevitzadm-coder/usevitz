@@ -10,3 +10,4 @@
 - Use libphonenumber-js in the shared GymRats phone utility for country options, national formatting and E.164 serialization, so dialing rules and saved contact numbers stay consistent across countries.
 - Keep campaign dates, clothing eligibility, group-first pair pricing, coupon exclusivity and installment eligibility in the shared campaign module used by storefront and checkout, with rule tests, so displayed and charged totals agree.
 - Early campaign access uses a short-lived server-signed token; visual preview parameters never authorize payment discounts.
+- Heading/body utilities must reference global typography tokens, and original licensed fonts must be loaded from asset pointers rather than silently substituted, so campaign styles preserve brand typography.
