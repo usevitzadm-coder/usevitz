@@ -6,6 +6,13 @@
 
 /* Vitz Design System - Premium Fitness Brand */
 @font-face {
+  font-family: 'FS Albert';
+  src: url('/__l5e/assets-v1/3d61acb2-a40d-48e4-ba98-a2929bc6e291/FSAlbert-Regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
   font-family: 'DejaVu Serif';
   src: url('/__l5e/assets-v1/6678437a-7666-4440-9228-b3bc7aa03f7e/DejaVuSerif.ttf') format('truetype');
   font-style: normal;
@@ -79,7 +86,7 @@
 
     /* Typography */
     --font-heading: 'DejaVu Serif', serif;
-    --font-body: 'Outfit', sans-serif;
+    --font-body: 'FS Albert', sans-serif;
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(30 10% 15% / 0.08);
