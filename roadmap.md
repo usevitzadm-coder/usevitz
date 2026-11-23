@@ -1,4 +1,4 @@
 - [x] Clarify Black Week product labels and remove the misplaced duplicate label.
 - [x] Extend Black Week eligibility to clothing only and group sets before individual garments; update storefront and checkout.
 - [x] Verify grouped discounts, coupon exclusivity and clothing/accessory labels.
-- [ ] Activate and publish the group link now for prelaunch testing; public opening stays November 24.
+- [x] Activate the group link for prelaunch testing and request publication; public opening stays November 24.
