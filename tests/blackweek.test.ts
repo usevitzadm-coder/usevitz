@@ -3,12 +3,14 @@ import { BLACK_WEEK as dates, campaignPhase, setPairDiscount, needsCouponConfirm
 import { issueEarlyToken, verifyEarlyToken } from '../supabase/functions/_shared/blackweek-token';
 const set = (price: number, quantity = 1) => ({ price, quantity, eligible: true });
 describe('Black Week rules', () => {
- test('group opens November 23 at 20h Brasília, never before', () => {
-  const start = Date.parse('2026-11-23T20:00:00-03:00');
+ test('group link is available November 23 before the 20h announcement', () => {
+  const start = Date.parse('2026-11-23T00:00:00-03:00');
   expect(dates.earlyStart).toBe(start);
   expect(campaignPhase(start - 1, true)).toBe('off');
   expect(campaignPhase(start, true)).toBe('early');
   expect(campaignPhase(start, false)).toBe('teaser');
+  expect(campaignPhase(Date.parse('2026-11-23T18:33:00-03:00'), true)).toBe('early');
+  expect(campaignPhase(Date.parse('2026-11-23T18:33:00-03:00'), false)).toBe('teaser');
  });
  test('public opens November 24 at midnight Brasília', () => {
   const start = Date.parse('2026-11-24T00:00:00-03:00');
@@ -62,5 +64,5 @@ describe('Black Week rules', () => {
  test('payment charges 225 for 412 pair', () => expect(paymentTotal(412, 0, 187, 0, 0).total).toBe(225));
  test('coupon replaces Black in payment and gift card remains payment credit', () => expect(paymentTotal(412, 10, 187, 61.8, 20)).toEqual({ discount: 61.8, giftCard: 20, total: 340.2 }));
  test('campaign allows up to 3 installments without interest', () => { expect(interestFree(100, 3, true)).toBe(true); expect(interestFree(100, 4, true)).toBe(false); expect(interestFree(100, 3, false)).toBe(false); });
- test('early token only works November 23 from 20h until public opening', async () => { const token = await issueEarlyToken('test-secret'); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-23T19:59:59-03:00'))).toBe(false); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-23T20:00:00-03:00'))).toBe(true); expect(await verifyEarlyToken(token, 'different', dates.earlyStart)).toBe(false); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-24T00:00:00-03:00'))).toBe(false); expect(await verifyEarlyToken('preview=grupo', 'test-secret', dates.earlyStart)).toBe(false); });
+ test('early token supports prelaunch testing but expires at public opening', async () => { const token = await issueEarlyToken('test-secret'); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-22T23:59:59-03:00'))).toBe(false); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-23T18:33:00-03:00'))).toBe(true); expect(await verifyEarlyToken(token, 'different', dates.earlyStart)).toBe(false); expect(await verifyEarlyToken(token, 'test-secret', Date.parse('2026-11-24T00:00:00-03:00'))).toBe(false); expect(await verifyEarlyToken('preview=grupo', 'test-secret', dates.earlyStart)).toBe(false); });
 });
