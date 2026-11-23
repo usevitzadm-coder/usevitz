@@ -213,7 +213,7 @@ const ProductsCarousel = () => {
                           Sem imagem
                         </div>
                       )}
-                      {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium">1+1</span>}
+                      {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute bottom-3 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] bg-primary text-primary-foreground px-3 py-1 text-xs sm:text-sm font-medium">Compre 1, leve 2</span>}
                       {isComingSoon && (
                         <span className="absolute top-3 left-3 bg-foreground text-background text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
                           Em Breve
@@ -248,7 +248,6 @@ const ProductsCarousel = () => {
                           </div>
                         </>
                       )}
-                      {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 text-sm font-medium">1+1</span>}
                       {isComingSoon && (
                         <p className="text-xs text-muted-foreground italic">Lançamento em breve</p>
                       )}
