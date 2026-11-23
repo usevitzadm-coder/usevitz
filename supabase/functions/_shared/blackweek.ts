@@ -12,16 +12,35 @@ export function campaignPhase(now: number, earlyAccess = false) {
 export function isSet(category?: string | null, name?: string) {
   return ['conjuntos', 'looks-prontos'].includes(category?.trim().toLowerCase() || '') && (name === undefined || /^conjunto\b/i.test(name.trim()));
 }
-export interface CampaignItem { price: number; quantity: number; eligible: boolean }
+export function isClothing(category?: string | null, name?: string) {
+  const slug = category?.trim().toLowerCase() || '';
+  if (['acessorios', 'accessories', 'cartao-presente', 'gift-cards'].includes(slug)) return false;
+  if (/^(bon[eé]|headband|ecobag|cart[aã]o\s+presente)(?:\s|$)/i.test(name?.trim() || '')) return false;
+  return /^(conjunto|top|short|legging|macaquinho|macac[aã]o|jaqueta|cal[cç]a|camiseta|regata|blusa|bermuda|saia|vestido|body)\b/i.test(name?.trim() || '')
+    || ['conjuntos', 'looks-prontos', 'tops', 'shorts', 'leggings', 'roupas', 'feminino'].includes(slug);
+}
+export interface CampaignItem { price: number; quantity: number; eligible: boolean; group?: 'set' | 'individual' }
+export function campaignItem(price: number, quantity: number, category?: string | null, name?: string): CampaignItem {
+  return { price, quantity, eligible: isClothing(category, name), group: isSet(category, name) || /^conjunto\b/i.test(name?.trim() || '') ? 'set' : 'individual' };
+}
 export function setPairDiscount(items: CampaignItem[], active: boolean, hasCoupon = false) {
   if (!active || hasCoupon) return 0;
-  const prices: number[] = [];
+  const groups: Record<'set' | 'individual', number[]> = { set: [], individual: [] };
   for (const item of items) {
     if (!item.eligible || !Number.isFinite(item.price) || item.price < 0 || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) continue;
-    for (let n = 0; n < item.quantity; n++) prices.push(Math.round(item.price * 100));
+    for (let n = 0; n < item.quantity; n++) groups[item.group || 'individual'].push(Math.round(item.price * 100));
   }
-  prices.sort((a, b) => b - a);
-  return prices.reduce((sum, price, index) => sum + (index % 2 === 1 ? price : 0), 0) / 100;
+  let discount = 0;
+  const remaining: number[] = [];
+  // Pair sets together first, then individual garments, irrespective of collection.
+  for (const prices of [groups.set, groups.individual]) {
+    prices.sort((a, b) => b - a);
+    for (let index = 1; index < prices.length; index += 2) discount += prices[index];
+    if (prices.length % 2 === 1) remaining.push(prices[prices.length - 1]);
+  }
+  // A leftover set and garment still qualify as the final clothing pair.
+  if (remaining.length === 2) discount += Math.min(...remaining);
+  return discount / 100;
 }
 export function eligibleCount(items: CampaignItem[]) {
   return items.reduce((sum, item) => sum + (item.eligible ? item.quantity : 0), 0);

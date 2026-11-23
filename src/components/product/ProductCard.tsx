@@ -1,5 +1,5 @@
 import { useBlackWeek } from "@/context/BlackWeekContext";
-import { isSet } from "../../../supabase/functions/_shared/blackweek";
+import { isClothing } from "../../../supabase/functions/_shared/blackweek";
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product";
 import { getOptimizedImageUrl } from "@/lib/imageUtils";
@@ -50,7 +50,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
            }`}
            loading="lazy"
          />
-        {theme && !isComingSoon && isSet(product.category, product.name) && <span className="absolute bottom-3 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] bg-primary text-primary-foreground px-3 py-1 font-medium text-xs sm:text-sm">Compre 1, leve 2</span>}
+        {theme && !isComingSoon && isClothing(product.category, product.name) && <span className="absolute bottom-3 left-3 right-3 w-fit max-w-[calc(100%-1.5rem)] bg-primary text-primary-foreground px-3 py-1 font-medium text-xs sm:text-sm">Compre 1, leve 2</span>}
         {isComingSoon && (
           <span className="absolute top-3 left-3 bg-foreground text-background text-xs px-3 py-1 rounded-sm font-medium uppercase tracking-wider">
             Em Breve

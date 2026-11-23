@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { campaignPhase, isSet, setPairDiscount, paymentTotal, interestFree } from '../supabase/functions/_shared/blackweek';
+import { campaignPhase, campaignItem, setPairDiscount, paymentTotal, interestFree } from '../supabase/functions/_shared/blackweek';
 import { verifyEarlyToken } from '../supabase/functions/_shared/blackweek-token';
 
 // Exercise the real handler with isolated store and payment doubles: no live charge,
 // stock changes, customer messages or test rows in the production database.
-async function checkout(couponCode?: string) {
+async function checkout(couponCode?: string, mixed = false) {
  let handler: ((req: Request) => Promise<Response>) | undefined;
  let providerBody: any;
  let savedOrder: any;
@@ -14,6 +14,11 @@ async function checkout(couponCode?: string) {
   { id: 'essential', name: 'Conjunto Essential', price: 225, is_active: true, categories: { slug: 'looks-prontos' } },
   { id: 'daily', name: 'Conjunto Daily', price: 187, is_active: true, categories: { slug: 'looks-prontos' } },
  ];
+ if (mixed) products.push(
+  { id: 'short', name: 'Short Daily', price: 102, is_active: true, categories: null as any },
+  { id: 'top', name: 'Top Essential', price: 85, is_active: true, categories: null as any },
+  { id: 'cap', name: 'Boné Vitz', price: 50, is_active: true, categories: { slug: 'acessorios' } },
+ );
  const client = {
   auth: { getUser: async () => ({ data: { user: { id: 'test-user' } } }) },
   rpc: async () => ({ error: null }),
@@ -36,13 +41,13 @@ async function checkout(couponCode?: string) {
  const source = readFileSync(new URL('../supabase/functions/create-pagarme-checkout/index.ts', import.meta.url), 'utf8').replace(/^import .*;\s*$/gm, '');
  const js = new Bun.Transpiler({ loader: 'ts' }).transformSync(source);
  const fakeDate = class extends Date { static now() { return Date.parse('2026-11-27T12:00:00-03:00'); } };
- new Function('serve','createClient','Deno','fetch','Date','campaignPhase','isSet','setPairDiscount','paymentTotal','interestFree','verifyEarlyToken', js)(
+ new Function('serve','createClient','Deno','fetch','Date','campaignPhase','campaignItem','setPairDiscount','paymentTotal','interestFree','verifyEarlyToken', js)(
   (h: typeof handler) => { handler=h; }, () => client,
   { env: { get: () => 'isolated-test-secret' } },
   async (url: string, options: any) => {
    if (url.includes('api.pagar.me')) { providerBody=JSON.parse(options.body); return new Response(JSON.stringify({ id: 'fake-provider-order', charges: [{ id: 'fake-charge', status: 'pending', last_transaction: { qr_code: 'test-qr' } }] }), { status: 200 }); }
    return new Response('{}');
-  }, fakeDate,campaignPhase,isSet,setPairDiscount,paymentTotal,interestFree,verifyEarlyToken,
+  }, fakeDate,campaignPhase,campaignItem,setPairDiscount,paymentTotal,interestFree,verifyEarlyToken,
  );
  if (!handler) throw new Error('Handler not registered');
  const response = await handler(new Request('http://localhost/checkout', { method: 'POST', headers: { authorization: 'Bearer test' }, body: JSON.stringify({
@@ -50,7 +55,7 @@ async function checkout(couponCode?: string) {
   customer: { name: 'Test', email: 'test@example.invalid', cpf: '00000000000', phone: '11999999999' },
   shipping: { street: 'Test', number: '1', neighborhood: 'Test', city: 'Test', state: 'SP', zipCode: '00000000' },
   shippingOption: { price: 0 }, paymentMethod: 'pix', couponCode,
-  expectedTotal: couponCode ? 350.2 : 225,
+  expectedTotal: mixed ? (couponCode ? 551.65 : 377) : couponCode ? 350.2 : 225,
  }) }));
  expect(response.status).toBe(200);
  expect((await response.json()).internalOrderId).toBe('test-order');
@@ -69,4 +74,17 @@ test('real checkout handler charges coupon only, never coupon plus Black', async
  expect(providerBody.payments[0].amount).toBe(35020);
  expect(savedOrder.discount).toBe(61.8);
  expect(savedOrder.total).toBe(350.2);
+});
+test('real checkout groups two sets and two garments and excludes the cap', async () => {
+ const { providerBody, savedOrder, writes } = await checkout(undefined, true);
+ expect(providerBody.payments[0].amount).toBe(37700);
+ expect(savedOrder.discount).toBe(272);
+ expect(savedOrder.total).toBe(377);
+ expect(writes.order_items[0]).toHaveLength(5);
+});
+test('coupon replaces all grouped clothing discounts in the real checkout', async () => {
+ const { providerBody, savedOrder } = await checkout('TEST15', true);
+ expect(providerBody.payments[0].amount).toBe(55165);
+ expect(savedOrder.total).toBe(551.65);
+ expect(savedOrder.discount).toBeCloseTo(97.35, 3);
 });

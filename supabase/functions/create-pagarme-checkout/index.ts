@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { campaignPhase, isSet, setPairDiscount, paymentTotal, interestFree } from '../_shared/blackweek.ts';
+import { campaignPhase, campaignItem, setPairDiscount, paymentTotal, interestFree } from '../_shared/blackweek.ts';
 import { verifyEarlyToken } from '../_shared/blackweek-token.ts';
 
 const corsHeaders = {
@@ -214,7 +214,7 @@ serve(async (req: Request) => {
       const product = dbProducts.find(product => product.id === item.id);
       const category = product?.categories;
       const slug = Array.isArray(category) ? category[0]?.slug : category?.slug;
-      return { price: item.price, quantity: item.quantity, eligible: isSet(slug, product?.name) };
+      return campaignItem(item.price, item.quantity, slug, product?.name);
     }), campaignActive, couponDiscount > 0);
     const merchandiseDiscount = couponDiscount + blackWeekDiscount;
 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { Product, ProductVariant, CartItem } from "@/types/product";
 
 import { useBlackWeek } from './BlackWeekContext';
-import { isSet, setPairDiscount, needsCouponConfirmation } from '../../supabase/functions/_shared/blackweek';
+import { campaignItem, setPairDiscount, needsCouponConfirmation } from '../../supabase/functions/_shared/blackweek';
 export interface AppliedCoupon { code: string; discount_type: 'percentage' | 'fixed'; discount_value: number }
 
 const CART_STORAGE_KEY = "vitz-cart";
@@ -46,7 +46,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { active, preview } = useBlackWeek();
   const [appliedCoupon, saveCoupon] = useState<AppliedCoupon | null>(null);
   const [pendingCoupon, setPendingCoupon] = useState<AppliedCoupon | null>(null);
-  const campaignItems = items.map(item => ({ price: item.product.price, quantity: item.quantity, eligible: isSet(item.product.category, item.product.name) }));
+  const campaignItems = items.map(item => campaignItem(item.product.price, item.quantity, item.product.category, item.product.name));
   const requiresChoice = needsCouponConfirmation(campaignItems, active || preview);
   const previouslyRequired = useRef(requiresChoice);
   useEffect(() => {

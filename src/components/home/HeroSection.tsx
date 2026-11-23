@@ -10,9 +10,9 @@ const HeroSection = () => {
     <div className="vitz-container relative py-12"><div className="max-w-xl space-y-5">
       <p className="text-sm text-primary">VITZ · 26—30 NOVEMBRO</p>
       <h1 className="text-6xl md:text-8xl font-heading">Black <em className="text-primary">Week</em></h1>
-      <p className="text-xl md:text-2xl">Compre 1 conjunto, leve 2.</p>
-      <p className="text-muted-foreground">O de menor valor sai grátis.</p>
-      <Button variant="hero" size="lg" asChild><Link to="/colecao/looks-prontos">Montar meu par</Link></Button>
+      <p className="text-xl md:text-2xl">Compre 1 peça, leve 2.</p>
+      <p className="text-muted-foreground">A cada par de roupas, a peça de menor valor sai grátis. Conjuntos formam pares entre si primeiro; depois, as peças avulsas. Acessórios não participam.</p>
+      <Button variant="hero" size="lg" asChild><Link to="/produtos">Montar meu par</Link></Button>
       <p className="text-xs text-muted-foreground">Até 3x sem juros · Não acumulativo com cupons</p>
     </div></div>
   </section>;

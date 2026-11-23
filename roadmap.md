@@ -1,2 +1,3 @@
 - [x] Clarify Black Week product labels and remove the misplaced duplicate label.
-- [ ] Extend Black Week eligibility and pair grouping — awaiting whether accessories participate.
+- [x] Extend Black Week eligibility to clothing only and group sets before individual garments; update storefront and checkout.
+- [x] Verify grouped discounts, coupon exclusivity and clothing/accessory labels.
