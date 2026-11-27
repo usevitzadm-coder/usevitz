@@ -3,6 +3,7 @@ import { Product, ProductVariant, CartItem } from "@/types/product";
 
 import { useBlackWeek } from './BlackWeekContext';
 import { campaignItem, setPairDiscount, needsCouponConfirmation } from '../../supabase/functions/_shared/blackweek';
+import { trackMetaAddToCart } from "@/lib/meta-pixel";
 export interface AppliedCoupon { code: string; discount_type: 'percentage' | 'fixed'; discount_value: number }
 
 const CART_STORAGE_KEY = "vitz-cart";
@@ -75,7 +76,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = useCallback((product: Product, variant: ProductVariant, quantity = 1, colorImage?: string) => {
     const maxStock = variant.stock;
-    
+    const currentQuantity = items.find(
+      (item) => item.product.id === product.id && item.variant.id === variant.id
+    )?.quantity ?? 0;
+    const addedQuantity = Math.max(0, Math.min(quantity, maxStock - currentQuantity));
+
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (item) => item.product.id === product.id && item.variant.id === variant.id
@@ -94,7 +99,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [...prev, { product, variant, quantity: cappedQuantity, colorImage }];
     });
     setIsCartOpen(true);
-  }, []);
+    if (addedQuantity > 0) void trackMetaAddToCart(product, addedQuantity);
+  }, [items]);
 
   const removeFromCart = useCallback((productId: string, variantId: string) => {
     setItems((prev) =>

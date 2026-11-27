@@ -9,6 +9,8 @@ import { BlackWeekProvider } from "@/context/BlackWeekContext";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import MetaPixelTracker from "@/components/tracking/MetaPixelTracker";
+import CookieConsentBanner from "@/components/consent/CookieConsentBanner";
 import Index from "./pages/Index";
 
 // Lazy-loaded routes for code splitting
@@ -68,7 +70,7 @@ const App = () => {
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter><BlackWeekProvider><CartProvider>
+        <BrowserRouter><MetaPixelTracker /><CookieConsentBanner /><BlackWeekProvider><CartProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />

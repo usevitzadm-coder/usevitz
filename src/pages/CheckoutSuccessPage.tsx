@@ -6,17 +6,44 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { isApprovedPurchase, trackMetaPurchase } from "@/lib/meta-pixel";
 
 const CheckoutSuccessPage = () => {
   const [searchParams] = useSearchParams();
   const { clearCart } = useCart();
+  const { user, isLoading: authLoading } = useAuth();
   const paymentId = searchParams.get("payment_id");
   const externalReference = searchParams.get("external_reference");
+  const orderId = searchParams.get("order");
 
   useEffect(() => {
     // Clear cart after successful purchase
     clearCart();
   }, [clearCart]);
+
+  useEffect(() => {
+    if (authLoading || !user || !orderId) return;
+    let cancelled = false;
+
+    const confirmPurchase = async () => {
+      const { data: order, error } = await supabase
+        .from("orders")
+        .select("id, total, payment_status")
+        .eq("id", orderId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (cancelled || error || !order || !isApprovedPurchase(order.payment_status)) return;
+      await trackMetaPurchase(order.id, Number(order.total));
+    };
+
+    void confirmPurchase();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, orderId, user]);
 
   return (
     <>

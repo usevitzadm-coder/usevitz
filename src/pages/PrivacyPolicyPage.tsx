@@ -118,6 +118,10 @@ const PrivacyPolicyPage = () => {
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                      <span className="text-foreground/80">Com a Meta, quando a publicidade for permitida, dados de navegação, interações com produtos, valor da compra, identificadores de cookies e informações técnicas do navegador ou dispositivo, para medir e otimizar campanhas e personalizar anúncios;</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                       <span className="text-foreground/80">Quando exigido por lei ou autoridades competentes;</span>
                     </li>
                     <li className="flex items-start gap-3">
@@ -167,10 +171,16 @@ const PrivacyPolicyPage = () => {
                   <h2 className="font-heading text-xl md:text-2xl font-semibold text-primary mb-4">
                     6. Cookies e Tecnologias de Rastreamento
                   </h2>
+                  <p className="text-foreground/80 leading-relaxed mb-4">
+                    Utilizamos cookies para melhorar a experiência do usuário, personalizar conteúdo e medir 
+                    o uso do site e os resultados de campanhas. O pixel da Meta, quando permitido, registra 
+                    páginas visitadas, adições ao carrinho, início de checkout e compras aprovadas para medição, 
+                    otimização de campanhas e personalização de anúncios.
+                  </p>
                   <p className="text-foreground/80 leading-relaxed">
-                    Utilizamos cookies para melhorar a experiência do usuário, personalizar conteúdo e coletar 
-                    dados anônimos sobre o uso do site. Os clientes podem gerenciar preferências de cookies em 
-                    seu navegador.
+                    Nas regiões que exigem consentimento, a publicidade só é carregada após o aceite. Você pode 
+                    alterar ou retirar essa permissão a qualquer momento em “Configurações de cookies”, no rodapé. 
+                    A recusa e o sinal Global Privacy Control do navegador interrompem novos envios ao pixel.
                   </p>
                 </div>
 

@@ -12,6 +12,7 @@ import { useCart } from "@/context/CartContext";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { trackMetaInitiateCheckout } from "@/lib/meta-pixel";
 
 interface ShippingOption {
   id: number;
@@ -616,7 +617,16 @@ const CartPage = () => {
                     disabled={Boolean(pendingCoupon)}
                     asChild
                   >
-                    <Link to={appliedCoupon ? `/checkout?coupon=${appliedCoupon.code}` : "/checkout"}>
+                    <Link
+                      to={appliedCoupon ? `/checkout?coupon=${appliedCoupon.code}` : "/checkout"}
+                      onClick={(event) => {
+                        if (pendingCoupon) {
+                          event.preventDefault();
+                          return;
+                        }
+                        void trackMetaInitiateCheckout(items, total);
+                      }}
+                    >
                       Finalizar Compra
                       <ArrowRight size={18} />
                     </Link>

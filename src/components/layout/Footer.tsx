@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { submitMarketingConsent, WHATSAPP_CONSENT_TEXT, WHATSAPP_DEFAULT } from "@/lib/marketing-consent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { openCookieSettings } from "@/components/consent/CookieConsentBanner";
 
 // Import payment logos
 import visaLogo from "@/assets/payment/visa.svg";
@@ -144,6 +145,13 @@ const Footer = () => {
                 </li>
               )}
             </ul>
+            <button
+              type="button"
+              onClick={openCookieSettings}
+              className="mt-3 text-sm text-primary-foreground/80 hover:text-primary-foreground underline underline-offset-2 transition-colors"
+            >
+              Configurações de cookies
+            </button>
           </div>
 
           {/* Formas de Pagamento */}
