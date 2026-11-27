@@ -11,3 +11,4 @@
 - Keep campaign dates, clothing eligibility, group-first pair pricing, coupon exclusivity and installment eligibility in the shared campaign module used by storefront and checkout, with rule tests, so displayed and charged totals agree.
 - Early campaign access uses a short-lived server-signed token; visual preview parameters never authorize payment discounts.
 - Heading/body utilities must reference global typography tokens, and original licensed fonts must be loaded from asset pointers rather than silently substituted, so campaign styles preserve brand typography.
+- Keep Meta browser measurement in the shared pixel module gated by advertising consent, with stable event IDs and paid-order verification before Purchase, so customer identifiers stay out and conversions are not duplicated.

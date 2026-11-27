@@ -42,7 +42,7 @@ function getFbq(): MetaFbq {
 
   fbq.queue = [];
   fbq.push = fbq;
-  fbq.loaded = false;
+  fbq.loaded = true;
   fbq.version = "2.0";
   window.fbq = fbq;
   window._fbq = fbq;
@@ -91,6 +91,12 @@ async function ensureMetaPixel(): Promise<MetaFbq | null> {
   }
 
   return initializing;
+}
+
+export async function syncMetaPixelConsent(): Promise<boolean> {
+  const permitted = await canTrack("advertising");
+  if (initialized) getFbq()("consent", permitted ? "grant" : "revoke");
+  return permitted;
 }
 
 async function trackMetaEvent(

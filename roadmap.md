@@ -6,8 +6,8 @@
 - [x] Restore original DejaVu Serif heading assets and share global typography tokens with heading/body utilities.
 - [x] Restore FS Albert interface text using the supplied original Regular font.
 - [x] Keep the normal homepage title on exactly two lines, one phrase per line, and verify font loading.
-- [ ] Install Meta pixel 1707492460744293 with consent-gated PageView on every route.
-- [ ] Wire AddToCart and InitiateCheckout to successful storefront actions with real BRL values.
-- [ ] Wire Purchase only to verified approved orders, with stable deduplication.
-- [ ] Add regional advertising consent controls and update the privacy policy.
-- [ ] Run rule tests and browser verification; leave Meta receipt and any unsafe live purchase check explicitly unverified.
+- [x] Install Meta pixel 1707492460744293 with consent-gated PageView on every route.
+- [x] Wire AddToCart and InitiateCheckout to successful storefront actions with real BRL values.
+- [x] Wire Purchase only to verified approved orders, with stable deduplication.
+- [x] Add regional advertising consent controls and update the privacy policy.
+- [x] Run rule tests and browser verification; record provider receipt and live paid checkout as unverified.

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { onConsentChange } from "@/lib/consent";
-import { trackMetaPageView } from "@/lib/meta-pixel";
+import { syncMetaPixelConsent, trackMetaPageView } from "@/lib/meta-pixel";
 
 const MetaPixelTracker = () => {
   const location = useLocation();
@@ -14,7 +14,9 @@ const MetaPixelTracker = () => {
   }, [pageKey]);
 
   useEffect(() => onConsentChange(() => {
-    void trackMetaPageView(currentPage.current);
+    void syncMetaPixelConsent().then((permitted) => {
+      if (permitted) void trackMetaPageView(currentPage.current);
+    });
   }), []);
 
   return null;
