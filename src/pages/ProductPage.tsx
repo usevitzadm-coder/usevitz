@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,8 @@ import LaunchLeadForm from "@/components/product/LaunchLeadForm";
 import CoffeePromoToast from "@/components/product/CoffeePromoToast";
 import { useToast } from "@/hooks/use-toast";
 import { useEarlyAccess } from "@/hooks/useEarlyAccess";
+import { onConsentChange } from "@/lib/consent";
+import { trackMetaViewContent } from "@/lib/meta-pixel";
 
 const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -26,6 +28,7 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [galleryIndex, setGalleryIndex] = useState<number | undefined>(undefined);
   const [showCoffeePromo, setShowCoffeePromo] = useState(false);
+  const viewedProductIdRef = useRef<string | null>(null);
 
   // Fetch product from database
   const { data: product, isLoading } = useQuery({
@@ -94,6 +97,28 @@ const ProductPage = () => {
     },
   });
 
+  useEffect(() => {
+    if (!product?.id) return;
+    const category = (product.categories as { slug?: string; name?: string } | null)?.slug
+      ?? (product.categories as { slug?: string; name?: string } | null)?.name
+      ?? null;
+    const payload = {
+      id: product.id,
+      name: product.name,
+      category,
+      price: Number(product.price),
+    };
+
+    const sendViewContent = () => {
+      if (viewedProductIdRef.current === product.id) return;
+      void trackMetaViewContent(payload).then((tracked) => {
+        if (tracked) viewedProductIdRef.current = product.id;
+      });
+    };
+
+    sendViewContent();
+    return onConsentChange(sendViewContent);
+  }, [product?.id]);
 
   if (isLoading) {
     return (

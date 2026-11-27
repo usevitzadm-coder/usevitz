@@ -4,6 +4,7 @@ import {
   initiateCheckoutPayload,
   isApprovedPurchase,
   purchasePayload,
+  viewContentPayload,
 } from "../src/lib/meta-pixel";
 import type { CartItem, Product } from "../src/types/product";
 
@@ -30,6 +31,17 @@ const cartItem: CartItem = {
 };
 
 describe("Meta Pixel event rules", () => {
+  test("ViewContent sends product id, name, category and BRL price", () => {
+    expect(viewContentPayload(product)).toEqual({
+      content_name: "Conjunto Daily Coffee",
+      content_category: "conjuntos",
+      content_ids: ["prod-daily"],
+      content_type: "product",
+      value: 313.11,
+      currency: "BRL",
+    });
+  });
+
   test("AddToCart uses the quantity actually added and its BRL value", () => {
     expect(addToCartPayload(product, 2)).toEqual({
       content_name: "Conjunto Daily Coffee",

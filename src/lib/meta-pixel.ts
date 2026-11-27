@@ -100,7 +100,7 @@ export async function syncMetaPixelConsent(): Promise<boolean> {
 }
 
 async function trackMetaEvent(
-  eventName: "PageView" | "AddToCart" | "InitiateCheckout" | "Purchase",
+  eventName: "ViewContent" | "AddToCart" | "InitiateCheckout" | "Purchase",
   parameters: MetaEventParameters,
   eventID: string,
 ): Promise<boolean> {
@@ -119,6 +119,24 @@ function createEventId(prefix: string): string {
 
 export function money(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export type ViewContentProduct = {
+  id: string;
+  name: string;
+  category?: string | null;
+  price: number;
+};
+
+export function viewContentPayload(product: ViewContentProduct): MetaEventParameters {
+  return {
+    content_name: product.name,
+    ...(product.category ? { content_category: product.category } : {}),
+    content_ids: [product.id],
+    content_type: "product",
+    value: money(product.price),
+    currency: "BRL",
+  };
 }
 
 export function addToCartPayload(product: Product, quantity: number): MetaEventParameters {
@@ -165,7 +183,12 @@ export function trackMetaPageView(pageKey: string): Promise<boolean> {
   const pending = pendingPageViews.get(pageKey);
   if (pending) return pending;
 
-  const request = trackMetaEvent("PageView", {}, createEventId("pageview"))
+  const request = ensureMetaPixel()
+    .then((fbq) => {
+      if (!fbq) return false;
+      fbq("track", "PageView");
+      return true;
+    })
     .then((tracked) => {
       if (tracked) lastPageViewKey = pageKey;
       return tracked;
@@ -173,6 +196,11 @@ export function trackMetaPageView(pageKey: string): Promise<boolean> {
     .finally(() => pendingPageViews.delete(pageKey));
   pendingPageViews.set(pageKey, request);
   return request;
+}
+
+export async function trackMetaViewContent(product: ViewContentProduct): Promise<boolean> {
+  if (!product.id || !Number.isFinite(product.price) || product.price < 0) return false;
+  return trackMetaEvent("ViewContent", viewContentPayload(product), createEventId("view-content"));
 }
 
 export async function trackMetaAddToCart(product: Product, quantity: number): Promise<boolean> {
